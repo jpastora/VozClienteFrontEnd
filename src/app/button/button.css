@@ -1,0 +1,12 @@
+.vc-button {
+  font: 600 var(--vc-text-md) var(--vc-font-body);
+  padding: var(--vc-space-2) var(--vc-space-3);
+  border-radius: var(--vc-radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.vc-button:focus-visible { outline: none; box-shadow: var(--vc-focus); }
+.vc-button:disabled { opacity: 0.5; cursor: not-allowed; }
+.vc-button--primary { background: var(--vc-color-primary); color: #fff; }
+.vc-button--secondary { background: transparent; color: var(--vc-color-primary); border-color: var(--vc-color-primary); }
+.vc-button--danger { background: var(--vc-color-danger); color: #fff; }

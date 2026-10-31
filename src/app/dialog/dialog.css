@@ -1,0 +1,13 @@
+.vc-dialog__backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 45%); }
+.vc-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 320px;
+  max-width: 90vw;
+  padding: var(--vc-space-4);
+  background: var(--vc-color-surface);
+  border-radius: var(--vc-radius);
+  box-shadow: var(--vc-shadow);
+}

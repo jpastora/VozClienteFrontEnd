@@ -1,0 +1,12 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-1);
+  padding: var(--vc-space-3);
+  background: var(--vc-color-surface);
+  border: 1px solid var(--vc-color-border);
+  border-radius: var(--vc-radius);
+  box-shadow: var(--vc-shadow);
+}
+.vc-metric-card__label { font-size: var(--vc-text-sm); color: #4b4b4d; }
+.vc-metric-card__value { font: 700 var(--vc-text-xl) var(--vc-font-display); }

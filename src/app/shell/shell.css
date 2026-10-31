@@ -1,0 +1,13 @@
+.vc-shell__header {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-4);
+  padding: var(--vc-space-3) var(--vc-space-4);
+  background: var(--vc-code-black);
+  color: var(--vc-paper);
+}
+.vc-shell__brand { font: 700 var(--vc-text-lg) var(--vc-font-display); color: var(--vc-filament); }
+nav { display: flex; gap: var(--vc-space-3); }
+a { color: var(--vc-paper); text-decoration: none; }
+a.is-active { border-bottom: 2px solid var(--vc-filament); }
+.vc-shell__main { padding: var(--vc-space-4); }

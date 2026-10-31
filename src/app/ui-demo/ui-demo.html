@@ -1,0 +1,15 @@
+<h1>Componentes vc-</h1>
+<section class="vc-demo">
+  <vc-field controlId="txtNombreProducto" label="Nombre del producto" [(value)]="nombre" />
+  <vc-field controlId="txtCorreo" label="Correo" type="email" error="Formato de correo inválido" />
+  <div class="vc-demo__acciones">
+    <vc-button>Guardar</vc-button>
+    <vc-button variant="secondary" (click)="abierto.set(true)">Abrir diálogo</vc-button>
+    <vc-button variant="danger">Eliminar</vc-button>
+  </div>
+  <vc-metric-card label="Salas consumidas" value="12" />
+  <div><vc-badge>EN_CURSO</vc-badge></div>
+</section>
+<vc-dialog title="Confirmar" [open]="abierto()" (closed)="abierto.set(false)">
+  <p>Diálogo de ejemplo.</p>
+</vc-dialog>

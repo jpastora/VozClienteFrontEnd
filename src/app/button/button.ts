@@ -1,0 +1,12 @@
+import { Component, input} from '@angular/core';
+
+@Component({
+  selector: 'vc-button',
+  styleUrl: './button.css',
+  templateUrl: './button.html',
+})
+export class Button {
+  readonly variant = input<'primary' | 'secondary' | 'danger'>('primary');
+  readonly type = input<'button' | 'submit'>('button');
+  readonly disabled = input(false);
+}

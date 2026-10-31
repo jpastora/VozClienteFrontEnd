@@ -1,0 +1,10 @@
+:host {
+  display: inline-block;
+  padding: 2px var(--vc-space-2);
+  border-radius: 999px;
+  font: 500 var(--vc-text-sm) var(--vc-font-mono);
+  background: var(--vc-concrete);
+  color: var(--vc-code-black);
+}
+:host([data-tone='success']) { background: var(--vc-color-success); color: #fff; }
+:host([data-tone='danger']) { background: var(--vc-color-danger); color: #fff; }

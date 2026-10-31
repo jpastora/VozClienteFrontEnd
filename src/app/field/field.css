@@ -1,0 +1,12 @@
+:host { display: flex; flex-direction: column; gap: var(--vc-space-1); }
+.vc-field__label { font-size: var(--vc-text-sm); font-weight: 600; }
+.vc-field__input {
+  font: inherit;
+  padding: var(--vc-space-2);
+  border: 1px solid var(--vc-color-border);
+  border-radius: var(--vc-radius);
+  background: var(--vc-color-surface);
+}
+.vc-field__input:focus-visible { outline: none; box-shadow: var(--vc-focus); }
+.vc-field__input[aria-invalid='true'] { border-color: var(--vc-color-danger); }
+.vc-field__error { color: var(--vc-color-danger); font-size: var(--vc-text-sm); }
