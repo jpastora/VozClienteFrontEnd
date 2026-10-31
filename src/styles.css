@@ -44,7 +44,15 @@
   --vc-space-5: 40px;
   --vc-radius: 4px;
   --vc-focus: 0 0 0 3px var(--vc-filament);
+  --panel: #1c1c1e;
+  --panel-2: #232326;
+  --amber: #f5b301;
+  --teal: #114e58;
+  --red: #b4261e;
+  --text: #f2f2f2;
+  --muted: #8e8e93;
 }
+
 
 *, *::before, *::after { box-sizing: border-box; }
 

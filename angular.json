@@ -6,14 +6,13 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "vc-frontend": {
+    "voz-cliente-frontend": {
       "projectType": "application",
       "schematics": {
-        "@schematics/angular:component": {
-          "style": "css",
+        "@schematics/angular:class": {
           "skipTests": true
         },
-        "@schematics/angular:class": {
+        "@schematics/angular:component": {
           "skipTests": true
         },
         "@schematics/angular:directive": {
@@ -65,11 +64,21 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "10kB",
+                  "maximumError": "16kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": true
+                },
+                "fonts": {
+                  "inline": false
+                }
+              }
             },
             "development": {
               "optimization": false,
@@ -83,13 +92,17 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "vc-frontend:build:production"
+              "buildTarget": "voz-cliente-frontend:build:production"
             },
             "development": {
-              "buildTarget": "vc-frontend:build:development"
+              "buildTarget": "voz-cliente-frontend:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "proxyConfig": "proxy.conf.json",
+            "allowedHosts": ["lushly-ranged-playful.ngrok-free.dev"]
+          }
         }
       }
     }
