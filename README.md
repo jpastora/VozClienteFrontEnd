@@ -1,23 +1,48 @@
-# vc-frontend (T-09 · Proyecto Angular base)
+# Voz Cliente — Frontend de videollamada (Angular + WebRTC)
 
-SPA de Voz Cliente en Angular 22 (señales, TypeScript estricto, CSS). Selectores con prefijo `vc-`.
-Estructura al estilo de los proyectos del profesor: una carpeta por componente con `nombre.ts/.html/.css`,
-más `interfaces/` y `services/`.
+Videollamada entre un **representante** y un **consumidor**. El navegador del representante graba el
+**canal del cliente** (audio + video que llega por WebRTC) a `.webm` con `MediaRecorder` y lo sube
+a `POST /api/v1/grabaciones` al finalizar.
 
-    src/app/
-      app.ts · app.routes.ts · app.config.ts
-      interfaces/usuario.ts        tipos (UsuarioInfo, RolInfo)
-      services/session.ts          @Service, sesión en memoria
-      guards/role.ts               guarda por rol
-      shell/                       layout con navegación
-      button/ field/ metric-card/ badge/ dialog/   componentes vc-
-      ui-demo/                     catálogo de componentes (ruta /ui)
-      auth/ products/ rooms/ transcription/ analysis/ reports/ packages/ admin/   M1–M8
-      public-room/                 módulo público del consumidor
-    src/styles.css                 tokens del estilo (paleta y tipografías)
+## Ejecutar
 
-Los colores de `src/styles.css` se muestrearon de los prototipos del informe (Code Black #0b0b0c, Paper #f4f4f2, Deep Circuit #0f4c55, Filament #ffb703, Concrete #c9c9c6); confirmarlos contra el Plan general.
+```bash
+npm install
+npm start            # http://localhost:4200 (proxy a http://localhost:8070 para /api y /signaling)
+```
 
-    npm install
-    npm start        # http://localhost:4200
-    npm run build
+Antes: aplica los cambios de [BACKEND-SENALIZACION.md](./BACKEND-SENALIZACION.md).
+
+## Rutas
+
+| Quién | URL | Qué hace |
+|---|---|---|
+| Consumidor | `/sala/<token>` | Pide nombre + aceptación de grabación → `PATCH /api/salas/{token}/responder` → entra a la llamada |
+| Representante | `/representante/<token>?entrevistaId=12` | Entra, espera al consumidor, graba su canal, sube el `.webm` al finalizar |
+
+Orden recomendado: abrir primero la sala del representante, luego compartir el enlace `/sala/<token>`.
+
+## Flujo técnico
+
+1. Ambos cargan la sala (`GET /api/salas/{token}`) y validan que no esté expirada.
+2. Se conectan por WebSocket a `/signaling?token=<token>` y envían `join`; el representante crea la oferta SDP, el consumidor responde, y se intercambian candidatos ICE.
+3. Con la conexión establecida, el representante empieza a grabar el stream remoto (VP9/VP8 + Opus).
+4. Si la conexión se degrada: aviso «Conexión inestable. Reintentando… N s», reinicio de ICE cada 8 s sobre la misma conexión (no se pierde la grabación) y, tras 30 s, cierre con `esParcial=true`.
+5. Al finalizar se envía `leave`, se detiene el grabador y se sube el archivo con barra de progreso. Si falla la subida: reintentar o descargar copia local.
+
+## Estructura
+
+```
+src/app/
+  core/            config, modelos, APIs HTTP, señalización WebSocket, WebRTC, grabador
+  videollamada/    componente (lobby, llamada, subida), directiva de <video>
+```
+
+Ajustes en `src/app/core/config.ts`: servidores ICE/TURN, tiempo de reintento y preguntas de la guía.
+
+## Requisitos y límites
+
+- **HTTPS obligatorio** fuera de `localhost` (si no, el navegador bloquea cámara y micrófono).
+- **TURN** recomendado en producción: solo con STUN algunas redes (NAT simétrico, corporativas) no conectan.
+- Grabar `.webm` requiere Chrome, Edge o Firefox; Safari soporta `MediaRecorder` con limitaciones.
+- La grabación vive en memoria hasta subirse: si el representante cierra la pestaña antes, se pierde.
