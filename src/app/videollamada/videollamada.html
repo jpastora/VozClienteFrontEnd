@@ -1,0 +1,188 @@
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 48 40" aria-hidden="true">
+        <rect x="1" y="14" width="5" height="12" rx="2.5" />
+        <rect x="11" y="6" width="5" height="28" rx="2.5" />
+        <rect x="21" y="14" width="5" height="12" rx="2.5" />
+        <rect x="31" y="0" width="5" height="40" rx="2.5" />
+        <rect x="41" y="15" width="5" height="10" rx="2.5" />
+      </svg>
+      <span class="brand-name">VOZ CLIENTE</span>
+      @if (sala()) {
+        <span class="sala-tag">SALA · {{ tituloSala() }}</span>
+      }
+    </div>
+
+    <div class="top-right">
+      @if (fase() === 'llamada') {
+        @if (esRep) {
+          <span class="badge" [class.badge-espera]="!rec.grabando()">
+            <i class="dot"></i>
+            {{ rec.grabando() ? 'GRABANDO · CANAL DEL CLIENTE' : 'ESPERANDO CONEXIÓN' }}
+          </span>
+        } @else {
+          <span class="badge"><i class="dot"></i>SESIÓN GRABADA</span>
+        }
+      }
+      <span class="reloj">{{ hora() }}</span>
+    </div>
+  </header>
+
+  @switch (fase()) {
+    @case ('cargando') {
+      <section class="centro"><p class="muted">Cargando sala…</p></section>
+    }
+
+    @case ('error') {
+      <section class="centro">
+        <div class="tarjeta">
+          <h2>No se puede continuar</h2>
+          <p>{{ error() }}</p>
+        </div>
+      </section>
+    }
+
+    @case ('lobby') {
+      <section class="centro">
+        <form class="tarjeta" (ngSubmit)="entrar()">
+          <h2>{{ esRep ? 'Iniciar entrevista' : 'Únete a la videollamada' }}</h2>
+
+          <label class="campo">
+            <span>Tu nombre</span>
+            <input name="nombre" type="text" autocomplete="name" [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" />
+          </label>
+
+          @if (esRep) {
+            <label class="campo">
+              <span>ID de la entrevista</span>
+              <input name="entrevista" type="number" min="1" [ngModel]="entrevistaId()" (ngModelChange)="entrevistaId.set($event)" />
+            </label>
+            <p class="nota">Se grabará el audio y video del consumidor y se subirá al finalizar la llamada.</p>
+          } @else {
+            <label class="check">
+              <input name="acepta" type="checkbox" [ngModel]="acepta()" (ngModelChange)="acepta.set($event)" />
+              <span>
+                Acepto que esta videollamada sea grabada (audio y video) para recopilar mi opinión sobre el producto.
+              </span>
+            </label>
+          }
+
+          <p class="nota">Tu navegador te pedirá permiso para usar el micrófono y la cámara.</p>
+
+          @if (errorLobby()) {
+            <p class="error-texto">{{ errorLobby() }}</p>
+          }
+
+          <button class="btn btn-primario" type="submit">{{ esRep ? 'Entrar a la sala' : 'Aceptar y unirme' }}</button>
+        </form>
+      </section>
+    }
+
+    @case ('conectando') {
+      <section class="centro"><p class="muted">Conectando…</p></section>
+    }
+
+    @case ('llamada') {
+      <main class="stage">
+        <section class="remoto">
+          @if (rtc.remoteStream()) {
+            <video class="video-remoto" [class.oculto]="!rtc.remotoTieneVideo()" [mediaStream]="rtc.remoteStream()" autoplay playsinline></video>
+          }
+          @if (!rtc.remotoTieneVideo()) {
+            <div class="avatar-wrap">
+              <div class="avatar">{{ inicialesRemoto() }}</div>
+              @if (rtc.estado() !== 'conectado') {
+                <p class="muted">Esperando a {{ etiquetaRemota() }}…</p>
+              }
+            </div>
+          }
+          <span class="etiqueta etiqueta-remota">{{ etiquetaRemota() }} · {{ esRep ? 'Consumidor' : 'Representante' }}</span>
+        </section>
+
+        <aside class="lateral">
+          <div class="propio">
+            <video [class.oculto]="!rtc.camActivo()" [mediaStream]="rtc.localStream()" [muted]="true" autoplay playsinline></video>
+            @if (!rtc.camActivo()) {
+              <span class="sin-camara">{{ rtc.sinCamara() ? 'Sin cámara' : 'Cámara apagada' }}</span>
+            }
+            <span class="etiqueta etiqueta-propia">{{ nombre() }} · Usted</span>
+          </div>
+
+          @if (esRep) {
+            <div class="panel">
+              <h3 class="panel-titulo">GUÍA SUGERIDA</h3>
+              <ol class="guia">
+                @for (pregunta of guia; track $index) {
+                  <li>{{ pregunta }}</li>
+                }
+              </ol>
+            </div>
+          } @else {
+            <div class="panel">
+              <h3 class="panel-titulo">AVISO</h3>
+              <p class="aviso">
+                Esta conversación se está grabando con tu consentimiento. Habla con naturalidad; puedes finalizar la llamada cuando quieras.
+              </p>
+            </div>
+          }
+
+          @if (reintentando()) {
+            <div class="alerta" role="alert">
+              <b>!</b>
+              <span>Conexión inestable. Reintentando… {{ segundos() }} s</span>
+            </div>
+          }
+        </aside>
+      </main>
+
+      <footer class="controles">
+        <button class="btn" [class.apagado]="!rtc.micActivo()" type="button" (click)="alternarMic()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2Z" /></svg>
+          {{ rtc.micActivo() ? 'Micrófono activo' : 'Micrófono silenciado' }}
+        </button>
+        <button class="btn" [class.apagado]="!rtc.camActivo()" type="button" [disabled]="rtc.sinCamara()" (click)="alternarCamara()">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z" /></svg>
+          {{ rtc.sinCamara() ? 'Sin cámara' : rtc.camActivo() ? 'Cámara activa' : 'Cámara apagada' }}
+        </button>
+        <button class="btn btn-fin" type="button" (click)="finalizar()">Finalizar llamada</button>
+      </footer>
+    }
+
+    @case ('subiendo') {
+      <section class="centro">
+        <div class="tarjeta">
+          <h2>Guardando la grabación</h2>
+          @if (!errorSubida()) {
+            <div class="barra"><div class="barra-relleno" [style.width.%]="progreso()"></div></div>
+            <p class="muted">{{ progreso() }} %. No cierres esta ventana.</p>
+          } @else {
+            <p class="error-texto">{{ errorSubida() }}</p>
+            <div class="acciones">
+              <button class="btn btn-primario" type="button" (click)="subir()">Reintentar</button>
+              <button class="btn" type="button" (click)="descargarCopia()">Descargar copia .webm</button>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    @case ('finalizada') {
+      <section class="centro">
+        <div class="tarjeta">
+          <h2>Llamada finalizada</h2>
+          <p>{{ resumenFinal() }}</p>
+          @if (grabacion(); as g) {
+            <p class="nota">
+              {{ g.duracionSegundos }} s · {{ ((g.tamanoBytes ?? 0) / 1048576).toFixed(1) }} MB
+              @if (g.esParcial) { · parcial }
+            </p>
+          }
+          @if (!esRep) {
+            <p class="nota">¡Gracias por tu tiempo! Ya puedes cerrar esta ventana.</p>
+          }
+        </div>
+      </section>
+    }
+  }
+</div>

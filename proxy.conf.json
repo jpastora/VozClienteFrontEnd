@@ -1,0 +1,12 @@
+{
+  "/api": {
+    "target": "http://localhost:8070",
+    "secure": false
+  },
+  "/signaling": {
+    "target": "http://localhost:8070",
+    "secure": false,
+    "ws": true,
+    "changeOrigin": true
+  }
+}
