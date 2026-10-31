@@ -7,5 +7,5 @@ import { Component, input} from '@angular/core';
   host: { '[attr.data-tone]': 'tone()' },
 })
 export class Badge {
-  readonly tone = input<'neutral' | 'success' | 'danger'>('neutral');
+  readonly tone = input<'neutral' | 'success' | 'warning' | 'danger' | 'brand'>('neutral');
 }

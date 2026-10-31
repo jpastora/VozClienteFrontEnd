@@ -6,7 +6,7 @@ import { Component, input} from '@angular/core';
   templateUrl: './button.html',
 })
 export class Button {
-  readonly variant = input<'primary' | 'secondary' | 'danger'>('primary');
+  readonly variant = input<'primary' | 'accent' | 'secondary' | 'danger'>('primary');
   readonly type = input<'button' | 'submit'>('button');
   readonly disabled = input(false);
 }

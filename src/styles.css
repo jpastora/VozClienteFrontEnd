@@ -1,42 +1,49 @@
-/* Tokens del estilo de Brightcode Labs (Plan general, estándar gráfico).
-   Los nombres vienen del informe de diseño; los valores hexadecimales marcados
-   con TODO-PLAN son PROVISIONALES hasta copiarlos del Plan general. */
+/* Tokens del estilo de Brightcode Labs, tomados de los prototipos del informe de diseño
+   (valores muestreados de las capturas; confirmar contra el Plan general). */
 :root {
   /* Paleta */
-  --vc-code-black: #0b0b0c; /* TODO-PLAN */
-  --vc-paper: #f4f4f2; /* TODO-PLAN */
-  --vc-deep-circuit: #0f4c5c; /* TODO-PLAN */
-  --vc-filament: #f2a900; /* TODO-PLAN */
-  --vc-concrete: #c9c9c6; /* TODO-PLAN */
+  --vc-code-black: #0b0b0c;
+  --vc-paper: #f4f4f2;
+  --vc-deep-circuit: #0f4c55;
+  --vc-filament: #ffb703;
+  --vc-concrete: #c9c9c6;
+
+  /* Apoyo */
+  --vc-white: #ffffff;
+  --vc-line: #e4e4e2;
+  --vc-muted: #555555;
+  --vc-teal-soft: #86a4a9;
+  --vc-danger: #b3261e;
+  --vc-success: #1e6b3a;
+  --vc-warning: #8a5a00;
 
   /* Semánticos */
   --vc-color-bg: var(--vc-paper);
-  --vc-color-surface: #ffffff;
+  --vc-color-surface: var(--vc-white);
   --vc-color-text: var(--vc-code-black);
   --vc-color-border: var(--vc-concrete);
-  --vc-color-primary: var(--vc-deep-circuit);
+  --vc-color-primary: var(--vc-code-black);
   --vc-color-accent: var(--vc-filament);
-  --vc-color-danger: #b3261e; /* TODO-PLAN */
-  --vc-color-success: #1e7b4a; /* TODO-PLAN */
+  --vc-color-brand: var(--vc-deep-circuit);
 
   /* Tipografías */
   --vc-font-display: 'Archivo Narrow', 'Arial Narrow', sans-serif;
   --vc-font-body: 'IBM Plex Sans', Arial, sans-serif;
   --vc-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
-  /* Escala, espaciado, radios y sombras */
+  /* Escala, espaciado y forma */
+  --vc-text-xs: 0.75rem;
   --vc-text-sm: 0.875rem;
   --vc-text-md: 1rem;
   --vc-text-lg: 1.25rem;
-  --vc-text-xl: 1.75rem;
+  --vc-text-xl: 2rem;
   --vc-space-1: 4px;
   --vc-space-2: 8px;
   --vc-space-3: 16px;
   --vc-space-4: 24px;
   --vc-space-5: 40px;
-  --vc-radius: 6px;
-  --vc-shadow: 0 1px 3px rgb(0 0 0 / 14%);
-  --vc-focus: 0 0 0 3px color-mix(in srgb, var(--vc-filament) 55%, transparent);
+  --vc-radius: 4px;
+  --vc-focus: 0 0 0 3px var(--vc-filament);
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -50,5 +57,45 @@ body {
   line-height: 1.5;
 }
 
-h1, h2, h3 { font-family: var(--vc-font-display); font-weight: 700; margin: 0 0 var(--vc-space-3); }
+/* Títulos: Archivo Narrow en mayúsculas */
+h1, h2, h3 {
+  font-family: var(--vc-font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+  margin: 0 0 var(--vc-space-3);
+}
+h1 { font-size: var(--vc-text-xl); }
+h2 { font-size: var(--vc-text-lg); }
 code, pre { font-family: var(--vc-font-mono); }
+
+/* Etiqueta pequeña en mono (p. ej. "ENTREVISTA SOBRE · PEGASUS 41") */
+.vc-eyebrow {
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--vc-muted);
+}
+
+/* Tablas: encabezado negro y filas alternadas */
+.vc-table { width: 100%; border-collapse: collapse; font-size: var(--vc-text-sm); }
+.vc-table th {
+  background: var(--vc-code-black);
+  color: var(--vc-paper);
+  text-align: left;
+  font-weight: 600;
+  padding: var(--vc-space-3);
+}
+.vc-table td { padding: var(--vc-space-3); }
+.vc-table tbody tr:nth-child(odd) { background: var(--vc-paper); }
+.vc-table tbody tr:nth-child(even) { background: var(--vc-white); }
+.vc-table td:first-child { font-weight: 700; }
+
+/* Panel blanco con borde fino */
+.vc-panel {
+  background: var(--vc-white);
+  border: 1px solid var(--vc-line);
+  border-radius: var(--vc-radius);
+  padding: var(--vc-space-4);
+}

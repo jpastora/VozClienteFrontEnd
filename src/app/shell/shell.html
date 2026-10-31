@@ -1,11 +1,19 @@
-<header class="vc-shell__header">
-  <span class="vc-shell__brand">Voz Cliente</span>
+<aside class="vc-shell__sidebar">
+  <div class="vc-shell__brand" aria-label="Voz Cliente">
+    <span class="vc-shell__logo" aria-hidden="true">
+      <i></i><i></i><i></i><i></i><i></i>
+    </span>
+    Voz Cliente
+  </div>
   <nav aria-label="Principal">
     <a routerLink="/productos" routerLinkActive="is-active">Productos</a>
     <a routerLink="/salas" routerLinkActive="is-active">Salas</a>
-    <a routerLink="/reportes" routerLinkActive="is-active">Reportes</a>
-    <a routerLink="/paquetes" routerLinkActive="is-active">Paquetes</a>
+    <a routerLink="/transcripciones" routerLinkActive="is-active">Entrevistas</a>
+    <a routerLink="/reportes" routerLinkActive="is-active">Estadísticas</a>
+    <a routerLink="/paquetes" routerLinkActive="is-active">Paquetes y saldo</a>
     <a routerLink="/admin" routerLinkActive="is-active">Administración</a>
   </nav>
-</header>
-<main class="vc-shell__main"><router-outlet /></main>
+</aside>
+<div class="vc-shell__content">
+  <main class="vc-shell__main"><router-outlet /></main>
+</div>

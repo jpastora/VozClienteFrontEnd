@@ -4,11 +4,18 @@
   <vc-field controlId="txtCorreo" label="Correo" type="email" error="Formato de correo inválido" />
   <div class="vc-demo__acciones">
     <vc-button>Guardar</vc-button>
+    <vc-button variant="accent">Entrar a la sala</vc-button>
     <vc-button variant="secondary" (click)="abierto.set(true)">Abrir diálogo</vc-button>
     <vc-button variant="danger">Eliminar</vc-button>
   </div>
   <vc-metric-card label="Salas consumidas" value="12" />
-  <div><vc-badge>EN_CURSO</vc-badge></div>
+  <div class="vc-demo__badges">
+    <vc-badge tone="success">Activo</vc-badge>
+    <vc-badge tone="warning">Transcribiendo</vc-badge>
+    <vc-badge tone="danger">Con error</vc-badge>
+    <vc-badge tone="brand">Pendiente</vc-badge>
+    <vc-badge>Expirado</vc-badge>
+  </div>
 </section>
 <vc-dialog title="Confirmar" [open]="abierto()" (closed)="abierto.set(false)">
   <p>Diálogo de ejemplo.</p>

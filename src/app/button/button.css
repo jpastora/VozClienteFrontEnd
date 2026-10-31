@@ -1,12 +1,18 @@
 .vc-button {
-  font: 600 var(--vc-text-md) var(--vc-font-body);
-  padding: var(--vc-space-2) var(--vc-space-3);
+  font: 600 var(--vc-text-sm) var(--vc-font-body);
+  padding: 10px var(--vc-space-3);
   border-radius: var(--vc-radius);
-  border: 1px solid transparent;
+  border: 1px solid var(--vc-code-black);
   cursor: pointer;
+  white-space: nowrap;
 }
 .vc-button:focus-visible { outline: none; box-shadow: var(--vc-focus); }
-.vc-button:disabled { opacity: 0.5; cursor: not-allowed; }
-.vc-button--primary { background: var(--vc-color-primary); color: #fff; }
-.vc-button--secondary { background: transparent; color: var(--vc-color-primary); border-color: var(--vc-color-primary); }
-.vc-button--danger { background: var(--vc-color-danger); color: #fff; }
+.vc-button:disabled { background: var(--vc-line); border-color: var(--vc-line); color: var(--vc-muted); cursor: not-allowed; }
+
+/* Primario: negro (Guardar, Entrar a la sala) */
+.vc-button--primary { background: var(--vc-code-black); color: var(--vc-white); }
+/* Acento: Filament, para la acción principal de la pantalla (Entrar a la sala, Contacto) */
+.vc-button--accent { background: var(--vc-filament); border-color: var(--vc-filament); color: var(--vc-code-black); }
+/* Secundario: contorno (Editar, Ver detalle, Cancelar) */
+.vc-button--secondary { background: var(--vc-white); color: var(--vc-code-black); }
+.vc-button--danger { background: var(--vc-white); border-color: var(--vc-danger); color: var(--vc-danger); }

@@ -1,13 +1,34 @@
-.vc-shell__header {
+:host { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+.vc-shell__sidebar { background: var(--vc-code-black); color: var(--vc-paper); }
+
+.vc-shell__brand {
   display: flex;
   align-items: center;
-  gap: var(--vc-space-4);
-  padding: var(--vc-space-3) var(--vc-space-4);
-  background: var(--vc-code-black);
-  color: var(--vc-paper);
+  gap: var(--vc-space-2);
+  padding: var(--vc-space-4) var(--vc-space-3);
+  font: 700 var(--vc-text-lg) var(--vc-font-display);
+  text-transform: uppercase;
 }
-.vc-shell__brand { font: 700 var(--vc-text-lg) var(--vc-font-display); color: var(--vc-filament); }
-nav { display: flex; gap: var(--vc-space-3); }
-a { color: var(--vc-paper); text-decoration: none; }
-a.is-active { border-bottom: 2px solid var(--vc-filament); }
+/* Logotipo de barras de audio en Filament */
+.vc-shell__logo { display: inline-flex; align-items: center; gap: 3px; height: 28px; }
+.vc-shell__logo i { display: block; width: 4px; border-radius: 2px; background: var(--vc-filament); }
+.vc-shell__logo i:nth-child(1) { height: 10px; }
+.vc-shell__logo i:nth-child(2) { height: 20px; }
+.vc-shell__logo i:nth-child(3) { height: 28px; }
+.vc-shell__logo i:nth-child(4) { height: 18px; }
+.vc-shell__logo i:nth-child(5) { height: 8px; }
+
+nav { display: flex; flex-direction: column; margin-top: var(--vc-space-3); }
+nav a {
+  padding: 12px var(--vc-space-3);
+  color: var(--vc-paper);
+  text-decoration: none;
+  border-left: 4px solid transparent;
+}
+nav a:focus-visible { outline: none; box-shadow: inset var(--vc-focus); }
+/* Ítem activo: fondo Deep Circuit y filete Filament */
+nav a.is-active { background: var(--vc-deep-circuit); border-left-color: var(--vc-filament); }
+
+.vc-shell__content { background: var(--vc-paper); min-width: 0; }
 .vc-shell__main { padding: var(--vc-space-4); }
