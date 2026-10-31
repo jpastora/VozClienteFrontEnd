@@ -195,3 +195,10 @@
   .btn { padding: 14px 20px; font-size: 17px; }
   .controles { gap: 12px; }
 }
+:host {
+  display: block;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+}

@@ -64,6 +64,7 @@ body {
   font-size: var(--vc-text-md);
   line-height: 1.5;
 }
+button { font-family: inherit; cursor: pointer; }
 
 /* Títulos: Archivo Narrow en mayúsculas */
 h1, h2, h3 {
