@@ -1,0 +1,16 @@
+:host {
+  display: inline-block;
+  padding: 2px var(--vc-space-2);
+  border: 1px solid currentColor;
+  border-radius: var(--vc-radius);
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--vc-muted);
+}
+:host([data-tone='success']) { color: var(--vc-success); }
+:host([data-tone='warning']) { color: var(--vc-warning); }
+:host([data-tone='danger']) { color: var(--vc-danger); }
+/* Relleno Deep Circuit (estado PENDIENTE de enlaces) */
+:host([data-tone='brand']) { background: var(--vc-deep-circuit); border-color: var(--vc-deep-circuit); color: var(--vc-white); }
