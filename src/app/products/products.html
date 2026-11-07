@@ -1,12 +1,92 @@
 <h1>Productos</h1>
 <p class="vc-eyebrow">M2 · Catálogo de productos del cliente</p>
-<table class="vc-table">
-  <thead>
-    <tr><th>Nombre</th><th>Categoría</th><th>Estado</th><th>Creado</th></tr>
-  </thead>
-  <tbody>
-    <tr><td>Pegasus 41</td><td>Calzado</td><td><vc-badge tone="success">Activo</vc-badge></td><td>02/10/2026</td></tr>
-    <tr><td>Air Max 90</td><td>Calzado</td><td><vc-badge tone="success">Activo</vc-badge></td><td>05/10/2026</td></tr>
-    <tr><td>Air Zoom 39</td><td>Calzado</td><td><vc-badge>Inactivo</vc-badge></td><td>01/09/2026</td></tr>
-  </tbody>
-</table>
+
+<section class="vc-products__filters" aria-label="Filtros">
+  <vc-field
+    class="vc-products__search"
+    controlId="txtBuscarProducto"
+    label="Buscar por nombre"
+    [value]="busqueda()"
+    (valueChange)="buscar($event)"
+  />
+  <div class="vc-products__estado">
+    <label class="vc-products__label" for="cmbEstadoProducto">Estado</label>
+    <select id="cmbEstadoProducto" class="vc-products__select" [value]="filtroEstado()" (change)="cambiarEstado($event)">
+      <option value="todos">Todos</option>
+      <option value="activo">Activo</option>
+      <option value="inactivo">Inactivo</option>
+    </select>
+  </div>
+  <vc-button class="vc-products__nuevo" (click)="abrirNuevo()">+ Nuevo producto</vc-button>
+</section>
+
+@if (cargando()) {
+  <p class="vc-products__msg" role="status">Cargando productos…</p>
+} @else if (errorCarga()) {
+  <div class="vc-products__msg vc-products__msg--error" role="alert">
+    {{ errorCarga() }}
+    <vc-button variant="secondary" (click)="cargar()">Reintentar</vc-button>
+  </div>
+} @else {
+  <table class="vc-table">
+    <thead>
+      <tr>
+        <th>Nombre</th><th>Categoría</th><th>Estado</th><th>Creado</th><th>Entrevistas</th><th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (p of visibles(); track p.id) {
+        <tr>
+          <td>{{ p.nombre }}</td>
+          <td>{{ p.categoria || '—' }}</td>
+          <td>
+            @if (p.esActivo) {
+              <vc-badge tone="success">Activo</vc-badge>
+            } @else {
+              <vc-badge>Inactivo</vc-badge>
+            }
+          </td>
+          <td>{{ p.creadoEn | date: 'dd/MM/yyyy' }}</td>
+          <td>{{ p.entrevistas ?? '—' }}</td>
+          <td class="vc-products__acciones">
+            <vc-button variant="secondary" [routerLink]="['/productos', p.id]">Ver detalle</vc-button>
+            <vc-button variant="secondary" (click)="abrirEditar(p)">Editar</vc-button>
+          </td>
+        </tr>
+      } @empty {
+        <tr class="vc-products__vacio">
+          <td colspan="6">
+            @if (productos().length === 0) {
+              Aún no hay productos. Crea el primero con «Nuevo producto».
+            } @else {
+              Ningún producto coincide con los filtros.
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <nav class="vc-products__paginacion" aria-label="Paginación">
+    <span>Página {{ paginaActual() }} de {{ totalPaginas() }} · {{ porPagina }} por página</span>
+    <button type="button" class="vc-products__pag" aria-label="Página anterior" [disabled]="paginaActual() === 1" (click)="irAPagina(paginaActual() - 1)">‹</button>
+    @for (n of paginas(); track n) {
+      <button
+        type="button"
+        class="vc-products__pag"
+        [class.is-active]="paginaActual() === n"
+        [attr.aria-current]="paginaActual() === n ? 'page' : null"
+        (click)="irAPagina(n)"
+      >{{ n }}</button>
+    }
+    <button type="button" class="vc-products__pag" aria-label="Página siguiente" [disabled]="paginaActual() === totalPaginas()" (click)="irAPagina(paginaActual() + 1)">›</button>
+  </nav>
+}
+
+<vc-producto-form
+  [open]="formAbierto()"
+  [producto]="enEdicion()"
+  [existentes]="productos()"
+  (closed)="formAbierto.set(false)"
+  (guardado)="alGuardar($event)"
+/>

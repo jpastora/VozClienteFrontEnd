@@ -13,6 +13,16 @@ export class SalaApi {
     return this.http.get<SalaDTO>(`${API_URL}/salas/${encodeURIComponent(token)}`);
   }
 
+  /** GET /api/salas/producto/{productoId} */
+  listarPorProducto(productoId: number): Observable<SalaDTO[]> {
+    return this.http.get<SalaDTO[]>(`${API_URL}/salas/producto/${productoId}`);
+  }
+
+  /** POST /api/salas: el backend genera token, estado PENDIENTE y vencimiento a 7 días. */
+  crear(productoId: number, creadoPorId: number): Observable<SalaDTO> {
+    return this.http.post<SalaDTO>(`${API_URL}/salas`, { productoId, creadoPorId });
+  }
+
   /** PATCH /api/salas/{token}/responder?nombreConsumidor=... (registra la aceptación de la grabación) */
   responder(token: string, nombreConsumidor: string): Observable<SalaDTO> {
     const params = new HttpParams().set('nombreConsumidor', nombreConsumidor);

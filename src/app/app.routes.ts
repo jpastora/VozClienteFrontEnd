@@ -34,6 +34,7 @@ export const routes: Routes = [
     component: Shell,
     children: [
       { path: 'productos', title: 'M2 Productos', loadComponent: () => import('./products/products').then((m) => m.Products) },
+      { path: 'productos/:id', title: 'M2 Detalle de producto', loadComponent: () => import('./product-detail/product-detail').then((m) => m.ProductDetail) },
       { path: 'salas', title: 'M3 Salas y videollamada', loadComponent: () => import('./rooms/rooms').then((m) => m.Rooms) },
       { path: 'transcripciones', title: 'M4 Transcripción', loadComponent: () => import('./transcription/transcription').then((m) => m.Transcription) },
       { path: 'analisis', title: 'M5 Análisis con IA', loadComponent: () => import('./analysis/analysis').then((m) => m.Analysis) },

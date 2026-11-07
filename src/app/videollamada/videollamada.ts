@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { GUIA_SUGERIDA, SEGUNDOS_REINTENTO } from '../core/config';
+import { EntrevistaApi } from '../core/entrevista-api';
 import { GrabacionApi } from '../core/grabacion-api';
 import { GrabacionDTO, ResultadoGrabacion, Rol, SalaDTO, SenalMensaje } from '../core/models';
 import { RecorderService } from '../core/recorder.service';
@@ -39,6 +40,7 @@ export class Videollamada implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private salaApi = inject(SalaApi);
   private grabacionApi = inject(GrabacionApi);
+  private entrevistaApi = inject(EntrevistaApi);
   private destroyRef = inject(DestroyRef);
   private signaling = inject(SignalingService);
   protected rtc = inject(WebrtcService);
@@ -242,6 +244,9 @@ export class Videollamada implements OnInit, OnDestroy {
     const resultado = this.esRep ? await this.rec.detener() : null;
     this.limpiarRecursos();
 
+    // El representante cierra la entrevista en el backend: FINALIZADA, o FALLIDA si fue parcial.
+    if (this.esRep) this.cerrarEntrevista(opts.parcial || !!resultado?.inesperado);
+
     if (resultado && resultado.blob.size > 0) {
       this.resultado = resultado;
       this.parcial = opts.parcial || resultado.inesperado;
@@ -252,6 +257,16 @@ export class Videollamada implements OnInit, OnDestroy {
       );
       this.fase.set('finalizada');
     }
+  }
+
+  /** Registra el cierre de la entrevista sin bloquear la subida; si falla solo se deja constancia en consola. */
+  private cerrarEntrevista(fallida: boolean): void {
+    const id = this.entrevistaId();
+    if (!id) return;
+    const peticion = fallida ? this.entrevistaApi.reportarFallo(id) : this.entrevistaApi.finalizar(id);
+    peticion.subscribe({
+      error: (e) => console.error('No se pudo cerrar la entrevista', id, e),
+    });
   }
 
   // ---------- Subida de la grabación ----------
@@ -362,3 +377,4 @@ export class Videollamada implements OnInit, OnDestroy {
     return new Date().toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit', hour12: false });
   }
 }
+
