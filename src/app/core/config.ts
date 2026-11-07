@@ -5,6 +5,18 @@
  */
 export const API_URL = '/api';
 
+/**
+ * Dominio con el que se arman los enlaces que se envían a consumidores y representantes
+ * (p. ej. 'https://abc123.ngrok-free.app'). Si queda vacío se usa el dominio con el que
+ * abriste la aplicación.
+ */
+export const URL_PUBLICA = '';
+
+export const urlBase = (): string => (URL_PUBLICA || location.origin).replace(/\/+$/, '');
+
+/** Cuenta que crea las salas mientras no haya sesión real (datos de prueba V2: 1 = Carlos Mendoza, administrador). */
+export const CUENTA_ID_PRUEBA = 1;
+
 /** Endpoint WebSocket de señalización (SignalingSocketHandler). Se le añade ?token=<token>. */
 export const WS_URL = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/signaling`;
 

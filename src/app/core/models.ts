@@ -51,3 +51,50 @@ export interface ResultadoGrabacion {
   /** true si la grabación se detuvo sola (p. ej. cambiaron las pistas) y no por el usuario. */
   inesperado: boolean;
 }
+
+/** Espejo de ProductoDTO del backend (/api/productos). */
+export interface ProductoDTO {
+  id?: number;
+  /** Lo devuelve el backend; ya no se envía: la empresa sale de la sesión. */
+  empresaId?: number;
+  nombre: string;
+  descripcion?: string | null;
+  categoria?: string | null;
+  esActivo?: boolean;
+  version?: number;
+  creadoEn?: string;
+  actualizadoEn?: string;
+  /** El backend aún no lo expone; la tabla muestra "—" mientras no llegue. */
+  entrevistas?: number;
+}
+
+/** Espejo de ProductoRequestDTO: lo único que el backend acepta al crear o editar un producto. */
+export interface ProductoRequest {
+  nombre: string;
+  descripcion?: string | null;
+  categoria?: string | null;
+  esActivo?: boolean;
+}
+
+/** Espejo de CuentaDTO del backend (solo los campos que usa el frontend). */
+export interface CuentaDTO {
+  id: number;
+  empresaId?: number | null;
+  nombreCompleto: string;
+  correo?: string;
+  rol: 'ADMINISTRADOR' | 'CLIENTE_ADMINISTRADOR' | 'REPRESENTANTE' | string;
+  estado?: 'PENDIENTE' | 'ACTIVA' | 'INACTIVA' | string;
+}
+
+/** Espejo de EntrevistaDTO del backend. */
+export interface EntrevistaDTO {
+  id?: number;
+  salaId: number;
+  representanteId: number;
+  estado?: string;
+  inicioEn?: string;
+  finEn?: string | null;
+  duracionSegundos?: number | null;
+}
+
+

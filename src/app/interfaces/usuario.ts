@@ -5,4 +5,5 @@ export interface UsuarioInfo {
   id: number;
   nombre: string;
   rol: RolInfo;
+  empresaId?: number;
 }
