@@ -1,2 +1,30 @@
-<h1>M1 Autenticación y roles</h1>
-<p>Acceso con Google y gestión de cuentas. Pantalla pendiente de implementar.</p>
+<main class="vc-auth">
+  <section class="vc-auth__card vc-panel" aria-labelledby="ttlIngreso">
+    <div class="vc-auth__brand">
+      <span class="vc-auth__logo" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+      Voz Cliente
+    </div>
+
+    <p class="vc-eyebrow">Brightcode Labs</p>
+    <h1 id="ttlIngreso">Ingresar</h1>
+    <p class="vc-auth__texto">
+      Usa tu cuenta de Google para entrar a la plataforma. No necesitas crear otra contraseña.
+    </p>
+
+    @if (mensajeError(); as mensaje) {
+      <div id="msgErrorIngreso" class="vc-auth__mensaje" role="alert">
+        <span class="vc-auth__icono" aria-hidden="true">!</span>
+        <p><strong>No se completó el ingreso.</strong> {{ mensaje }}</p>
+      </div>
+    }
+
+    <vc-button id="btnIngresarGoogle" variant="primary" (click)="ingresar()">
+      {{ mensajeError() ? 'Intentar de nuevo con Google' : 'Continuar con Google' }}
+    </vc-button>
+
+    <p class="vc-auth__nota">
+      Al continuar, Google comparte con Voz Cliente tu nombre y tu correo. Si es tu primer ingreso, se crea la cuenta de
+      tu empresa.
+    </p>
+  </section>
+</main>
