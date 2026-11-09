@@ -1,6 +1,37 @@
 :host { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
 
-.vc-shell__sidebar { background: var(--vc-code-black); color: var(--vc-paper); }
+.vc-shell__sidebar {
+  background: var(--vc-code-black);
+  color: var(--vc-paper);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Persona con sesión y cierre de sesión, al pie del menú (HU-01) */
+.vc-shell__usuario {
+  margin-top: auto;
+  padding: var(--vc-space-3);
+  border-top: 1px solid rgb(244 244 242 / 15%);
+}
+.vc-shell__nombre { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.vc-shell__rol {
+  margin: 0 0 var(--vc-space-3);
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vc-concrete);
+}
+.vc-shell__salir {
+  width: 100%;
+  min-height: 44px;
+  background: transparent;
+  color: var(--vc-paper);
+  border: 1px solid var(--vc-paper);
+  border-radius: var(--vc-radius);
+  font: 600 var(--vc-text-sm) var(--vc-font-body);
+}
+.vc-shell__salir:hover { background: var(--vc-deep-circuit); }
+.vc-shell__salir:focus-visible { outline: none; box-shadow: var(--vc-focus); }
 
 .vc-shell__brand {
   display: flex;

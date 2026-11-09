@@ -6,13 +6,18 @@
     Voz Cliente
   </div>
   <nav aria-label="Principal">
-    <a routerLink="/productos" routerLinkActive="is-active">Productos</a>
-    <a routerLink="/salas" routerLinkActive="is-active">Salas</a>
-    <a routerLink="/transcripciones" routerLinkActive="is-active">Entrevistas</a>
-    <a routerLink="/reportes" routerLinkActive="is-active">Estadísticas</a>
-    <a routerLink="/paquetes" routerLinkActive="is-active">Paquetes y saldo</a>
-    <a routerLink="/admin" routerLinkActive="is-active">Administración</a>
+    @for (opcion of opciones(); track opcion.ruta) {
+      <a [routerLink]="opcion.ruta" routerLinkActive="is-active">{{ opcion.texto }}</a>
+    }
   </nav>
+
+  @if (usuario(); as u) {
+    <div class="vc-shell__usuario">
+      <p class="vc-shell__nombre">{{ u.nombreCompleto }}</p>
+      <p class="vc-shell__rol">{{ nombreRol() }}</p>
+      <button id="btnCerrarSesion" type="button" class="vc-shell__salir" (click)="salir()">Cerrar sesión</button>
+    </div>
+  }
 </aside>
 <div class="vc-shell__content">
   <main class="vc-shell__main"><router-outlet /></main>
