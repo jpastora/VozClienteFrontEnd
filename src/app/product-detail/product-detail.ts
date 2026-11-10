@@ -87,34 +87,43 @@ export class ProductDetail {
       // Sin lista de cuentas se usa la cuenta de prueba como representante.
       error: () => this.representantes.set([]),
     });
-    // El backend no tiene filtro por id dentro de la empresa; se usa el listado para validar pertenencia
-    // y para alimentar el formulario (nombres repetidos y categorías).
-    this.productoApi.listar().subscribe({
-      next: (lista) => {
-        this.catalogo.set(lista);
-        const encontrado = lista.find((p) => p.id === id) ?? null;
-        this.producto.set(encontrado);
-        if (!encontrado) {
-          this.error.set('No se encontró el producto.');
-          this.cargando.set(false);
-          return;
-        }
+  
+    this.productoApi.obtener(id).subscribe({
+      next: (producto) => {
+        this.producto.set(producto);
+
+        // Cargar las salas asociadas al producto.
         this.salaApi.listarPorProducto(id).subscribe({
           next: (salas) => {
             this.salas.set(salas);
             this.cargando.set(false);
           },
           error: () => {
-            this.error.set('No se pudieron cargar los enlaces del producto.');
+            this.error.set(
+              'No se pudieron cargar los enlaces del producto.'
+            );
             this.cargando.set(false);
-          },
+          }
+        });
+
+        // Catálogo auxiliar para sugerir categorías.
+        this.productoApi.listar().subscribe({
+          next: (lista) => this.catalogo.set(lista),
+          error: () => this.catalogo.set([])
         });
       },
-      error: () => {
-        this.error.set('No se pudo cargar el producto.');
+
+      error: (err) => {
+        this.error.set(
+          err.status === 404
+            ? 'No se encontró el producto solicitado.'
+            : 'No se pudo cargar el producto.'
+        );
+
         this.cargando.set(false);
-      },
+      }
     });
+
   }
 
   // Estado del producto
