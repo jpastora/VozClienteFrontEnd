@@ -3,6 +3,14 @@
     "target": "http://localhost:8070",
     "secure": false
   },
+  "/oauth2": {
+    "target": "http://localhost:8070",
+    "secure": false
+  },
+  "/login/oauth2": {
+    "target": "http://localhost:8070",
+    "secure": false
+  },
   "/signaling": {
     "target": "http://localhost:8070",
     "secure": false,

@@ -1,0 +1,69 @@
+.vc-auth {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--vc-space-4);
+  background: var(--vc-paper);
+}
+
+/* Tarjeta con filete Filament arriba, como los diálogos del sistema visual */
+.vc-auth__card {
+  width: min(440px, 100%);
+  border-top: 4px solid var(--vc-filament);
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-3);
+}
+.vc-auth__card h1 { margin: 0; }
+.vc-auth__card .vc-eyebrow { margin: var(--vc-space-2) 0 0; }
+
+.vc-auth__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-2);
+  font: 700 var(--vc-text-lg) var(--vc-font-display);
+  text-transform: uppercase;
+}
+/* Logotipo de barras de audio, igual que en el menú lateral */
+.vc-auth__logo { display: inline-flex; align-items: center; gap: 3px; height: 28px; }
+.vc-auth__logo i { display: block; width: 4px; border-radius: 2px; background: var(--vc-deep-circuit); }
+.vc-auth__logo i:nth-child(1) { height: 10px; }
+.vc-auth__logo i:nth-child(2) { height: 20px; }
+.vc-auth__logo i:nth-child(3) { height: 28px; background: var(--vc-filament); }
+.vc-auth__logo i:nth-child(4) { height: 18px; }
+.vc-auth__logo i:nth-child(5) { height: 8px; }
+
+.vc-auth__texto { margin: 0; line-height: 1.6; }
+
+/* Mensaje de estado: se distingue por icono y texto, no solo por color (guía de estilo, msg) */
+.vc-auth__mensaje {
+  display: flex;
+  gap: var(--vc-space-2);
+  align-items: flex-start;
+  padding: var(--vc-space-3);
+  border: 1px solid var(--vc-danger);
+  border-left-width: 4px;
+  border-radius: var(--vc-radius);
+  background: var(--vc-white);
+  color: var(--vc-color-text);
+  font-size: var(--vc-text-sm);
+}
+.vc-auth__mensaje p { margin: 0; }
+.vc-auth__icono {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--vc-danger);
+  color: var(--vc-white);
+  font-weight: 700;
+  font-size: var(--vc-text-xs);
+}
+
+/* Botón a lo ancho y con área táctil de 44 px como mínimo */
+.vc-auth__card vc-button { display: block; }
+.vc-auth__card vc-button ::ng-deep .vc-button { width: 100%; min-height: 44px; font-size: var(--vc-text-md); }
+
+.vc-auth__nota { margin: 0; color: var(--vc-muted); font-size: var(--vc-text-xs); line-height: 1.5; }
