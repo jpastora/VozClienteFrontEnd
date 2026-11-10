@@ -1,0 +1,12 @@
+<label class="vc-field__label" [for]="controlId()">{{ label() }}</label>
+<input
+  class="vc-field__input"
+  [id]="controlId()"
+  [type]="type()"
+  [value]="value()"
+  [attr.aria-invalid]="error() ? true : null"
+  (input)="actualizar($event)"
+/>
+@if (error()) {
+  <span class="vc-field__error" role="alert">{{ error() }}</span>
+}

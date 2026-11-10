@@ -1,0 +1,22 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-2);
+  padding: var(--vc-space-3);
+  background: var(--vc-white);
+  border: 1px solid var(--vc-concrete);
+  border-radius: var(--vc-radius);
+}
+.vc-metric-card__label {
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--vc-muted);
+}
+/* Cifra grande con subrayado Filament corto */
+.vc-metric-card__value {
+  align-self: flex-start;
+  font: 700 var(--vc-text-xl) var(--vc-font-display);
+  border-bottom: 3px solid var(--vc-filament);
+  line-height: 1.1;
+}

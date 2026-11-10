@@ -1,0 +1,123 @@
+<a class="vc-pdetail__volver" routerLink="/productos">← Volver a productos</a>
+
+@if (cargando()) {
+  <p class="vc-pdetail__msg" role="status">Cargando producto…</p>
+} @else if (error() && !producto()) {
+  <p class="vc-pdetail__msg vc-pdetail__msg--error" role="alert">{{ error() }}</p>
+} @else if (producto(); as p) {
+  <div class="vc-pdetail__grid">
+    <section class="vc-panel vc-pdetail__info" aria-label="Producto">
+      <p class="vc-eyebrow">Producto{{ p.categoria ? ' · ' + p.categoria : '' }}</p>
+      <h1>{{ p.nombre }}</h1>
+      <p class="vc-pdetail__desc">{{ p.descripcion || 'Sin descripción.' }}</p>
+      <div class="vc-pdetail__badges">
+        <vc-badge [tone]="p.esActivo ? 'success' : 'neutral'">{{ p.esActivo ? 'Activo' : 'Inactivo' }}</vc-badge>
+        <vc-badge>Creado {{ p.creadoEn | date: 'dd/MM/yyyy' }}</vc-badge>
+      </div>
+      <div class="vc-pdetail__acciones">
+        <vc-button variant="secondary" (click)="formAbierto.set(true)">Editar</vc-button>
+        @if (p.esActivo) {
+          <vc-button variant="secondary" (click)="confirmarInactivar.set(true)">Inactivar</vc-button>
+        } @else {
+          <vc-button variant="secondary" [disabled]="cambiandoEstado()" (click)="activar()">Activar</vc-button>
+        }
+        <vc-button variant="secondary" routerLink="/reportes">Ver estadísticas</vc-button>
+      </div>
+      @if (errorEstado()) {
+        <p class="vc-pdetail__error" role="alert">{{ errorEstado() }}</p>
+      }
+    </section>
+
+    <section class="vc-panel vc-pdetail__enlace" aria-label="Generar enlace de sala">
+      <h2>Generar enlace de sala</h2>
+      <p class="vc-pdetail__nota">
+        Cada enlace es único y vence en 7 días. Se descuenta una sala solo si la entrevista se graba correctamente.
+      </p>
+      <vc-button variant="accent" [disabled]="generando() || !p.esActivo" (click)="generarEnlace()">
+        {{ generando() ? 'Generando…' : '⟳ Generar enlace' }}
+      </vc-button>
+      @if (!p.esActivo) {
+        <p class="vc-pdetail__nota">Activa el producto para generar enlaces.</p>
+      }
+      @if (representantes().length) {
+        <div class="vc-pdetail__rep">
+          <label for="cmbRepresentante">Representante que atenderá</label>
+          <select id="cmbRepresentante" [value]="representanteId()" (change)="cambiarRepresentante($event)">
+            @for (r of representantes(); track r.id) {
+              <option [value]="r.id">{{ r.nombreCompleto }}</option>
+            }
+          </select>
+        </div>
+      }
+      @if (enlaceConsumidor(); as url) {
+        <div class="vc-pdetail__link">
+          <span class="vc-eyebrow">Enlace del consumidor</span>
+          <code class="vc-pdetail__url" aria-label="Enlace del consumidor">{{ url }}</code>
+          <div class="vc-pdetail__acciones">
+            <vc-button variant="secondary" (click)="copiar('consumidor')">Copiar enlace</vc-button>
+            @if (copiado() === 'consumidor') {
+              <span class="vc-pdetail__copiado" role="status">✓ Enlace copiado</span>
+            }
+          </div>
+        </div>
+      }
+      @if (enlaceRepresentante(); as url) {
+        <div class="vc-pdetail__link">
+          <span class="vc-eyebrow">Enlace del representante</span>
+          <code class="vc-pdetail__url" aria-label="Enlace del representante">{{ url }}</code>
+          <div class="vc-pdetail__acciones">
+            <vc-button variant="secondary" (click)="copiar('representante')">Copiar enlace</vc-button>
+            @if (copiado() === 'representante') {
+              <span class="vc-pdetail__copiado" role="status">✓ Enlace copiado</span>
+            }
+          </div>
+        </div>
+      }
+      @if (errorEnlace()) {
+        <p class="vc-pdetail__error" role="alert">{{ errorEnlace() }}</p>
+      }
+    </section>
+  </div>
+
+  @if (error()) {
+    <p class="vc-pdetail__msg vc-pdetail__msg--error" role="alert">{{ error() }}</p>
+  }
+
+  <table class="vc-table vc-pdetail__tabla">
+    <thead>
+      <tr><th>Enlace</th><th>Emitido</th><th>Vence</th><th>Consumidor</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      @for (s of filas(); track s.id ?? s.token) {
+        <tr>
+          <td class="vc-pdetail__token">{{ sufijo(s.token) }}</td>
+          <td>{{ s.emitidaEn | date: 'dd/MM/yyyy' }}</td>
+          <td>{{ s.venceEn | date: 'dd/MM/yyyy' }}</td>
+          <td>{{ s.nombreConsumidor || '—' }}</td>
+          <td><vc-badge [tone]="tono(s.vigente)">{{ etiqueta(s.vigente) }}</vc-badge></td>
+        </tr>
+      } @empty {
+        <tr class="vc-pdetail__vacio"><td colspan="5">Aún no hay enlaces generados para este producto.</td></tr>
+      }
+    </tbody>
+  </table>
+
+  <vc-producto-form
+    [open]="formAbierto()"
+    [producto]="p"
+    [existentes]="catalogo()"
+    (closed)="formAbierto.set(false)"
+    (guardado)="alGuardar($event)"
+  />
+
+  <vc-dialog [open]="confirmarInactivar()" title="Inactivar producto" (closed)="confirmarInactivar.set(false)">
+    <p>¿Inactivar «{{ p.nombre }}»? No podrás generar enlaces nuevos mientras esté inactivo. Los enlaces ya emitidos no cambian.</p>
+    @if (errorEstado()) {
+      <p class="vc-pdetail__error" role="alert">{{ errorEstado() }}</p>
+    }
+    <div class="vc-pdetail__acciones vc-pdetail__acciones--fin">
+      <vc-button variant="secondary" (click)="confirmarInactivar.set(false)">Cancelar</vc-button>
+      <vc-button variant="danger" [disabled]="cambiandoEstado()" (click)="inactivar()">Inactivar</vc-button>
+    </div>
+  </vc-dialog>
+}

@@ -1,0 +1,17 @@
+:host { display: contents; }
+.vc-pform { display: flex; flex-direction: column; gap: var(--vc-space-3); width: 480px; max-width: 100%; }
+.vc-pform__campo { display: flex; flex-direction: column; gap: var(--vc-space-1); }
+.vc-pform__label { font-size: var(--vc-text-sm); font-weight: 600; }
+.vc-pform__control {
+  font: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--vc-concrete);
+  border-radius: var(--vc-radius);
+  background: var(--vc-white);
+  resize: vertical;
+}
+.vc-pform__control:focus-visible { outline: none; border-color: var(--vc-deep-circuit); box-shadow: var(--vc-focus); }
+.vc-pform__control[aria-invalid='true'] { border-color: var(--vc-danger); }
+.vc-pform__contador { align-self: flex-end; font-size: var(--vc-text-xs); color: var(--vc-muted); }
+.vc-pform__error { color: var(--vc-danger); font-size: var(--vc-text-xs); margin: 0; }
+.vc-pform__botones { display: flex; justify-content: flex-end; gap: var(--vc-space-2); }

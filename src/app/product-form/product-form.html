@@ -1,0 +1,59 @@
+<vc-dialog [open]="open()" [title]="titulo()" (closed)="cerrar()">
+  <form class="vc-pform" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <vc-field controlId="txtNombreProducto" label="Nombre *" [(value)]="nombre" [error]="errorNombre()" />
+
+    <div class="vc-pform__campo">
+      <label class="vc-pform__label" for="txtDescripcionProducto">Descripción</label>
+      <textarea
+        id="txtDescripcionProducto"
+        class="vc-pform__control"
+        rows="3"
+        [value]="descripcion()"
+        [attr.aria-invalid]="errorDescripcion() ? true : null"
+        (input)="cambiarDescripcion($event)"
+      ></textarea>
+      <span class="vc-pform__contador">{{ descripcion().length }} / {{ maxDescripcion }}</span>
+      @if (errorDescripcion()) {
+        <span class="vc-pform__error" role="alert">{{ errorDescripcion() }}</span>
+      }
+    </div>
+
+    <div class="vc-pform__campo">
+      <label class="vc-pform__label" for="txtCategoriaProducto">Categoría</label>
+      <input
+        id="txtCategoriaProducto"
+        class="vc-pform__control"
+        list="lstCategoriasProducto"
+        [value]="categoria()"
+        [attr.aria-invalid]="errorCategoria() ? true : null"
+        (input)="cambiarCategoria($event)"
+      />
+      <datalist id="lstCategoriasProducto">
+        @for (c of categorias(); track c) {
+          <option [value]="c"></option>
+        }
+      </datalist>
+      @if (errorCategoria()) {
+        <span class="vc-pform__error" role="alert">{{ errorCategoria() }}</span>
+      }
+    </div>
+
+    @if (producto()) {
+      <div class="vc-pform__campo">
+        <label class="vc-pform__label" for="cmbActivoProducto">Estado</label>
+        <select id="cmbActivoProducto" class="vc-pform__control" [value]="esActivo() ? 'activo' : 'inactivo'" (change)="cambiarActivo($event)">
+          <option value="activo">Activo</option>
+          <option value="inactivo">Inactivo</option>
+        </select>
+      </div>
+    }
+
+    @if (errorGuardar()) {
+      <p class="vc-pform__error" role="alert">{{ errorGuardar() }}</p>
+    }
+    <div class="vc-pform__botones">
+      <vc-button variant="secondary" (click)="cerrar()">Cancelar</vc-button>
+      <vc-button type="submit" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar producto' }}</vc-button>
+    </div>
+  </form>
+</vc-dialog>

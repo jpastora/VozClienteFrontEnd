@@ -1,0 +1,14 @@
+.vc-dialog__backdrop { position: fixed; inset: 0; background: rgb(11 11 12 / 55%); }
+/* Diálogo con filete Filament arriba, como en los prototipos */
+.vc-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 360px;
+  max-width: 90vw;
+  padding: var(--vc-space-4);
+  background: var(--vc-white);
+  border-top: 4px solid var(--vc-filament);
+  border-radius: var(--vc-radius);
+}

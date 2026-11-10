@@ -1,0 +1,65 @@
+:host { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+.vc-shell__sidebar {
+  background: var(--vc-code-black);
+  color: var(--vc-paper);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Persona con sesión y cierre de sesión, al pie del menú (HU-01) */
+.vc-shell__usuario {
+  margin-top: auto;
+  padding: var(--vc-space-3);
+  border-top: 1px solid rgb(244 244 242 / 15%);
+}
+.vc-shell__nombre { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.vc-shell__rol {
+  margin: 0 0 var(--vc-space-3);
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vc-concrete);
+}
+.vc-shell__salir {
+  width: 100%;
+  min-height: 44px;
+  background: transparent;
+  color: var(--vc-paper);
+  border: 1px solid var(--vc-paper);
+  border-radius: var(--vc-radius);
+  font: 600 var(--vc-text-sm) var(--vc-font-body);
+}
+.vc-shell__salir:hover { background: var(--vc-deep-circuit); }
+.vc-shell__salir:focus-visible { outline: none; box-shadow: var(--vc-focus); }
+
+.vc-shell__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-2);
+  padding: var(--vc-space-4) var(--vc-space-3);
+  font: 700 var(--vc-text-lg) var(--vc-font-display);
+  text-transform: uppercase;
+}
+/* Logotipo de barras de audio en Filament */
+.vc-shell__logo { display: inline-flex; align-items: center; gap: 3px; height: 28px; }
+.vc-shell__logo i { display: block; width: 4px; border-radius: 2px; background: var(--vc-filament); }
+.vc-shell__logo i:nth-child(1) { height: 10px; }
+.vc-shell__logo i:nth-child(2) { height: 20px; }
+.vc-shell__logo i:nth-child(3) { height: 28px; }
+.vc-shell__logo i:nth-child(4) { height: 18px; }
+.vc-shell__logo i:nth-child(5) { height: 8px; }
+
+nav { display: flex; flex-direction: column; margin-top: var(--vc-space-3); }
+nav a {
+  padding: 12px var(--vc-space-3);
+  color: var(--vc-paper);
+  text-decoration: none;
+  border-left: 4px solid transparent;
+}
+nav a:focus-visible { outline: none; box-shadow: inset var(--vc-focus); }
+/* Ítem activo: fondo Deep Circuit y filete Filament */
+nav a.is-active { background: var(--vc-deep-circuit); border-left-color: var(--vc-filament); }
+
+.vc-shell__content { background: var(--vc-paper); min-width: 0; }
+.vc-shell__main { padding: var(--vc-space-4); }
