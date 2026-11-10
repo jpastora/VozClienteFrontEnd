@@ -1,2 +1,101 @@
-<h1>M7 Paquetes y cobros</h1>
-<p>Paquetes de salas y pago simulado. Pantalla pendiente de implementar.</p>
+<h1>Paquetes y saldo</h1>
+<p class="vc-eyebrow">M7 · Paquetes de salas, pago simulado e historial</p>
+
+@if (compraExitosa(); as compra) {
+  <div class="vc-pkg__exito" role="status">
+    ✓ Compra registrada. Se acreditaron {{ compra.salasAcreditadas }} salas a tu empresa.
+  </div>
+}
+
+@if (puedeComprar()) {
+  <section class="vc-pkg__saldo" aria-label="Saldo">
+    <vc-metric-card label="Salas disponibles" value="—" />
+    <p class="vc-pkg__nota">El saldo se mostrará cuando el back-end lo exponga.</p>
+  </section>
+}
+
+<section aria-labelledby="ttlCatalogo">
+  <h2 id="ttlCatalogo">Catálogo de paquetes</h2>
+  @if (cargandoPaquetes()) {
+    <p class="vc-pkg__msg" role="status">Cargando paquetes…</p>
+  } @else if (errorPaquetes()) {
+    <div class="vc-pkg__msg vc-pkg__msg--error" role="alert">
+      {{ errorPaquetes() }}
+      <vc-button variant="secondary" (click)="cargarPaquetes()">Reintentar</vc-button>
+    </div>
+  } @else {
+    <div class="vc-pkg__grid">
+      @for (p of paquetes(); track p.id) {
+        <article class="vc-panel vc-pkg__card">
+          <p class="vc-eyebrow">{{ p.nombre }}</p>
+          <p class="vc-pkg__salas">{{ p.cantidadSalas }} <span>salas</span></p>
+          <p class="vc-pkg__precio">{{ p.precio | number: '1.2-2' }}</p>
+          @if (puedeComprar()) {
+            <vc-button variant="accent" (click)="elegir(p)">Comprar</vc-button>
+          }
+        </article>
+      } @empty {
+        <p class="vc-pkg__msg">No hay paquetes disponibles por ahora.</p>
+      }
+    </div>
+  }
+</section>
+
+@if (puedeComprar()) {
+  <section aria-labelledby="ttlHistorial" class="vc-pkg__historial">
+    <h2 id="ttlHistorial">Historial de compras</h2>
+    @if (cargandoCompras()) {
+      <p class="vc-pkg__msg" role="status">Cargando historial…</p>
+    } @else if (errorCompras()) {
+      <div class="vc-pkg__msg vc-pkg__msg--error" role="alert">
+        {{ errorCompras() }}
+        <vc-button variant="secondary" (click)="cargarCompras()">Reintentar</vc-button>
+      </div>
+    } @else {
+      <table class="vc-table">
+        <thead>
+          <tr><th>Fecha</th><th>Paquete</th><th>Salas</th><th>Monto</th><th>Estado</th><th>Referencia</th></tr>
+        </thead>
+        <tbody>
+          @for (c of historial(); track c.id) {
+            <tr>
+              <td>{{ c.creadoEn | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ c.paquete }}</td>
+              <td>{{ c.salasAcreditadas }}</td>
+              <td>{{ c.monto | number: '1.2-2' }}</td>
+              <td>
+                <vc-badge [tone]="c.estadoPago === 'APROBADO' ? 'success' : 'danger'">
+                  {{ c.estadoPago === 'APROBADO' ? 'Aprobado' : 'Rechazado' }}
+                </vc-badge>
+              </td>
+              <td class="vc-pkg__ref">{{ c.referenciaPago || '—' }}</td>
+            </tr>
+          } @empty {
+            <tr class="vc-pkg__vacio"><td colspan="6">Aún no hay compras registradas.</td></tr>
+          }
+        </tbody>
+      </table>
+    }
+  </section>
+}
+
+<vc-dialog [open]="elegido() !== null" title="Confirmar compra" (closed)="cancelar()">
+  @if (elegido(); as p) {
+    <div class="vc-pkg__confirmar">
+      <p>
+        Vas a comprar <strong>{{ p.nombre }}</strong>: {{ p.cantidadSalas }} salas por
+        <strong>{{ p.precio | number: '1.2-2' }}</strong>.
+      </p>
+      <p class="vc-pkg__nota">Pago simulado: no se realiza ningún cobro real.</p>
+      @if (errorCompra()) {
+        <p class="vc-pkg__error" role="alert">{{ errorCompra() }}</p>
+      }
+      <div class="vc-pkg__botones">
+        <vc-button variant="secondary" (click)="cancelar()">Cancelar</vc-button>
+        <vc-button id="btnConfirmarCompra" [disabled]="comprando()" (click)="confirmar()">
+          {{ comprando() ? 'Procesando…' : 'Confirmar compra' }}
+        </vc-button>
+      </div>
+    </div>
+  }
+</vc-dialog>
