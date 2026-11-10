@@ -35,23 +35,55 @@ export class ProductForm {
   protected readonly errorGuardar = signal<string | null>(null);
 
   protected readonly titulo = computed(() => (this.producto() ? 'Editar producto' : 'Nuevo producto'));
-  protected readonly categorias = computed(() => [
-    ...new Set(this.existentes().map((p) => p.categoria?.trim()).filter((c): c is string => !!c)),
-  ]);
+
+  protected readonly categorias = computed<string[]>(() => {
+    const productos = this.existentes() ?? [];
+
+    return [
+      ...new Set(
+        productos
+          .map((p) => p.categoria?.trim())
+          .filter((c): c is string => !!c)
+      ),
+    ];
+  });
+
 
   protected readonly errorNombre = computed<string | null>(() => {
     if (!this.intento()) return null;
+
     const valor = this.nombre().trim();
-    if (!valor) return 'El nombre es obligatorio.';
-    if (valor.length > 100) return 'Máximo 100 caracteres.';
-    const repetido = this.existentes().some(
-      (p) => p.id !== this.producto()?.id && p.nombre.trim().toLowerCase() === valor.toLowerCase(),
+
+    if (!valor) {
+      return 'El nombre es obligatorio.';
+    }
+
+    if (valor.length < 3) {
+      return 'El nombre debe tener al menos 3 caracteres.';
+    }
+
+    if (valor.length > 100) {
+      return 'El nombre no puede exceder 100 caracteres.';
+    }
+
+    const repetido = (this.existentes() ?? []).some(
+      (p) =>
+        p.id !== this.producto()?.id &&
+        p.nombre.trim().toLowerCase() === valor.toLowerCase()
     );
-    return repetido ? 'Ya existe un producto con este nombre en su empresa.' : null;
+
+    if (repetido) {
+      return 'Ya existe un producto con este nombre en su empresa.';
+    }
+
+    return null;
   });
+
+
   protected readonly errorCategoria = computed<string | null>(() =>
     this.intento() && this.categoria().trim().length > 60 ? 'Máximo 60 caracteres.' : null,
   );
+
   protected readonly errorDescripcion = computed<string | null>(() =>
     this.intento() && this.descripcion().length > MAX_DESCRIPCION ? `Máximo ${MAX_DESCRIPCION} caracteres.` : null,
   );
@@ -105,10 +137,37 @@ export class ProductForm {
         this.guardando.set(false);
         this.guardado.emit(guardado);
       },
-      error: (err) => {
-        this.guardando.set(false);
-        this.errorGuardar.set(err?.error?.mensaje ?? 'No se pudo guardar el producto. Intenta de nuevo.');
-      },
+      
+    error: (err) => {
+      this.guardando.set(false);
+
+      if (err.status === 409) {
+        this.errorGuardar.set(
+          'Ya existe un producto con este nombre en su empresa.'
+        );
+        return;
+      }
+
+      if (err.status === 400) {
+        this.errorGuardar.set(
+          err.error?.mensaje ??
+          'Verifique los datos del formulario.'
+        );
+        return;
+      }
+
+      if (err.status === 403) {
+        this.errorGuardar.set(
+          'No tiene permisos para registrar productos.'
+        );
+        return;
+      }
+
+      this.errorGuardar.set(
+        err.error?.mensaje ??
+        'No se pudo guardar el producto. Intente nuevamente.'
+      );
+    },
     });
   }
 }

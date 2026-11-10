@@ -1,6 +1,9 @@
 export type Rol = 'representante' | 'consumidor';
 
-/** Campos conocidos por SalaService; los opcionales dependen de tu SalaDTO real. */
+// ============================================
+// SALAS
+// ============================================
+
 export interface SalaDTO {
   id?: number;
   token: string;
@@ -11,10 +14,13 @@ export interface SalaDTO {
   venceEn?: string;
   nombreConsumidor?: string | null;
   aceptoGrabacionEn?: string | null;
-  // Opcionales: úsalos si tu DTO los expone.
   productoNombre?: string;
   entrevistaId?: number;
 }
+
+// ============================================
+// GRABACIONES
+// ============================================
 
 export interface GrabacionDTO {
   id?: number;
@@ -29,33 +35,47 @@ export interface GrabacionDTO {
   creadoEn?: string;
 }
 
-export type TipoSenal = 'join' | 'offer' | 'answer' | 'ice' | 'leave';
+// ============================================
+// VIDEOLLAMADA Y SEÑALIZACIÓN
+// ============================================
 
-/** Mensaje de señalización que viaja por WebSocket. El backend solo lo retransmite. */
+export type TipoSenal =
+  | 'join'
+  | 'offer'
+  | 'answer'
+  | 'ice'
+  | 'leave';
+
 export interface SenalMensaje {
   tipo: TipoSenal;
   de: Rol;
   nombre?: string;
-  /** Identifica cada RTCPeerConnection creada por el representante. */
   sesion?: string;
   sdp?: string;
   candidato?: RTCIceCandidateInit;
 }
 
-export type EstadoConexion = 'nuevo' | 'conectando' | 'conectado' | 'inestable' | 'fallido' | 'cerrado';
+export type EstadoConexion =
+  | 'nuevo'
+  | 'conectando'
+  | 'conectado'
+  | 'inestable'
+  | 'fallido'
+  | 'cerrado';
 
 export interface ResultadoGrabacion {
   blob: Blob;
   duracionSegundos: number;
   tieneAudioCliente: boolean;
-  /** true si la grabación se detuvo sola (p. ej. cambiaron las pistas) y no por el usuario. */
   inesperado: boolean;
 }
 
-/** Espejo de ProductoDTO del backend (/api/productos). */
+// ============================================
+// PRODUCTOS
+// ============================================
+
 export interface ProductoDTO {
   id?: number;
-  /** Lo devuelve el backend; ya no se envía: la empresa sale de la sesión. */
   empresaId?: number;
   nombre: string;
   descripcion?: string | null;
@@ -64,11 +84,9 @@ export interface ProductoDTO {
   version?: number;
   creadoEn?: string;
   actualizadoEn?: string;
-  /** El backend aún no lo expone; la tabla muestra "—" mientras no llegue. */
   entrevistas?: number;
 }
 
-/** Espejo de ProductoRequestDTO: lo único que el backend acepta al crear o editar un producto. */
 export interface ProductoRequest {
   nombre: string;
   descripcion?: string | null;
@@ -76,12 +94,16 @@ export interface ProductoRequest {
   esActivo?: boolean;
 }
 
-/** Espejo de CuentaDTO del backend (solo los campos que usa el frontend). */
+// ============================================
+// CUENTAS
+// ============================================
+
 export interface CuentaDTO {
   id: number;
   empresaId?: number | null;
   nombreCompleto: string;
   correo?: string;
+
   rol: 'ADMINISTRADOR' | 'CLIENTE_ADMINISTRADOR' | 'REPRESENTANTE' | string;
   estado?: 'PENDIENTE' | 'ACTIVA' | 'INACTIVA' | string;
   ultimoIngresoEn?: string | null;
@@ -133,9 +155,13 @@ export interface CompraRequest {
   estadoPago: EstadoPago;
   referenciaPago: string;
   claveIdempotencia: string;
+
 }
 
-/** Espejo de EntrevistaDTO del backend. */
+// ============================================
+// ENTREVISTAS - MODELO GENERAL
+// ============================================
+
 export interface EntrevistaDTO {
   id?: number;
   salaId: number;
@@ -146,4 +172,137 @@ export interface EntrevistaDTO {
   duracionSegundos?: number | null;
 }
 
+// ============================================
+// PANEL DE ENTREVISTAS - ESTADOS
+// ============================================
 
+export type EstadoEntrevista =
+  | 'EN_CURSO'
+  | 'FINALIZADA'
+  | 'FALLIDA';
+
+export type EstadoTranscripcion =
+  | 'PENDIENTE'
+  | 'EN_PROCESO'
+  | 'COMPLETADA'
+  | 'CON_ERROR'
+  | 'SIN_CONTENIDO';
+
+export type EstadoAnalisis =
+  | 'PENDIENTE'
+  | 'EN_PROCESO'
+  | 'COMPLETADA'
+  | 'CON_ERROR';
+
+// ============================================
+// PAGINACIÓN
+// ============================================
+
+export interface Pagina<T> {
+  content: T[];
+  number: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+// ============================================
+// PANEL DE ENTREVISTAS - LISTADO
+// ============================================
+
+export interface EntrevistaListadoDTO {
+  id: number;
+  salaId: number;
+  productoId: number;
+  productoNombre: string | null;
+  consumidorNombre: string | null;
+  representanteId: number;
+  representanteNombre: string | null;
+  estado: EstadoEntrevista;
+  inicioEn: string;
+  finEn: string | null;
+  duracionSegundos: number | null;
+  grabacionId: number | null;
+  transcripcionId: number | null;
+  estadoTranscripcion: EstadoTranscripcion | null;
+  analisisId: number | null;
+  estadoAnalisis: EstadoAnalisis | null;
+  puedeReintentar: boolean;
+}
+
+// ============================================
+// PANEL DE ENTREVISTAS - FRAGMENTOS
+// ============================================
+
+export interface FragmentoTranscripcionDTO {
+  id: number;
+  transcripcionId: number;
+
+  // Java BigDecimal se representa como número JSON.
+  segundoInicio: number;
+  segundoFin: number;
+
+  texto: string;
+}
+
+// ============================================
+// PANEL DE ENTREVISTAS - COMPETIDORES
+// ============================================
+
+export interface MencionCompetenciaDTO {
+  id: number;
+  analisisId: number;
+  competidor: string;
+  frecuencia: number;
+  contexto: string | null;
+}
+
+// ============================================
+// PANEL DE ENTREVISTAS - ANÁLISIS
+// ============================================
+
+
+export interface EntrevistaAnalisisDetalleDTO {
+  id: number;
+  estado: EstadoAnalisis;
+  intencion: string | null;
+  sentimiento: string | null;
+  fragmentoApoyo: string | null;
+  tieneMenciones: boolean | null;
+  mensajeError: string | null;
+  competidores: MencionCompetenciaDTO[];
+}
+
+
+// ============================================
+// PANEL DE ENTREVISTAS - DETALLE
+// ============================================
+
+export interface EntrevistaDetalleDTO {
+  id: number;
+  salaId: number;
+  productoId: number;
+  productoNombre: string | null;
+  consumidorNombre: string | null;
+  representanteId: number;
+  representanteNombre: string | null;
+  estado: EstadoEntrevista;
+  inicioEn: string;
+  finEn: string | null;
+  duracionSegundos: number | null;
+
+  grabacionId: number | null;
+  transcripcionId: number | null;
+  estadoTranscripcion: EstadoTranscripcion | null;
+
+  textoTranscripcion: string | null;
+  idiomaDetectado: string | null;
+  probabilidadIdioma: number | null;
+
+  fragmentos: FragmentoTranscripcionDTO[] | null;
+
+  analisis: EntrevistaAnalisisDetalleDTO | null;
+}

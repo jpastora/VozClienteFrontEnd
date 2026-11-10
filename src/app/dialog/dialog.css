@@ -1,14 +1,30 @@
-.vc-dialog__backdrop { position: fixed; inset: 0; background: rgb(11 11 12 / 55%); }
-/* Diálogo con filete Filament arriba, como en los prototipos */
+:host {
+  display: contents;
+}
+
+.vc-dialog__backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(11 11 12 / 55%);
+  z-index: 9998;
+}
+
+/* Diálogo con el estilo visual de Voz Cliente */
 .vc-dialog {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  min-width: 360px;
-  max-width: 90vw;
+  z-index: 9999;
+
+  width: min(500px, 90vw);
+  max-height: 90vh;
+  overflow-y: auto;
+
   padding: var(--vc-space-4);
   background: var(--vc-white);
+  color: var(--vc-code-black);
+
   border-top: 4px solid var(--vc-filament);
   border-radius: var(--vc-radius);
 }
