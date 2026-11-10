@@ -84,6 +84,55 @@ export interface CuentaDTO {
   correo?: string;
   rol: 'ADMINISTRADOR' | 'CLIENTE_ADMINISTRADOR' | 'REPRESENTANTE' | string;
   estado?: 'PENDIENTE' | 'ACTIVA' | 'INACTIVA' | string;
+  ultimoIngresoEn?: string | null;
+  version?: number;
+  creadoEn?: string;
+}
+
+/** Espejo de CrearRepresentanteDTO: lo único que el back-end acepta al registrar un representante. */
+export interface CrearRepresentanteRequest {
+  nombreCompleto: string;
+  correo: string;
+}
+
+/** Espejo de PaqueteDTO del back-end (/api/paquetes). */
+export interface PaqueteDTO {
+  id: number;
+  nombre: string;
+  cantidadSalas: number;
+  precio: number;
+  esActivo: boolean;
+  creadoEn?: string;
+  actualizadoEn?: string;
+}
+
+export type EstadoPago = 'APROBADO' | 'RECHAZADO';
+
+/** Espejo de CompraDTO del back-end (/api/compras). */
+export interface CompraDTO {
+  id: number;
+  empresaId: number;
+  paqueteId: number;
+  cuentaId: number;
+  monto: number;
+  salasAcreditadas: number;
+  estadoPago: EstadoPago;
+  referenciaPago?: string | null;
+  claveIdempotencia?: string;
+  creadoEn: string;
+}
+
+/**
+ * Lo que envía el front al comprar. El back-end reemplaza `monto` y `salasAcreditadas` con los
+ * valores reales del paquete, así que no se mandan.
+ */
+export interface CompraRequest {
+  empresaId: number;
+  paqueteId: number;
+  cuentaId: number;
+  estadoPago: EstadoPago;
+  referenciaPago: string;
+  claveIdempotencia: string;
 }
 
 /** Espejo de EntrevistaDTO del backend. */

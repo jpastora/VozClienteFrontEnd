@@ -1,2 +1,30 @@
-<h1>M4 Transcripción</h1>
-<p>Grabación y transcripción con Whisper. Pantalla pendiente de implementar.</p>
+<h1>Entrevistas</h1>
+<p class="vc-eyebrow">M4 · Transcripción y estado de procesamiento</p>
+
+<p class="vc-trans__aviso" role="status">Sin datos: esta pantalla se conectará cuando el back-end exponga el listado de entrevistas.</p>
+
+<section class="vc-trans__filters" aria-label="Filtros">
+  <div class="vc-trans__campo">
+    <label class="vc-trans__label" for="cmbProductoEntrevista">Producto</label>
+    <select id="cmbProductoEntrevista" class="vc-trans__select" disabled>
+      <option>Todos</option>
+    </select>
+  </div>
+  <div class="vc-trans__campo">
+    <label class="vc-trans__label" for="cmbEstadoEntrevista">Estado</label>
+    <select id="cmbEstadoEntrevista" class="vc-trans__select" disabled>
+      <option>Todos</option>
+    </select>
+  </div>
+</section>
+
+<table class="vc-table">
+  <thead>
+    <tr>
+      <th>Producto</th><th>Fecha</th><th>Duración</th><th>Transcripción</th><th>Análisis</th><th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="vc-trans__vacio"><td colspan="6">Aún no hay entrevistas para mostrar.</td></tr>
+  </tbody>
+</table>

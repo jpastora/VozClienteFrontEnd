@@ -17,7 +17,7 @@ export function rutaInicio(rol: RolInfo): string {
     case 'REPRESENTANTE':
       return '/salas';
     default:
-      return '/productos';
+      return '/inicio';
   }
 }
 

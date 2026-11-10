@@ -11,7 +11,9 @@ interface OpcionMenu {
 
 /** Opciones del menú lateral y los perfiles que las ven (Tabla 5 del informe de diseño). */
 const OPCIONES_MENU: OpcionMenu[] = [
+  { ruta: '/inicio', texto: 'Inicio', roles: ['CLIENTE_ADMINISTRADOR'] },
   { ruta: '/productos', texto: 'Productos', roles: ['CLIENTE_ADMINISTRADOR'] },
+  { ruta: '/representantes', texto: 'Representantes', roles: ['CLIENTE_ADMINISTRADOR'] },
   { ruta: '/salas', texto: 'Salas', roles: ['CLIENTE_ADMINISTRADOR', 'REPRESENTANTE'] },
   { ruta: '/transcripciones', texto: 'Entrevistas', roles: ['CLIENTE_ADMINISTRADOR'] },
   { ruta: '/reportes', texto: 'Estadísticas', roles: ['CLIENTE_ADMINISTRADOR'] },
