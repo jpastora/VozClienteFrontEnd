@@ -1,0 +1,109 @@
+<h1>Representantes</h1>
+<p class="vc-eyebrow">M1 · Personas que atienden las entrevistas de tu empresa</p>
+
+<section class="vc-reps__filters" aria-label="Filtros">
+  <vc-field
+    class="vc-reps__search"
+    controlId="txtBuscarRepresentante"
+    label="Buscar por nombre o correo"
+    [value]="busqueda()"
+    (valueChange)="buscar($event)"
+  />
+  <div class="vc-reps__estado">
+    <label class="vc-reps__label" for="cmbEstadoRepresentante">Estado</label>
+    <select id="cmbEstadoRepresentante" class="vc-reps__select" [value]="filtroEstado()" (change)="cambiarEstado($event)">
+      <option value="todos">Todos</option>
+      <option value="PENDIENTE">Pendiente</option>
+      <option value="ACTIVA">Activa</option>
+      <option value="INACTIVA">Inactiva</option>
+    </select>
+  </div>
+  <vc-button id="btnNuevoRepresentante" class="vc-reps__nuevo" (click)="abrirNuevo()">+ Nuevo representante</vc-button>
+</section>
+
+@if (cargando()) {
+  <p class="vc-reps__msg" role="status">Cargando representantes…</p>
+} @else if (errorCarga()) {
+  <div class="vc-reps__msg vc-reps__msg--error" role="alert">
+    {{ errorCarga() }}
+    <vc-button variant="secondary" (click)="cargar()">Reintentar</vc-button>
+  </div>
+} @else {
+  <table class="vc-table">
+    <thead>
+      <tr><th>Nombre</th><th>Correo</th><th>Estado</th><th>Último ingreso</th><th>Acciones</th></tr>
+    </thead>
+    <tbody>
+      @for (r of filtrados(); track r.id) {
+        <tr>
+          <td>{{ r.nombreCompleto }}</td>
+          <td class="vc-reps__correo">{{ r.correo || '—' }}</td>
+          <td><vc-badge [tone]="tono(r.estado)">{{ etiqueta(r.estado) }}</vc-badge></td>
+          <td>{{ r.ultimoIngresoEn ? (r.ultimoIngresoEn | date: 'dd/MM/yyyy HH:mm') : 'Aún no ingresa' }}</td>
+          <td class="vc-reps__acciones">
+            @if (r.estado !== 'INACTIVA') {
+              <vc-button variant="danger" (click)="pedirDesactivar(r)">Desactivar</vc-button>
+            } @else {
+              <span class="vc-reps__sin-accion">—</span>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr class="vc-reps__vacio">
+          <td colspan="5">
+            @if (representantes().length === 0) {
+              Aún no hay representantes. Registra el primero con «Nuevo representante».
+            } @else {
+              Ningún representante coincide con los filtros.
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+<vc-dialog [open]="formAbierto()" title="Nuevo representante" (closed)="cerrarForm()">
+  <form class="vc-reps__form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <p class="vc-reps__nota">
+      Usa el correo de Google con el que el representante va a ingresar. La cuenta queda pendiente hasta su primer
+      ingreso.
+    </p>
+    <vc-field controlId="txtNombreRepresentante" label="Nombre completo *" [(value)]="nombre" [error]="errorNombre()" />
+    <vc-field
+      controlId="txtCorreoRepresentante"
+      label="Correo de Google *"
+      type="email"
+      [value]="correo()"
+      (valueChange)="cambiarCorreo($event)"
+      [error]="errorCorreo()"
+    />
+    @if (errorGuardar()) {
+      <p class="vc-reps__error" role="alert">{{ errorGuardar() }}</p>
+    }
+    <div class="vc-reps__botones">
+      <vc-button variant="secondary" (click)="cerrarForm()">Cancelar</vc-button>
+      <vc-button id="btnGuardarRepresentante" type="submit" [disabled]="guardando()">
+        {{ guardando() ? 'Guardando…' : 'Registrar representante' }}
+      </vc-button>
+    </div>
+  </form>
+</vc-dialog>
+
+<vc-dialog [open]="porDesactivar() !== null" title="Desactivar representante" (closed)="cancelarDesactivar()">
+  @if (porDesactivar(); as r) {
+    <p>
+      ¿Desactivar a «{{ r.nombreCompleto }}»? No podrá ingresar a la plataforma. Por ahora la reactivación no está
+      disponible desde esta pantalla.
+    </p>
+    @if (errorDesactivar()) {
+      <p class="vc-reps__error" role="alert">{{ errorDesactivar() }}</p>
+    }
+    <div class="vc-reps__botones">
+      <vc-button variant="secondary" (click)="cancelarDesactivar()">Cancelar</vc-button>
+      <vc-button id="btnConfirmarDesactivarRepresentante" variant="danger" [disabled]="desactivando()" (click)="confirmarDesactivar()">
+        {{ desactivando() ? 'Desactivando…' : 'Desactivar' }}
+      </vc-button>
+    </div>
+  }
+</vc-dialog>
