@@ -1,0 +1,5 @@
+:host { display: block; }
+.vc-home__aviso { margin: var(--vc-space-2) 0 var(--vc-space-3); color: var(--vc-muted); font-size: var(--vc-text-sm); }
+.vc-home__metricas { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--vc-space-3); margin-bottom: var(--vc-space-4); }
+.vc-home__recientes h2 { margin-bottom: var(--vc-space-3); }
+.vc-home__vacio td { text-align: center; color: var(--vc-muted); font-weight: 400 !important; padding: var(--vc-space-5); }

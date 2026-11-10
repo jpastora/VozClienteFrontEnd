@@ -14,36 +14,17 @@ interface OpcionMenu {
  * (Tabla 5 del informe de diseño).
  */
 const OPCIONES_MENU: OpcionMenu[] = [
-  {
-    ruta: '/productos',
-    texto: 'Productos',
-    roles: ['CLIENTE_ADMINISTRADOR'],
-  },
-  {
-    ruta: '/salas',
-    texto: 'Salas',
-    roles: ['CLIENTE_ADMINISTRADOR', 'REPRESENTANTE'],
-  },
-  {
-    ruta: '/entrevistas',
-    texto: 'Entrevistas',
-    roles: ['CLIENTE_ADMINISTRADOR'],
-  },
-  {
-    ruta: '/reportes',
-    texto: 'Estadísticas',
-    roles: ['CLIENTE_ADMINISTRADOR'],
-  },
-  {
-    ruta: '/paquetes',
-    texto: 'Paquetes y saldo',
-    roles: ['CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR'],
-  },
-  {
-    ruta: '/admin',
-    texto: 'Administración',
-    roles: ['ADMINISTRADOR'],
-  },
+
+  { ruta: '/inicio', texto: 'Inicio', roles: ['CLIENTE_ADMINISTRADOR'] },
+  { ruta: '/productos', texto: 'Productos', roles: ['CLIENTE_ADMINISTRADOR'] },
+  { ruta: '/representantes', texto: 'Representantes', roles: ['CLIENTE_ADMINISTRADOR'] },
+  { ruta: '/entrevistas', texto: 'Entrevistas', roles: ['CLIENTE_ADMINISTRADOR'], },
+  { ruta: '/salas', texto: 'Salas', roles: ['CLIENTE_ADMINISTRADOR', 'REPRESENTANTE'] },
+  { ruta: '/transcripciones', texto: 'Entrevistas', roles: ['CLIENTE_ADMINISTRADOR'] },
+  { ruta: '/reportes', texto: 'Estadísticas', roles: ['CLIENTE_ADMINISTRADOR'] },
+  { ruta: '/paquetes', texto: 'Paquetes y saldo', roles: ['CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR'] },
+  { ruta: '/admin', texto: 'Administración', roles: ['ADMINISTRADOR'] },
+
 ];
 
 const NOMBRES_ROL: Record<RolInfo, string> = {

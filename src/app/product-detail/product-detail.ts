@@ -4,10 +4,10 @@ import { RouterLink } from '@angular/router';
 import { Badge } from '../badge/badge';
 import { Button } from '../button/button';
 import { CUENTA_ID_PRUEBA, urlBase } from '../core/config';
-import { CuentaApi } from '../core/cuenta-api';
 import { EntrevistaApi } from '../core/entrevista-api';
 import { CuentaDTO, ProductoDTO, SalaDTO } from '../core/models';
 import { ProductoApi } from '../core/producto-api';
+import { RepresentanteApi } from '../core/representante-api';
 import { SalaApi } from '../core/sala-api';
 import { Dialog } from '../dialog/dialog';
 import { ProductForm } from '../product-form/product-form';
@@ -30,7 +30,7 @@ function estadoVigente(sala: SalaDTO): string {
 export class ProductDetail {
   private readonly productoApi = inject(ProductoApi);
   private readonly salaApi = inject(SalaApi);
-  private readonly cuentaApi = inject(CuentaApi);
+  private readonly representanteApi = inject(RepresentanteApi);
   private readonly entrevistaApi = inject(EntrevistaApi);
   private readonly sesion = inject(SessionService);
 
@@ -78,7 +78,7 @@ export class ProductDetail {
     const id = Number(this.id());
     this.cargando.set(true);
     this.error.set(null);
-    this.cuentaApi.listar().subscribe({
+    this.representanteApi.listar().subscribe({
       next: (cuentas) => {
         const reps = cuentas.filter((c) => c.rol === 'REPRESENTANTE' && c.estado !== 'INACTIVA');
         this.representantes.set(reps);
