@@ -46,6 +46,8 @@ export const routes: Routes = [
       { path: 'productos/:id', title: 'M2 Detalle de producto', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./product-detail/product-detail').then((m) => m.ProductDetail) },
       { path: 'salas', title: 'M3 Salas y videollamada', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'REPRESENTANTE')], loadComponent: () => import('./rooms/rooms').then((m) => m.Rooms) },
       { path: 'transcripciones', title: 'M4 Transcripción', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./transcription/transcription').then((m) => m.Transcription) },
+      { path: 'entrevistas', title: 'Entrevistas y procesamiento', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./interviews/interviews').then((m) => m.Interviews),},
+      { path: 'entrevistas/:id', title: 'Detalle de entrevista', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./interview-detail/interview-detail').then(  (m) => m.InterviewDetail ),},
       { path: 'analisis', title: 'M5 Análisis con IA', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./analysis/analysis').then((m) => m.Analysis) },
       { path: 'reportes', title: 'M6 Estadísticas y reportes', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./reports/reports').then((m) => m.Reports) },
       { path: 'paquetes', title: 'M7 Paquetes y cobros', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR')], loadComponent: () => import('./packages/packages').then((m) => m.Packages) },
