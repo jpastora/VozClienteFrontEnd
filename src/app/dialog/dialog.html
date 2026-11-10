@@ -1,7 +1,18 @@
 @if (open()) {
-  <div class="vc-dialog__backdrop" (click)="closed.emit()"></div>
-  <div class="vc-dialog" role="dialog" aria-modal="true" [attr.aria-label]="title()">
+  <div
+    class="vc-dialog__backdrop"
+    (click)="closed.emit()">
+  </div>
+
+  <div
+    class="vc-dialog"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="title()">
+
     <h2>{{ title() }}</h2>
+
     <ng-content />
+
   </div>
 }

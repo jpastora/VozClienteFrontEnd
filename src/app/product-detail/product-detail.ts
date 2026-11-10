@@ -4,10 +4,10 @@ import { RouterLink } from '@angular/router';
 import { Badge } from '../badge/badge';
 import { Button } from '../button/button';
 import { CUENTA_ID_PRUEBA, urlBase } from '../core/config';
-import { CuentaApi } from '../core/cuenta-api';
 import { EntrevistaApi } from '../core/entrevista-api';
 import { CuentaDTO, ProductoDTO, SalaDTO } from '../core/models';
 import { ProductoApi } from '../core/producto-api';
+import { RepresentanteApi } from '../core/representante-api';
 import { SalaApi } from '../core/sala-api';
 import { Dialog } from '../dialog/dialog';
 import { ProductForm } from '../product-form/product-form';
@@ -30,7 +30,7 @@ function estadoVigente(sala: SalaDTO): string {
 export class ProductDetail {
   private readonly productoApi = inject(ProductoApi);
   private readonly salaApi = inject(SalaApi);
-  private readonly cuentaApi = inject(CuentaApi);
+  private readonly representanteApi = inject(RepresentanteApi);
   private readonly entrevistaApi = inject(EntrevistaApi);
   private readonly sesion = inject(SessionService);
 
@@ -78,7 +78,7 @@ export class ProductDetail {
     const id = Number(this.id());
     this.cargando.set(true);
     this.error.set(null);
-    this.cuentaApi.listar().subscribe({
+    this.representanteApi.listar().subscribe({
       next: (cuentas) => {
         const reps = cuentas.filter((c) => c.rol === 'REPRESENTANTE' && c.estado !== 'INACTIVA');
         this.representantes.set(reps);
@@ -87,34 +87,43 @@ export class ProductDetail {
       // Sin lista de cuentas se usa la cuenta de prueba como representante.
       error: () => this.representantes.set([]),
     });
-    // El backend no tiene filtro por id dentro de la empresa; se usa el listado para validar pertenencia
-    // y para alimentar el formulario (nombres repetidos y categorías).
-    this.productoApi.listar().subscribe({
-      next: (lista) => {
-        this.catalogo.set(lista);
-        const encontrado = lista.find((p) => p.id === id) ?? null;
-        this.producto.set(encontrado);
-        if (!encontrado) {
-          this.error.set('No se encontró el producto.');
-          this.cargando.set(false);
-          return;
-        }
+  
+    this.productoApi.obtener(id).subscribe({
+      next: (producto) => {
+        this.producto.set(producto);
+
+        // Cargar las salas asociadas al producto.
         this.salaApi.listarPorProducto(id).subscribe({
           next: (salas) => {
             this.salas.set(salas);
             this.cargando.set(false);
           },
           error: () => {
-            this.error.set('No se pudieron cargar los enlaces del producto.');
+            this.error.set(
+              'No se pudieron cargar los enlaces del producto.'
+            );
             this.cargando.set(false);
-          },
+          }
+        });
+
+        // Catálogo auxiliar para sugerir categorías.
+        this.productoApi.listar().subscribe({
+          next: (lista) => this.catalogo.set(lista),
+          error: () => this.catalogo.set([])
         });
       },
-      error: () => {
-        this.error.set('No se pudo cargar el producto.');
+
+      error: (err) => {
+        this.error.set(
+          err.status === 404
+            ? 'No se encontró el producto solicitado.'
+            : 'No se pudo cargar el producto.'
+        );
+
         this.cargando.set(false);
-      },
+      }
     });
+
   }
 
   // Estado del producto

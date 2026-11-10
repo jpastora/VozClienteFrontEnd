@@ -1,15 +1,23 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
+
 import { API_URL } from './config';
 import { CuentaDTO } from './models';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class CuentaApi {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
 
-  /** GET /api/cuentas: cuentas de la empresa del usuario autenticado. */
+  /**
+   * Obtiene las cuentas de la empresa
+   * del usuario autenticado.
+   */
   listar(): Observable<CuentaDTO[]> {
-    return this.http.get<CuentaDTO[]>(`${API_URL}/cuentas`);
+    return this.http.get<CuentaDTO[]>(
+      `${API_URL}/cuentas`
+    );
   }
 }
