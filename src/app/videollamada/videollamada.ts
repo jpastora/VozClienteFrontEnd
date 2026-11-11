@@ -82,8 +82,9 @@ export class Videollamada implements OnInit, OnDestroy {
   protected tituloSala = computed(() => {
     const s = this.sala();
     if (!s) return '';
-    return s.productoNombre?.trim() || `Producto #${s.productoId}`;
+    return s.productoNombre?.trim() || `Producto sin nombre`;
   });
+  
   protected etiquetaRemota = computed(() => this.nombreRemoto() || (this.esRep ? 'Consumidor' : 'Representante'));
   protected inicialesRemoto = computed(() => this.iniciales(this.etiquetaRemota()));
 

@@ -60,6 +60,9 @@ export class ProductDetail {
   protected readonly enlaceRepresentante = signal<string | null>(null);
   protected readonly copiado = signal<'consumidor' | 'representante' | null>(null);
 
+  protected readonly copiadoFila = signal<string | null>(null);
+  protected readonly filaExpandida = signal<string | null>(null);
+
   /** Representantes de la empresa; el elegido atenderá la entrevista. */
   protected readonly representantes = signal<CuentaDTO[]>([]);
   protected readonly representanteId = signal<number | null>(null);
@@ -86,7 +89,20 @@ export class ProductDetail {
       next: (cuentas) => {
         const reps = cuentas.filter((c) => c.rol === 'REPRESENTANTE' && c.estado !== 'INACTIVA');
         this.representantes.set(reps);
-        if (this.representanteId() === null && reps.length) this.representanteId.set(reps[0].id);
+
+        // 1) Intentar restaurar el representante guardado.
+        let guardado: number | null = null;
+        try {
+          const v = localStorage.getItem(this.claveRepresentante());
+          guardado = v ? Number(v) : null;
+        } catch { }
+
+        if (guardado != null && reps.some((r) => r.id === guardado)) {
+          this.representanteId.set(guardado);
+        } else if (this.representanteId() === null && reps.length) {
+          // 2) Si no hay guardado (o ya no existe/está inactivo), usar el primero.
+          this.representanteId.set(reps[0].id);
+        }
       },
       // Sin lista de cuentas se usa la cuenta de prueba como representante.
       error: () => this.representantes.set([]),
@@ -180,8 +196,19 @@ export class ProductDetail {
 
   // Enlaces de sala
   protected cambiarRepresentante(evento: Event): void {
-    this.representanteId.set(Number((evento.target as HTMLSelectElement).value));
+    const id = Number((evento.target as HTMLSelectElement).value);
+    this.representanteId.set(id);
+    try {
+      localStorage.setItem(this.claveRepresentante(), String(id));
+    } catch { }
   }
+
+  private claveRepresentante(): string {
+    return `vc.representante.producto.${this.id()}`;
+  }
+
+
+  
 
   protected generarEnlace(): void {
     const p = this.producto();
@@ -238,5 +265,43 @@ export class ProductDetail {
   }
   protected sufijo(token: string): string {
     return '…' + token.slice(-6).toUpperCase();
+  }
+
+  // Método para abrir/cerrar el detalle del enlace
+  protected alternarDetalleHistorico(sala: SalaDTO): void {
+    if (this.filaExpandida() === sala.token) {
+      this.filaExpandida.set(null); // Lo cierra si ya está abierto
+    } else {
+      this.filaExpandida.set(sala.token); // Lo abre
+    }
+  }
+
+  // Genera la URL del consumidor para la tabla
+  protected urlConsumidorHistorico(sala: SalaDTO): string {
+    return `${urlBase()}/sala/${sala.token}`;
+  }
+
+  // Genera la URL del representante para la tabla
+  protected urlRepresentanteHistorico(sala: SalaDTO): string {
+    const idEntrevista = (sala as any).entrevistaId; 
+    return idEntrevista 
+      ? `${urlBase()}/representante/${sala.token}?entrevistaId=${idEntrevista}`
+      : `${urlBase()}/representante/${sala.token}`;
+  }
+
+
+  protected async copiarHistorico(sala: SalaDTO, quien: 'consumidor' | 'representante'): Promise<void> {
+    const url = quien === 'consumidor' 
+      ? this.urlConsumidorHistorico(sala) 
+      : this.urlRepresentanteHistorico(sala);
+
+    try {
+      await navigator.clipboard.writeText(url);
+      const idBoton = `${sala.token}-${quien}`;
+      this.copiadoFila.set(idBoton);
+      setTimeout(() => this.copiadoFila.update((c) => (c === idBoton ? null : c)), 2500);
+    } catch {
+      this.error.set('No se pudo copiar el enlace de la tabla.');
+    }
   }
 }

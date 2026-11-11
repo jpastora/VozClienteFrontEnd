@@ -42,9 +42,11 @@
       @if (representantes().length) {
         <div class="vc-pdetail__rep">
           <label for="cmbRepresentante">Representante que atenderá</label>
-          <select id="cmbRepresentante" [value]="representanteId()" (change)="cambiarRepresentante($event)">
+          <select id="cmbRepresentante" (change)="cambiarRepresentante($event)">
             @for (r of representantes(); track r.id) {
-              <option [value]="r.id">{{ r.nombreCompleto }}</option>
+            <option [value]="r.id" [selected]="r.id === representanteId()">
+              {{ r.nombreCompleto }}
+            </option>
             }
           </select>
         </div>
@@ -85,19 +87,68 @@
 
   <table class="vc-table vc-pdetail__tabla">
     <thead>
-      <tr><th>Enlace</th><th>Emitido</th><th>Vence</th><th>Consumidor</th><th>Estado</th></tr>
+      <tr>
+        <th>Enlace</th>
+        <th>Emitido</th>
+        <th>Vence</th>
+        <th>Consumidor</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
     </thead>
     <tbody>
       @for (s of filas(); track s.id ?? s.token) {
         <tr>
-          <td class="vc-pdetail__token">{{ sufijo(s.token) }}</td>
+          <td class="vc-pdetail__token" title="Token: {{ s.token }}">{{ sufijo(s.token) }}</td>
           <td>{{ s.emitidaEn | date: 'dd/MM/yyyy' }}</td>
           <td>{{ s.venceEn | date: 'dd/MM/yyyy' }}</td>
           <td>{{ s.nombreConsumidor || '—' }}</td>
           <td><vc-badge [tone]="tono(s.vigente)">{{ etiqueta(s.vigente) }}</vc-badge></td>
+          <td>
+            <div class="vc-pdetail__acciones">
+              <vc-button variant="secondary" (click)="alternarDetalleHistorico(s)">
+                {{ filaExpandida() === s.token ? 'Ocultar enlace' : 'Ver enlace' }}
+              </vc-button>
+            </div>
+          </td>
         </tr>
+        
+        <!-- Fila expandible con el mismo diseño que el panel de generación -->
+        @if (filaExpandida() === s.token) {
+          <tr>
+            <td colspan="6" style="padding: 0;">
+              <div class="vc-pdetail__enlace-historico">
+                <div class="vc-pdetail__link">
+                  <span class="vc-eyebrow">Enlace del consumidor</span>
+                  <code class="vc-pdetail__url" aria-label="Enlace del consumidor">
+                    {{ urlConsumidorHistorico(s) }}
+                  </code>
+                  <div class="vc-pdetail__acciones">
+                    <vc-button variant="secondary" (click)="copiarHistorico(s, 'consumidor')">Copiar enlace</vc-button>
+                    @if (copiadoFila() === s.token + '-consumidor') {
+                      <span class="vc-pdetail__copiado" role="status">✓ Enlace copiado</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="vc-pdetail__link" style="margin-top: 1rem;">
+                  <span class="vc-eyebrow">Enlace del representante</span>
+                  <code class="vc-pdetail__url" aria-label="Enlace del representante">
+                    {{ urlRepresentanteHistorico(s) }}
+                  </code>
+                  <div class="vc-pdetail__acciones">
+                    <vc-button variant="secondary" (click)="copiarHistorico(s, 'representante')">Copiar enlace</vc-button>
+                    @if (copiadoFila() === s.token + '-representante') {
+                      <span class="vc-pdetail__copiado" role="status">✓ Enlace copiado</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        }
       } @empty {
-        <tr class="vc-pdetail__vacio"><td colspan="5">Aún no hay enlaces generados para este producto.</td></tr>
+        <tr class="vc-pdetail__vacio"><td colspan="6">Aún no hay enlaces generados para este producto.</td></tr>
       }
     </tbody>
   </table>
