@@ -172,6 +172,28 @@
                 }}
               </span>
 
+               @if (procesando()) {
+                <p>Transcribiendo… esto puede tardar varios minutos.</p>
+              }
+
+              @if (puedeTranscribir()) {
+                <button
+                  type="button"
+                  class="btn-audio"
+                  (click)="solicitarTranscripcion()"
+                >
+                  {{
+                    datos.entrevista.estadoTranscripcion === 'CON_ERROR'
+                      ? 'Reintentar transcripción'
+                      : 'Transcribir grabación'
+                  }}
+                </button>
+              }
+
+              @if (mensajeTranscripcion()) {
+                <p class="sin-analisis">{{ mensajeTranscripcion() }}</p>
+              }
+
             </div>
 
           }

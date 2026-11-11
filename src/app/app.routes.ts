@@ -48,7 +48,6 @@ export const routes: Routes = [
       { path: 'productos/:id', title: 'Detalle de producto', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./product-detail/product-detail').then((m) => m.ProductDetail) },
       { path: 'representantes', title: 'Representantes', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./representatives/representatives').then((m) => m.Representatives) },
       { path: 'salas', title: 'Salas y videollamada', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'REPRESENTANTE')], loadComponent: () => import('./rooms/rooms').then((m) => m.Rooms) },
-      { path: 'transcripciones', title: 'Transcripción', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./transcription/transcription').then((m) => m.Transcription) },
       { path: 'entrevistas', title: 'Entrevistas y procesamiento', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./interviews/interviews').then((m) => m.Interviews),},
       { path: 'entrevistas/:id', title: 'Detalle de entrevista', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./interview-detail/interview-detail').then(  (m) => m.InterviewDetail ),},
       { path: 'analisis', title: 'Análisis con IA', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./analysis/analysis').then((m) => m.Analysis) },

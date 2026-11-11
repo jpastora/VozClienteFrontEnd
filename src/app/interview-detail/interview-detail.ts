@@ -21,6 +21,10 @@ import {
 
 import { EntrevistaApi } from '../core/entrevista-api';
 
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { finalize, switchMap, takeWhile, timer } from 'rxjs';
+import { API_URL } from '../core/config';
+
 type PestanaDetalle = 'transcripcion' | 'fragmentos';
 
 interface FragmentoVisual {
@@ -59,6 +63,9 @@ export class InterviewDetail implements OnInit, OnDestroy {
 
   private suscripcion?: Subscription;
 
+  private readonly http = inject(HttpClient);
+  private polling?: Subscription
+
   // ==========================================
   // ESTADO DE LA PANTALLA
   // ==========================================
@@ -74,6 +81,10 @@ export class InterviewDetail implements OnInit, OnDestroy {
     signal<EntrevistaDetalleDTO | null>(null);
 
   protected readonly entrevistaId = signal(0);
+
+  protected readonly solicitando = signal(false);
+  protected readonly procesando = signal(false);
+  protected readonly mensajeTranscripcion = signal<string | null>(null);
 
   // ==========================================
   // DATOS PARA LA INTERFAZ
@@ -163,17 +174,19 @@ export class InterviewDetail implements OnInit, OnDestroy {
     this.pestana.set('transcripcion');
 
     this.entrevistaApi.obtenerDetalle(id).subscribe({
-
+      
       next: (respuesta) => {
-
-        if (this.entrevistaId() !== id) {
-          return;
-        }
-
+        if (this.entrevistaId() !== id) return;
         this.entrevista.set(respuesta);
         this.cargando.set(false);
-      },
 
+        if (respuesta.grabacionId != null &&
+          (respuesta.estadoTranscripcion === 'PENDIENTE' ||
+            respuesta.estadoTranscripcion === 'EN_PROCESO')) {
+          this.iniciarPolling(id, respuesta.grabacionId);
+        }
+      },
+      
       error: (error) => {
 
         if (this.entrevistaId() !== id) {
@@ -339,5 +352,66 @@ export class InterviewDetail implements OnInit, OnDestroy {
 
     return nombres[estado] ?? estado;
   }
+
+  protected readonly puedeTranscribir = computed(() => {
+  const e = this.entrevista();
+  return !!e
+    && e.grabacionId != null
+    && (e.estadoTranscripcion == null || e.estadoTranscripcion === 'CON_ERROR')
+    && !this.solicitando()
+    && !this.procesando();
+});
+
+protected solicitarTranscripcion(): void {
+  const e = this.entrevista();
+  if (!e || e.grabacionId == null || this.solicitando()) return;
+
+  this.solicitando.set(true);
+  this.mensajeTranscripcion.set(null);
+
+  this.http.post(`${API_URL}/transcripciones/grabacion/${e.grabacionId}`, {})
+    .pipe(finalize(() => this.solicitando.set(false)))
+    .subscribe({
+      next: () => this.iniciarPolling(e.id, e.grabacionId!),
+      error: (err: HttpErrorResponse) => {
+        this.mensajeTranscripcion.set(
+          err.status === 403 ? 'No tienes permisos para transcribir.'
+          : err.status === 409 ? 'La transcripción ya está en proceso o completada.'
+          : 'No fue posible solicitar la transcripción.'
+        );
+      }
+    });
+}
+
+private iniciarPolling(entrevistaId: number, grabacionId: number): void {
+  this.detenerPolling();
+  this.procesando.set(true);
+
+  this.polling = timer(0, 4000).pipe(
+    switchMap(() =>
+      this.http.get<{ estado: string }>(
+        `${API_URL}/transcripciones/grabacion/${grabacionId}`)),
+    // true = emite también el último valor (el estado final)
+    takeWhile(t => t.estado === 'PENDIENTE' || t.estado === 'EN_PROCESO', true)
+  ).subscribe({
+    error: () => {
+      this.procesando.set(false);
+      this.mensajeTranscripcion.set('No se pudo consultar el estado de la transcripción.');
+    },
+    complete: () => {
+      this.procesando.set(false);
+      if (this.entrevistaId() === entrevistaId) {
+        this.cargarEntrevista(entrevistaId); // refresca texto y estado
+      }
+    }
+  });
+}
+
+private detenerPolling(): void {
+  this.polling?.unsubscribe();
+  this.polling = undefined;
+}
+
+
 
 }
