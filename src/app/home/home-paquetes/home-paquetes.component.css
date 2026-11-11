@@ -1,0 +1,100 @@
+/* Tarjetas de paquetes sobre fondo Code Black; la recomendada lleva filete Filament de 4 px. */
+:host { display: block; }
+
+.vc-paquetes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--vc-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  align-items: stretch;
+}
+
+.vc-paquete {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-2);
+  padding: var(--vc-space-5) var(--vc-space-4) var(--vc-space-4);
+  border: 1px solid var(--vc-dark-border);
+  border-top: 4px solid var(--vc-dark-border);
+  border-radius: var(--vc-radius);
+  background: var(--vc-dark-surface);
+  color: var(--vc-dark-text);
+  transition:
+    transform var(--vc-dur-base) var(--vc-ease-out),
+    border-color var(--vc-dur-base) var(--vc-ease-out);
+}
+.vc-paquete:hover { transform: translateY(-4px); border-color: var(--vc-teal-soft); }
+.vc-paquete.is-recomendado { border-top-color: var(--vc-filament); background: var(--vc-dark-surface-2); }
+
+.vc-paquete__sello {
+  position: absolute;
+  top: var(--vc-space-3);
+  right: var(--vc-space-3);
+  padding: 2px var(--vc-space-2);
+  border-radius: var(--vc-radius);
+  background: var(--vc-filament);
+  color: var(--vc-code-black);
+  font: 500 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.vc-paquete__nombre {
+  margin: 0;
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: var(--vc-tracking-mono);
+  text-transform: uppercase;
+  color: var(--vc-dark-muted);
+}
+.vc-paquete__salas { display: flex; align-items: baseline; gap: var(--vc-space-2); margin: 0; }
+.vc-paquete__salas strong { font: 700 4rem/1 var(--vc-font-display); }
+.vc-paquete__salas span { color: var(--vc-dark-text-soft); }
+.vc-paquete__precio { margin: var(--vc-space-2) 0 0; font: 700 var(--vc-text-h2) var(--vc-font-display); }
+.vc-paquete__unitario { margin: 0; font: 400 var(--vc-text-sm) var(--vc-font-mono); color: var(--vc-dark-muted); }
+
+.vc-paquete__incluye {
+  display: grid;
+  gap: var(--vc-space-2);
+  margin: var(--vc-space-3) 0 var(--vc-space-4);
+  padding: var(--vc-space-3) 0 0;
+  border-top: 1px solid var(--vc-dark-border);
+  list-style: none;
+  font-size: var(--vc-text-sm);
+}
+.vc-paquete__incluye li { display: flex; gap: var(--vc-space-2); }
+.vc-paquete__incluye li::before { content: '✓'; color: var(--vc-teal-soft); font-weight: 700; }
+
+.vc-paquete__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: auto;
+  padding: 0 var(--vc-space-3);
+  border: 1px solid var(--vc-paper);
+  border-radius: var(--vc-radius);
+  color: var(--vc-paper);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color var(--vc-dur-fast), color var(--vc-dur-fast);
+}
+.vc-paquete__cta:hover { background: var(--vc-paper); color: var(--vc-code-black); }
+.vc-paquete__cta:focus-visible { outline: none; box-shadow: var(--vc-focus); }
+/* En la tarjeta recomendada el botón es el CTA Filament */
+.is-recomendado .vc-paquete__cta { background: var(--vc-filament); border-color: var(--vc-filament); color: var(--vc-code-black); }
+.is-recomendado .vc-paquete__cta:hover { background: var(--vc-filament-hover); }
+
+.vc-paquetes__nota {
+  margin: var(--vc-space-4) 0 0;
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vc-dark-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vc-paquete:hover { transform: none; }
+}

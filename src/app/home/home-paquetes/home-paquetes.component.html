@@ -1,0 +1,35 @@
+<ul class="vc-paquetes">
+  @for (paquete of vista(); track paquete.id; let i = $index) {
+    <li class="vc-paquete" [class.is-recomendado]="paquete.recomendado" vcReveal [vcRevealRetraso]="i * 120">
+      @if (paquete.recomendado) {
+        <span class="vc-paquete__sello">Recomendado</span>
+      }
+      <p class="vc-paquete__nombre">{{ paquete.nombre }}</p>
+      <p class="vc-paquete__salas">
+        <strong>{{ paquete.cantidadSalas }}</strong>
+        <span>salas de entrevista</span>
+      </p>
+      <p class="vc-paquete__precio">{{ paquete.precio | currency: 'USD' : 'symbol' : '1.0-0' }}</p>
+      <p class="vc-paquete__unitario">{{ paquete.precioPorSala | currency: 'USD' : 'symbol' : '1.0-2' }} por sala</p>
+
+      <ul class="vc-paquete__incluye">
+        <li>Grabación del canal del cliente</li>
+        <li>Transcripción y análisis con IA</li>
+        <li>Estadísticas y reporte por producto</li>
+      </ul>
+
+      <a
+        class="vc-paquete__cta"
+        [attr.id]="'lnkPaquete' + paquete.id"
+        [routerLink]="conSesion() ? rutas.paquetes : rutas.ingreso"
+      >{{ conSesion() ? 'Comprar paquete' : 'Empezar con este paquete' }}</a>
+    </li>
+  }
+</ul>
+
+<p class="vc-paquetes__nota">
+  Se descuenta una sala solo cuando la entrevista se graba correctamente.
+  @if (!datosReales()) {
+    Precios de referencia en USD.
+  }
+</p>

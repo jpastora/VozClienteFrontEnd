@@ -1,0 +1,59 @@
+/* Logotipo de Voz Cliente: barras de audio + nombre en Archivo Narrow (identidad visual §03). */
+:host {
+  --vc-logo-alto: 32px;
+  --vc-logo-texto: var(--vc-text-lg);
+  --vc-logo-barra: var(--vc-filament);
+  --vc-logo-centro: var(--vc-filament);
+  --vc-logo-color: var(--vc-paper);
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-2);
+  color: var(--vc-logo-color);
+  line-height: 1;
+}
+
+/* ---------- Tamaños ---------- */
+:host([data-tamano='sm']) { --vc-logo-alto: 24px; --vc-logo-texto: var(--vc-text-md); }
+:host([data-tamano='lg']) { --vc-logo-alto: 40px; --vc-logo-texto: 1.875rem; }
+
+/* ---------- Tonos ---------- */
+:host([data-tono='claro']) {
+  --vc-logo-barra: var(--vc-deep-circuit);
+  --vc-logo-centro: var(--vc-filament);
+  --vc-logo-color: var(--vc-code-black);
+}
+
+.vc-logo__barras {
+  display: block;
+  height: var(--vc-logo-alto);
+  width: auto;
+  flex: none;
+}
+.vc-logo__barra { fill: var(--vc-logo-barra); }
+.vc-logo__barra--centro { fill: var(--vc-logo-centro); }
+
+.vc-logo__texto {
+  font: 700 var(--vc-logo-texto) var(--vc-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+/* ---------- Animación de onda (opcional, se usará en el home) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  :host(.vc-logo--animado) .vc-logo__barra {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: vc-logo-onda 1.2s var(--vc-ease-in-out) infinite alternate;
+  }
+  :host(.vc-logo--animado) .vc-logo__barra:nth-child(2) { animation-delay: calc(var(--vc-stagger) * 1); }
+  :host(.vc-logo--animado) .vc-logo__barra:nth-child(3) { animation-delay: calc(var(--vc-stagger) * 2); }
+  :host(.vc-logo--animado) .vc-logo__barra:nth-child(4) { animation-delay: calc(var(--vc-stagger) * 3); }
+  :host(.vc-logo--animado) .vc-logo__barra:nth-child(5) { animation-delay: calc(var(--vc-stagger) * 4); }
+}
+
+@keyframes vc-logo-onda {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(0.45); }
+}

@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { RUTAS } from '../core/rutas';
 import { RolInfo } from '../interfaces/usuario';
 import { rutaInicio, SessionService } from '../services/session';
 
@@ -11,7 +12,7 @@ export const autenticadoGuard: CanActivateFn = () => {
   if (inject(SessionService).autenticado()) {
     return true;
   }
-  return inject(Router).createUrlTree(['/auth']);
+  return inject(Router).createUrlTree([RUTAS.ingreso]);
 };
 
 /**
@@ -27,7 +28,7 @@ export const roleGuard =
     const usuario = inject(SessionService).usuario();
     const router = inject(Router);
     if (!usuario) {
-      return router.createUrlTree(['/auth']);
+      return router.createUrlTree([RUTAS.ingreso]);
     }
     if (roles.includes(usuario.rol)) {
       return true;

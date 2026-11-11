@@ -1,0 +1,23 @@
+/* Onda de audio: barras Filament de 4 px con esquinas redondeadas, centradas en vertical. */
+:host {
+  --vc-waveform-alto: 160px;
+  --vc-waveform-color: var(--vc-filament);
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  height: var(--vc-waveform-alto);
+  cursor: crosshair;
+  touch-action: pan-y;
+}
+
+.vc-waveform__barra {
+  flex: 1 1 0;
+  max-width: 6px;
+  height: 100%;
+  border-radius: var(--vc-radius-pill);
+  background: var(--vc-waveform-color);
+  transform-origin: center;
+  will-change: transform, opacity;
+}

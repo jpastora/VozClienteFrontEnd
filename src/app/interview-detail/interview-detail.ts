@@ -20,6 +20,7 @@ import {
 } from '../core/models';
 
 import { EntrevistaApi } from '../core/entrevista-api';
+import { RUTAS } from '../core/rutas';
 
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { finalize, switchMap, takeWhile, timer } from 'rxjs';
@@ -60,6 +61,9 @@ export class InterviewDetail implements OnInit, OnDestroy {
 
   private readonly route = inject(ActivatedRoute);
   private readonly entrevistaApi = inject(EntrevistaApi);
+
+  /** Rutas absolutas para los enlaces de la plantilla. */
+  protected readonly rutas = RUTAS;
 
   private suscripcion?: Subscription;
 
@@ -249,7 +253,7 @@ export class InterviewDetail implements OnInit, OnDestroy {
       valor
         .toLowerCase()
         .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[̀-ͯ]/g, '')
         .replace(/[^\p{L}\p{N}\s]/gu, ' ')
         .replace(/\s+/g, ' ')
         .trim();
@@ -353,6 +357,7 @@ export class InterviewDetail implements OnInit, OnDestroy {
     return nombres[estado] ?? estado;
   }
 
+
   protected readonly puedeTranscribir = computed(() => {
   const e = this.entrevista();
   return !!e
@@ -415,3 +420,4 @@ private detenerPolling(): void {
 
 
 }
+
