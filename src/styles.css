@@ -1,60 +1,16 @@
-/* Tokens del estilo de Brightcode Labs, tomados de los prototipos del informe de diseño
-   (valores muestreados de las capturas; confirmar contra el Plan general). */
-:root {
-  /* Paleta */
-  --vc-code-black: #0b0b0c;
-  --vc-paper: #f4f4f2;
-  --vc-deep-circuit: #0f4c55;
-  --vc-filament: #ffb703;
-  --vc-concrete: #c9c9c6;
+/*
+ * Estilos globales de Voz Cliente. Los tokens (colores, tipografía, espaciado, movimiento)
+ * viven en src/styles/tokens.css, que angular.json carga antes que este archivo.
+ */
 
-  /* Apoyo */
-  --vc-white: #ffffff;
-  --vc-line: #e4e4e2;
-  --vc-muted: #555555;
-  --vc-teal-soft: #86a4a9;
-  --vc-danger: #b3261e;
-  --vc-success: #1e6b3a;
-  --vc-warning: #8a5a00;
-
-  /* Semánticos */
-  --vc-color-bg: var(--vc-paper);
-  --vc-color-surface: var(--vc-white);
-  --vc-color-text: var(--vc-code-black);
-  --vc-color-border: var(--vc-concrete);
-  --vc-color-primary: var(--vc-code-black);
-  --vc-color-accent: var(--vc-filament);
-  --vc-color-brand: var(--vc-deep-circuit);
-
-  /* Tipografías */
-  --vc-font-display: 'Archivo Narrow', 'Arial Narrow', sans-serif;
-  --vc-font-body: 'IBM Plex Sans', Arial, sans-serif;
-  --vc-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-
-  /* Escala, espaciado y forma */
-  --vc-text-xs: 0.75rem;
-  --vc-text-sm: 0.875rem;
-  --vc-text-md: 1rem;
-  --vc-text-lg: 1.25rem;
-  --vc-text-xl: 2rem;
-  --vc-space-1: 4px;
-  --vc-space-2: 8px;
-  --vc-space-3: 16px;
-  --vc-space-4: 24px;
-  --vc-space-5: 40px;
-  --vc-radius: 4px;
-  --vc-focus: 0 0 0 3px var(--vc-filament);
-  --panel: #1c1c1e;
-  --panel-2: #232326;
-  --amber: #f5b301;
-  --teal: #114e58;
-  --red: #b4261e;
-  --text: #f2f2f2;
-  --muted: #8e8e93;
-}
-
-
+/* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
 
 body {
   margin: 0;
@@ -62,32 +18,56 @@ body {
   color: var(--vc-color-text);
   font-family: var(--vc-font-body);
   font-size: var(--vc-text-md);
-  line-height: 1.5;
+  line-height: var(--vc-leading-body);
+  -webkit-font-smoothing: antialiased;
 }
+
 button { font-family: inherit; cursor: pointer; }
 
-/* Títulos: Archivo Narrow en mayúsculas */
+/* Selección de texto: relleno Filament con texto Code Black (Filament nunca como texto) */
+::selection { background: var(--vc-filament); color: var(--vc-code-black); }
+
+/* Foco visible por defecto para cualquier control sin estilo propio (README §7.4) */
+:focus-visible { outline: 2px solid var(--vc-filament); outline-offset: 2px; }
+
+/* ---------- Títulos: Archivo Narrow en mayúsculas ---------- */
 h1, h2, h3 {
   font-family: var(--vc-font-display);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.01em;
-  line-height: 1.1;
+  line-height: var(--vc-leading-heading);
   margin: 0 0 var(--vc-space-3);
 }
-h1 { font-size: var(--vc-text-xl); }
-h2 { font-size: var(--vc-text-lg); }
+h1 { font-size: var(--vc-text-h1); }
+h2 { font-size: var(--vc-text-h2); }
+h3 { font-size: var(--vc-text-h3); }
 code, pre { font-family: var(--vc-font-mono); }
+
+/* ---------- Utilidades ---------- */
 
 /* Etiqueta pequeña en mono (p. ej. "ENTREVISTA SOBRE · PEGASUS 41") */
 .vc-eyebrow {
   font: 400 var(--vc-text-xs) var(--vc-font-mono);
-  letter-spacing: 0.14em;
+  letter-spacing: var(--vc-tracking-mono);
   text-transform: uppercase;
   color: var(--vc-muted);
 }
 
-/* Tablas: encabezado negro y filas alternadas */
+/* Texto solo para lectores de pantalla */
+.vc-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Tablas: encabezado negro y filas alternadas ---------- */
 .vc-table { width: 100%; border-collapse: collapse; font-size: var(--vc-text-sm); }
 .vc-table th {
   background: var(--vc-code-black);
@@ -101,10 +81,26 @@ code, pre { font-family: var(--vc-font-mono); }
 .vc-table tbody tr:nth-child(even) { background: var(--vc-white); }
 .vc-table td:first-child { font-weight: 700; }
 
-/* Panel blanco con borde fino */
+/* ---------- Panel blanco con borde fino ---------- */
 .vc-panel {
   background: var(--vc-white);
   border: 1px solid var(--vc-line);
   border-radius: var(--vc-radius);
   padding: var(--vc-space-4);
+}
+
+
+/* ---------- Animación de entrada (directiva vcReveal) ---------- */
+.vc-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--vc-dur-slow) var(--vc-ease-out),
+    transform var(--vc-dur-slow) var(--vc-ease-out);
+  transition-delay: var(--vc-reveal-retraso, 0ms);
+}
+.vc-reveal--visible { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vc-reveal { opacity: 1; transform: none; transition: none; }
 }

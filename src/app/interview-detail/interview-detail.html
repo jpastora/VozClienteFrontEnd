@@ -23,7 +23,7 @@
         Reintentar consulta
       </button>
 
-      <a routerLink="/entrevistas">
+      <a [routerLink]="rutas.entrevistas">
         Volver al listado
       </a>
 
@@ -36,7 +36,7 @@
       <div class="detalle-header__titulo">
 
         <a
-          routerLink="/entrevistas"
+          [routerLink]="rutas.entrevistas"
           class="volver"
           aria-label="Volver al listado de entrevistas"
         >
@@ -362,7 +362,7 @@
         No existe información disponible para esta entrevista.
       </p>
 
-      <a routerLink="/entrevistas">
+      <a [routerLink]="rutas.entrevistas">
         Volver al listado
       </a>
 

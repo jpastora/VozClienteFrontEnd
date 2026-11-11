@@ -1,0 +1,122 @@
+/*
+ * Tokens del sistema visual de Voz Cliente.
+ * Fuente: guía de estilo del README (§7).
+ * Regla: ningún componente escribe colores, tamaños o tiempos a mano; todo sale de aquí.
+ *
+ * Puntos de quiebre (no se pueden usar variables dentro de @media; usar estos valores):
+ *   móvil < 600px · tableta 600px–959px · escritorio 960px–1279px · ancho >= 1280px
+ */
+:root {
+  /* ---------- Paleta oficial (proporción 55 / 25 / 15 / 5) ---------- */
+  --vc-code-black: #0b0b0c;
+  --vc-paper: #f4f4f2;
+  --vc-deep-circuit: #0f4c55;
+  --vc-filament: #ffb703;
+  --vc-concrete: #c9c9c6;
+
+  /* ---------- Apoyo ---------- */
+  --vc-white: #ffffff;
+  --vc-black: #000000;
+  --vc-line: #e4e4e2;
+  --vc-muted: #555555;
+  --vc-teal-soft: #86a4a9;
+  --vc-danger: #b3261e;
+  --vc-success: #1e6b3a;
+  --vc-warning: #8a5a00;
+
+  /* ---------- Superficies oscuras (videollamada, home) ---------- */
+  --vc-dark-bg: var(--vc-code-black);
+  --vc-dark-surface: #1c1c1e;
+  --vc-dark-surface-2: #232326;
+  --vc-dark-surface-3: #2a2a2d;
+  --vc-dark-border: #3a3a3d;
+  --vc-dark-text: #f2f2f2;
+  --vc-dark-text-soft: #d6d6d8;
+  --vc-dark-muted: #8e8e93;
+
+  /* ---------- Estados de interacción ---------- */
+  --vc-filament-hover: #ffc61f;
+  --vc-danger-hover: #cc2d24;
+  --vc-danger-on-dark: #ff8a80;
+  --vc-white-hover: #ececec;
+
+  /* ---------- Semánticos ---------- */
+  --vc-color-bg: var(--vc-paper);
+  --vc-color-surface: var(--vc-white);
+  --vc-color-text: var(--vc-code-black);
+  --vc-color-border: var(--vc-concrete);
+  --vc-color-primary: var(--vc-code-black);
+  --vc-color-accent: var(--vc-filament);
+  --vc-color-brand: var(--vc-deep-circuit);
+
+  /* ---------- Tipografías ---------- */
+  --vc-font-display: 'Archivo Narrow', 'Arial Narrow', sans-serif;
+  --vc-font-body: 'IBM Plex Sans', Arial, sans-serif;
+  --vc-font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* ---------- Escala tipográfica ---------- */
+  --vc-text-xs: 0.75rem;   /* 12px: etiquetas y metadatos */
+  --vc-text-sm: 0.875rem;  /* 14px */
+  --vc-text-md: 1rem;      /* 16px: párrafo */
+  --vc-text-lg: 1.25rem;   /* 20px: H3 */
+  --vc-text-xl: 2rem;      /* 32px: H1 de las pantallas internas */
+  --vc-text-h1: 2rem;      /* 32px (README §7.2) */
+  --vc-text-h2: 1.5rem;    /* 24px (README §7.2) */
+  --vc-text-h3: 1.25rem;   /* 20px (README §7.2) */
+  /* Titulares del home: fluidos entre móvil y escritorio (identidad: H1 64/0.92) */
+  --vc-text-display: clamp(2.5rem, 1.5rem + 5vw, 6rem);
+  --vc-text-display-sm: clamp(2rem, 1.25rem + 3vw, 4rem);
+
+  --vc-leading-tight: 0.92;
+  --vc-leading-heading: 1.1;
+  --vc-leading-body: 1.6;
+  --vc-tracking-mono: 0.14em;
+
+  /* ---------- Espaciado (múltiplos de 4 y 8) ---------- */
+  --vc-space-1: 4px;
+  --vc-space-2: 8px;
+  --vc-space-3: 16px;
+  --vc-space-4: 24px;
+  --vc-space-5: 40px;
+  --vc-space-6: 64px;
+  --vc-space-7: 96px;
+  --vc-space-8: 128px;
+
+  /* ---------- Contenedor ---------- */
+  --vc-container: 1200px;
+  --vc-gutter: clamp(16px, 4vw, 40px);
+
+  /* ---------- Forma ---------- */
+  --vc-radius: 4px;
+  --vc-radius-lg: 12px;
+  --vc-radius-pill: 999px;
+  --vc-focus: 0 0 0 3px var(--vc-filament);
+
+  /* ---------- Sombras (sutiles: la identidad no usa sombras pesadas) ---------- */
+  --vc-shadow-sm: 0 1px 2px rgb(11 11 12 / 8%);
+  --vc-shadow-md: 0 8px 24px rgb(11 11 12 / 12%);
+
+  /* ---------- Movimiento ---------- */
+  --vc-dur-fast: 150ms;
+  --vc-dur-base: 250ms;
+  --vc-dur-slow: 600ms;
+  --vc-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --vc-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --vc-stagger: 60ms;
+
+  /* ---------- Capas ---------- */
+  --vc-z-header: 100;
+  --vc-z-overlay: 900;
+  --vc-z-dialog: 1000;
+  --vc-z-toast: 1100;
+}
+
+/* Movimiento reducido: todas las duraciones pasan a cero (README §7.4, accesibilidad). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --vc-dur-fast: 0ms;
+    --vc-dur-base: 0ms;
+    --vc-dur-slow: 0ms;
+    --vc-stagger: 0ms;
+  }
+}

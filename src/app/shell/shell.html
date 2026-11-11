@@ -1,10 +1,7 @@
 <aside class="vc-shell__sidebar">
-  <div class="vc-shell__brand" aria-label="Voz Cliente">
-    <span class="vc-shell__logo" aria-hidden="true">
-      <i></i><i></i><i></i><i></i><i></i>
-    </span>
-    Voz Cliente
-  </div>
+  <a class="vc-shell__brand" [routerLink]="rutas.home" aria-label="Voz Cliente, ir al inicio">
+    <vc-logo tono="oscuro" />
+  </a>
   <nav aria-label="Principal">
     @for (opcion of opciones(); track opcion.ruta) {
       <a [routerLink]="opcion.ruta" routerLinkActive="is-active">{{ opcion.texto }}</a>

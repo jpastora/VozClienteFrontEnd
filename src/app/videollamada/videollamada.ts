@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { GUIA_SUGERIDA, SEGUNDOS_REINTENTO } from '../core/config';
@@ -23,6 +24,7 @@ import { RecorderService } from '../core/recorder.service';
 import { SalaApi } from '../core/sala-api';
 import { SignalingService } from '../core/signaling.service';
 import { WebrtcService } from '../core/webrtc.service';
+import { LogoComponent } from '../shared/logo/logo.component';
 import { MediaStreamDirective } from './media-stream.directive';
 
 type Fase = 'cargando' | 'error' | 'lobby' | 'conectando' | 'llamada' | 'subiendo' | 'finalizada';
@@ -31,7 +33,7 @@ const CLAVE_NOMBRE = 'voz-cliente:nombre';
 
 @Component({
   selector: 'app-videollamada',
-  imports: [FormsModule, MediaStreamDirective],
+  imports: [FormsModule, LogoComponent, MediaStreamDirective],
   providers: [SignalingService, WebrtcService, RecorderService],
   templateUrl: './videollamada.html',
   styleUrl: './videollamada.css',
@@ -43,6 +45,7 @@ export class Videollamada implements OnInit, OnDestroy {
   private entrevistaApi = inject(EntrevistaApi);
   private destroyRef = inject(DestroyRef);
   private signaling = inject(SignalingService);
+  private titulo = inject(Title);
   protected rtc = inject(WebrtcService);
   protected rec = inject(RecorderService);
 
@@ -75,10 +78,11 @@ export class Videollamada implements OnInit, OnDestroy {
   protected grabacion = signal<GrabacionDTO | null>(null);
   protected resumenFinal = signal('');
 
+  /** Nombre del producto de la sala; si el back-end no lo envía se muestra su número. */
   protected tituloSala = computed(() => {
     const s = this.sala();
     if (!s) return '';
-    return s.productoNombre ?? `Producto ${s.productoId}`;
+    return s.productoNombre?.trim() || `Producto #${s.productoId}`;
   });
   protected etiquetaRemota = computed(() => this.nombreRemoto() || (this.esRep ? 'Consumidor' : 'Representante'));
   protected inicialesRemoto = computed(() => this.iniciales(this.etiquetaRemota()));
@@ -116,6 +120,7 @@ export class Videollamada implements OnInit, OnDestroy {
     try {
       const sala = await firstValueFrom(this.salaApi.obtener(this.token));
       this.sala.set(sala);
+      this.titulo.setTitle(`Sala del producto ${this.tituloSala()} · Voz Cliente`);
 
       const vencida = sala.venceEn ? new Date(sala.venceEn).getTime() < Date.now() : false;
       if (sala.estado === 'EXPIRADO' || vencida) {
@@ -377,4 +382,3 @@ export class Videollamada implements OnInit, OnDestroy {
     return new Date().toLocaleTimeString('es-CR', { hour: '2-digit', minute: '2-digit', hour12: false });
   }
 }
-

@@ -8,6 +8,7 @@ import { EntrevistaApi } from '../core/entrevista-api';
 import { CuentaDTO, ProductoDTO, SalaDTO } from '../core/models';
 import { ProductoApi } from '../core/producto-api';
 import { RepresentanteApi } from '../core/representante-api';
+import { RUTAS } from '../core/rutas';
 import { SalaApi } from '../core/sala-api';
 import { Dialog } from '../dialog/dialog';
 import { ProductForm } from '../product-form/product-form';
@@ -36,6 +37,9 @@ export class ProductDetail {
 
   /** Parámetro :id de la ruta (llega por withComponentInputBinding en app.config). */
   readonly id = input.required<string>();
+
+  /** Rutas absolutas para los enlaces de la plantilla. */
+  protected readonly rutas = RUTAS;
 
   private readonly cuentaId = computed(() => this.sesion.usuario()?.id ?? CUENTA_ID_PRUEBA);
 

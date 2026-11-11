@@ -2,6 +2,7 @@ import { computed, inject, Service, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthApi, URL_INGRESO_GOOGLE } from '../core/auth-api';
+import { RUTAS } from '../core/rutas';
 import { RolInfo, UsuarioInfo } from '../interfaces/usuario';
 
 /**
@@ -13,11 +14,11 @@ import { RolInfo, UsuarioInfo } from '../interfaces/usuario';
 export function rutaInicio(rol: RolInfo): string {
   switch (rol) {
     case 'ADMINISTRADOR':
-      return '/admin';
+      return RUTAS.admin;
     case 'REPRESENTANTE':
-      return '/salas';
+      return RUTAS.salas;
     default:
-      return '/inicio';
+      return RUTAS.inicio;
   }
 }
 
@@ -74,6 +75,6 @@ export class SessionService {
       // Aunque el back-end no responda, la sesión se limpia en la interfaz.
     }
     this._usuario.set(null);
-    await this.router.navigateByUrl('/auth');
+    await this.router.navigateByUrl(RUTAS.ingreso);
   }
 }

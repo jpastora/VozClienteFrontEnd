@@ -1,0 +1,270 @@
+/*
+ * Home público de Voz Cliente. Bandas alternas Code Black / Paper con un bloque Deep Circuit
+ * (proporción 55 / 25 / 15 / 5 de la identidad). Filament solo en la onda, una cifra y los CTA.
+ */
+:host { display: block; background: var(--vc-code-black); }
+
+/* ---------- Estructura común ---------- */
+.vc-contenedor {
+  width: 100%;
+  max-width: var(--vc-container);
+  margin: 0 auto;
+  padding: 0 var(--vc-gutter);
+}
+
+.vc-seccion {
+  padding: var(--vc-space-8) 0;
+  scroll-margin-top: 72px;
+}
+.vc-seccion--clara { background: var(--vc-paper); color: var(--vc-code-black); }
+.vc-seccion--borde { border-top: 1px solid var(--vc-concrete); }
+.vc-seccion--circuito { background: var(--vc-deep-circuit); color: var(--vc-paper); }
+.vc-seccion--oscura { background: var(--vc-code-black); color: var(--vc-paper); }
+
+/* Numeración mono de sección: "02 / 05 · Cómo funciona" */
+.vc-numeracion {
+  margin: 0 0 var(--vc-space-3);
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: var(--vc-tracking-mono);
+  text-transform: uppercase;
+  color: var(--vc-muted);
+}
+.vc-numeracion--clara { color: var(--vc-concrete); }
+
+.vc-seccion__titulo {
+  max-width: 22ch;
+  margin: 0 0 var(--vc-space-6);
+  font-size: var(--vc-text-display-sm);
+  line-height: var(--vc-leading-tight);
+}
+
+/* ---------- Botones ---------- */
+.vc-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--vc-space-2);
+  min-height: 52px;
+  padding: 0 var(--vc-space-4);
+  border: 1px solid transparent;
+  border-radius: var(--vc-radius);
+  font-size: var(--vc-text-md);
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    background-color var(--vc-dur-fast) var(--vc-ease-out),
+    color var(--vc-dur-fast) var(--vc-ease-out),
+    transform var(--vc-dur-fast) var(--vc-ease-out);
+}
+.vc-boton:hover { transform: translateY(-1px); }
+.vc-boton:focus-visible { outline: none; box-shadow: var(--vc-focus); }
+/* CTA principal: relleno Filament con texto Code Black */
+.vc-boton--acento { background: var(--vc-filament); color: var(--vc-code-black); }
+.vc-boton--acento:hover { background: var(--vc-filament-hover); }
+.vc-boton--contorno-claro { border-color: rgb(244 244 242 / 40%); color: var(--vc-paper); }
+.vc-boton--contorno-claro:hover { border-color: var(--vc-paper); background: rgb(244 244 242 / 8%); }
+.vc-boton__g {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--vc-code-black);
+  color: var(--vc-filament);
+  font: 700 var(--vc-text-xs) var(--vc-font-body);
+}
+
+/* ---------- 1 · Hero ---------- */
+.vc-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--vc-space-6);
+  min-height: 100svh;
+  padding: calc(72px + var(--vc-space-6)) 0 var(--vc-space-5);
+  color: var(--vc-paper);
+  /* Textura técnica: cuadrícula de puntos muy tenue */
+  background:
+    radial-gradient(circle, rgb(244 244 242 / 9%) 1px, transparent 1.5px) 0 0 / 24px 24px,
+    var(--vc-code-black);
+  overflow: hidden;
+}
+
+.vc-hero__contenido { position: relative; }
+
+.vc-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-2);
+  margin: 0 0 var(--vc-space-4);
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: var(--vc-tracking-mono);
+  text-transform: uppercase;
+  color: var(--vc-concrete);
+}
+.vc-hero__punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--vc-filament);
+  box-shadow: 0 0 0 4px rgb(255 183 3 / 20%);
+}
+
+.vc-hero__titulo {
+  margin: 0;
+  font-size: var(--vc-text-display);
+  line-height: var(--vc-leading-tight);
+  letter-spacing: -0.01em;
+}
+.vc-hero__linea { display: block; }
+/* «datos» subrayado en Filament: la única palabra destacada */
+.vc-hero__titulo em {
+  font-style: normal;
+  background: linear-gradient(var(--vc-filament), var(--vc-filament)) 0 92% / 100% 0.12em no-repeat;
+}
+
+.vc-hero__texto {
+  max-width: 56ch;
+  margin: var(--vc-space-4) 0 0;
+  font-size: var(--vc-text-lg);
+  line-height: var(--vc-leading-body);
+  color: var(--vc-dark-text-soft);
+}
+
+.vc-hero__acciones { display: flex; flex-wrap: wrap; gap: var(--vc-space-3); margin-top: var(--vc-space-5); }
+
+/* Pista de audio con la onda */
+.vc-hero__pista { position: relative; }
+.vc-hero__pista-meta {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: var(--vc-space-3);
+  margin-bottom: var(--vc-space-3);
+  border-bottom: 1px solid var(--vc-dark-border);
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: var(--vc-tracking-mono);
+  text-transform: uppercase;
+  color: var(--vc-dark-muted);
+}
+.vc-hero__pista-meta span { display: inline-flex; align-items: center; gap: var(--vc-space-2); }
+.vc-hero__rec { width: 8px; height: 8px; border-radius: 50%; background: var(--vc-danger-on-dark); animation: vc-home-pulso 1.4s infinite; }
+@keyframes vc-home-pulso { 50% { opacity: 0.25; } }
+
+/* ---------- 2 · Cinta de capacidades ---------- */
+.vc-cinta {
+  overflow: hidden;
+  border-block: 1px solid var(--vc-dark-border);
+  background: var(--vc-code-black);
+  color: var(--vc-paper);
+}
+.vc-cinta__pista {
+  display: flex;
+  width: max-content;
+  margin: 0;
+  padding: var(--vc-space-3) 0;
+  list-style: none;
+  animation: vc-home-cinta 40s linear infinite;
+}
+.vc-cinta:hover .vc-cinta__pista { animation-play-state: paused; }
+.vc-cinta__pista li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-4);
+  padding-right: var(--vc-space-4);
+  font: 400 var(--vc-text-sm) var(--vc-font-mono);
+  letter-spacing: var(--vc-tracking-mono);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.vc-cinta__pista li::after { content: '✦'; color: var(--vc-filament); }
+@keyframes vc-home-cinta { to { transform: translateX(-50%); } }
+
+/* ---------- 3 · Cifras ---------- */
+.vc-cifras {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--vc-code-black);
+}
+.vc-cifra { padding: var(--vc-space-5) var(--vc-space-4) 0 0; }
+.vc-cifra + .vc-cifra { padding-left: var(--vc-space-4); border-left: 1px solid var(--vc-concrete); }
+.vc-cifra__valor { display: flex; align-items: baseline; gap: var(--vc-space-2); margin: 0; }
+.vc-cifra__valor strong { font: 700 clamp(5rem, 3rem + 6vw, 9rem) / 0.85 var(--vc-font-display); }
+.vc-cifra__valor span { font: 700 var(--vc-text-h2) var(--vc-font-display); text-transform: uppercase; }
+/* Una sola cifra destacada con subrayado Filament (tarjeta de métrica, README §7.3) */
+.vc-cifra__valor.is-destacada strong { box-shadow: inset 0 -0.14em 0 var(--vc-filament); }
+.vc-cifra__texto { max-width: 30ch; margin: var(--vc-space-3) 0 0; font-size: var(--vc-text-lg); }
+
+/* ---------- 5 · Resultados ---------- */
+.vc-resultados {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: var(--vc-space-6);
+  align-items: center;
+}
+.vc-resultados .vc-seccion__titulo { margin-bottom: var(--vc-space-4); }
+.vc-resultados__parrafo { margin: 0; font-size: var(--vc-text-lg); color: var(--vc-paper); opacity: 0.9; }
+.vc-resultados__lista { display: grid; gap: var(--vc-space-2); margin: var(--vc-space-4) 0 0; padding: 0; list-style: none; }
+.vc-resultados__lista li { display: flex; gap: var(--vc-space-2); }
+.vc-resultados__lista li::before { content: '→'; color: var(--vc-filament); }
+
+/* ---------- 8 · Llamado final ---------- */
+.vc-final { padding: var(--vc-space-8) 0; background: var(--vc-code-black); color: var(--vc-paper); text-align: center; border-top: 1px solid var(--vc-dark-border); }
+.vc-final__contenido { display: flex; flex-direction: column; align-items: center; gap: var(--vc-space-4); }
+.vc-final__onda { --vc-waveform-alto: 64px; width: min(320px, 100%); }
+.vc-final__titulo { margin: 0; max-width: 16ch; font-size: var(--vc-text-display); line-height: var(--vc-leading-tight); }
+.vc-final__texto { margin: 0; max-width: 48ch; color: var(--vc-dark-text-soft); }
+
+/* ---------- Pie ---------- */
+.vc-pie { padding: var(--vc-space-5) 0; background: var(--vc-code-black); color: var(--vc-dark-muted); border-top: 1px solid var(--vc-dark-border); }
+.vc-pie__contenido { display: grid; grid-template-columns: 1fr auto; gap: var(--vc-space-4); align-items: center; }
+.vc-pie__marca { display: flex; flex-wrap: wrap; align-items: center; gap: var(--vc-space-3); }
+.vc-pie__marca p { margin: 0; font-size: var(--vc-text-sm); }
+.vc-pie__nav { display: flex; flex-wrap: wrap; gap: var(--vc-space-1); }
+.vc-pie__nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--vc-space-2);
+  color: var(--vc-dark-text-soft);
+  font-size: var(--vc-text-sm);
+  text-decoration: none;
+}
+.vc-pie__nav a:hover { color: var(--vc-paper); text-decoration: underline; text-decoration-color: var(--vc-filament); text-underline-offset: 4px; }
+.vc-pie__nav a:focus-visible { outline: none; box-shadow: var(--vc-focus); border-radius: var(--vc-radius); }
+.vc-pie__legal {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: var(--vc-space-4);
+  border-top: 1px solid var(--vc-dark-border);
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- Tableta ---------- */
+@media (max-width: 959px) {
+  .vc-seccion,
+  .vc-final { padding: var(--vc-space-7) 0; }
+  .vc-resultados { grid-template-columns: 1fr; }
+}
+
+/* ---------- Móvil ---------- */
+@media (max-width: 599px) {
+  .vc-hero { min-height: auto; gap: var(--vc-space-5); }
+  .vc-hero__acciones .vc-boton { flex: 1 1 100%; }
+  .vc-cifras { grid-template-columns: 1fr; }
+  .vc-cifra,
+  .vc-cifra + .vc-cifra { padding: var(--vc-space-4) 0; border-left: 0; border-bottom: 1px solid var(--vc-concrete); }
+  .vc-pie__contenido { grid-template-columns: 1fr; }
+}
+
+/* ---------- Movimiento reducido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .vc-cinta__pista,
+  .vc-hero__rec { animation: none; }
+  .vc-boton:hover { transform: none; }
+}
