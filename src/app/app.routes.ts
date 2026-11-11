@@ -42,16 +42,20 @@ export const routes: Routes = [
     component: Shell,
     canActivate: [autenticadoGuard],
     children: [
+
       { path: 'inicio', title: 'Inicio', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./home').then((m) => m.Home) },
       { path: 'productos', title: 'Productos', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./products/products').then((m) => m.Products) },
       { path: 'productos/:id', title: 'Detalle de producto', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./product-detail/product-detail').then((m) => m.ProductDetail) },
       { path: 'representantes', title: 'Representantes', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./representatives/representatives').then((m) => m.Representatives) },
       { path: 'salas', title: 'Salas y videollamada', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'REPRESENTANTE')], loadComponent: () => import('./rooms/rooms').then((m) => m.Rooms) },
       { path: 'transcripciones', title: 'Transcripción', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./transcription/transcription').then((m) => m.Transcription) },
+      { path: 'entrevistas', title: 'Entrevistas y procesamiento', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./interviews/interviews').then((m) => m.Interviews),},
+      { path: 'entrevistas/:id', title: 'Detalle de entrevista', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./interview-detail/interview-detail').then(  (m) => m.InterviewDetail ),},
       { path: 'analisis', title: 'Análisis con IA', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./analysis/analysis').then((m) => m.Analysis) },
       { path: 'reportes', title: 'Estadísticas y reportes', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./reports/reports').then((m) => m.Reports) },
       { path: 'paquetes', title: 'Paquetes y cobros', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR')], loadComponent: () => import('./packages/packages').then((m) => m.Packages) },
       { path: 'admin', title: 'Administración', canActivate: [roleGuard('ADMINISTRADOR')], loadComponent: () => import('./admin/admin').then((m) => m.Admin) },
+
       // Cada perfil entra a su propia pantalla de inicio.
       {
         path: '',

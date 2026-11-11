@@ -52,7 +52,12 @@
       <p class="vc-pform__error" role="alert">{{ errorGuardar() }}</p>
     }
     <div class="vc-pform__botones">
-      <vc-button variant="secondary" (click)="cerrar()">Cancelar</vc-button>
+      <vc-button
+        type="button"
+        variant="secondary"
+        (click)="cerrar()">
+        Cancelar
+      </vc-button>
       <vc-button type="submit" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar producto' }}</vc-button>
     </div>
   </form>

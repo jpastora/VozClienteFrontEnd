@@ -1,0 +1,288 @@
+<section class="entrevistas-page">
+
+  <header class="page-header">
+    <div class="page-header__title">
+      <h1>Entrevistas</h1>
+    </div>
+  </header>
+
+  <div class="page-content">
+
+    <!-- Filtros -->
+    <div class="filtros">
+
+      <div class="filtro">
+        <label for="filtroProducto">Producto</label>
+
+        <select
+          id="filtroProducto"
+          [value]="filtroProducto()"
+          [disabled]="cargando()"
+          (change)="cambiarProducto($any($event.target).value)"
+        >
+          <option value="TODOS">Todos</option>
+
+          @for (producto of productos(); track producto.id) {
+            <option [value]="producto.id">
+              {{ producto.nombre }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="filtro">
+        <label for="filtroEstado">Estado de transcripción</label>
+
+        <select
+          id="filtroEstado"
+          [value]="filtroEstado()"
+          (change)="cambiarEstado($any($event.target).value)"
+        >
+          <option value="TODOS">Todos</option>
+          <option value="PENDIENTE">Pendiente</option>
+          <option value="EN_PROCESO">En proceso</option>
+          <option value="COMPLETADA">Completada</option>
+          <option value="CON_ERROR">Con error</option>
+          <option value="SIN_CONTENIDO">Sin contenido</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- Mensajes -->
+    @if (mensaje()) {
+      <div class="mensaje-info" role="status">
+        <span>{{ mensaje() }}</span>
+
+        <button
+          type="button"
+          aria-label="Cerrar mensaje"
+          (click)="cerrarMensaje()"
+        >
+          ×
+        </button>
+      </div>
+    }
+
+    @if (error()) {
+      <div class="mensaje-info" role="alert">
+        <span>{{ error() }}</span>
+
+        <button
+          type="button"
+          class="btn-accion"
+          (click)="cargarEntrevistas()"
+        >
+          Reintentar carga
+        </button>
+      </div>
+    }
+
+    <!-- Tabla -->
+    <div class="tabla-contenedor">
+
+      <table class="tabla-entrevistas">
+
+        <thead>
+          <tr>
+            <th>Consumidor</th>
+            <th>Producto</th>
+            <th>Representante</th>
+            <th>Fecha</th>
+            <th>Duración</th>
+            <th>Transcripción</th>
+            <th>Análisis</th>
+            <th class="columna-acciones">
+              <span class="sr-only">Acciones</span>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+
+          @if (cargando()) {
+            <tr>
+              <td colspan="8" class="tabla-vacia">
+                Cargando entrevistas...
+              </td>
+            </tr>
+          } @else {
+
+            @for (
+              entrevista of entrevistasPaginadas();
+              track entrevista.id
+            ) {
+
+              <tr>
+
+                <td class="consumidor">
+                  {{ entrevista.consumidorNombre || '—' }}
+                </td>
+
+                <td>
+                  {{ entrevista.productoNombre || '—' }}
+                </td>
+
+                <td>
+                  {{ entrevista.representanteNombre || '—' }}
+                </td>
+
+                <td class="fecha">
+                  {{ formatearFecha(entrevista.inicioEn) }}
+                </td>
+
+                <td class="duracion">
+                  {{ formatearDuracion(entrevista.duracionSegundos) }}
+                </td>
+
+                <td>
+                  @if (entrevista.estadoTranscripcion) {
+                    <span
+                      class="estado"
+                      [class]="claseEstado(
+                        entrevista.estadoTranscripcion
+                      )"
+                    >
+                      {{
+                        textoEstado(
+                          entrevista.estadoTranscripcion
+                        )
+                      }}
+                    </span>
+                  } @else {
+                    <span class="sin-datos">—</span>
+                  }
+                </td>
+
+                <td>
+                  @if (entrevista.estadoAnalisis) {
+                    <span
+                      class="estado"
+                      [class]="claseEstado(
+                        entrevista.estadoAnalisis
+                      )"
+                    >
+                      {{
+                        textoEstado(
+                          entrevista.estadoAnalisis
+                        )
+                      }}
+                    </span>
+                  } @else {
+                    <span class="sin-datos">—</span>
+                  }
+                </td>
+
+                <td class="acciones">
+
+                  @if (
+                    entrevista.puedeReintentar &&
+                    entrevista.estadoTranscripcion === 'CON_ERROR' &&
+                    entrevista.grabacionId !== null
+                  ) {
+
+                    <button
+                      type="button"
+                      class="btn-accion"
+                      [disabled]="reintentandoId() !== null"
+                      (click)="reintentar(entrevista.id)"
+                    >
+                      {{
+                        reintentandoId() === entrevista.id
+                          ? 'Reintentando...'
+                          : 'Reintentar'
+                      }}
+                    </button>
+
+                  } @else {
+
+                    <a
+                      class="btn-accion"
+                      [routerLink]="[
+                        '/entrevistas',
+                        entrevista.id
+                      ]"
+                    >
+                      Ver
+                    </a>
+
+                  }
+
+                </td>
+
+              </tr>
+
+            } @empty {
+
+              <tr>
+                <td colspan="8" class="tabla-vacia">
+                  {{
+                    filtroEstado() === 'TODOS'
+                      ? 'No hay entrevistas registradas.'
+                      : 'No hay entrevistas con este estado en la página actual.'
+                  }}
+                </td>
+              </tr>
+
+            }
+
+          }
+
+        </tbody>
+      </table>
+
+    </div>
+
+    <!-- Pie de tabla -->
+    <div class="tabla-footer">
+
+      <p class="contador">
+        @if (filtroEstado() === 'TODOS') {
+          {{ totalElementos() }}
+          {{
+            totalElementos() === 1
+              ? 'entrevista encontrada'
+              : 'entrevistas encontradas'
+          }}
+        } @else {
+          {{ totalElementos() }}
+          {{
+            totalElementos() === 1
+              ? 'entrevista visible en esta página'
+              : 'entrevistas visibles en esta página'
+          }}
+        }
+      </p>
+
+      @if (totalPaginas() > 1) {
+
+        <div class="paginacion">
+
+          <button
+            type="button"
+            [disabled]="paginaActual() === 1 || cargando()"
+            (click)="paginaAnterior()"
+          >
+            Anterior
+          </button>
+
+          <span>
+            {{ paginaActual() }} / {{ totalPaginas() }}
+          </span>
+
+          <button
+            type="button"
+            [disabled]="paginaActual() === totalPaginas() || cargando()"
+            (click)="paginaSiguiente()"
+          >
+            Siguiente
+          </button>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+</section>
