@@ -1,0 +1,159 @@
+/* Cuadrícula de funcionalidades (bento): tarjetas de tamaños distintos con ilustración animada. */
+:host { display: block; }
+
+.vc-bento {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-rows: minmax(220px, auto);
+  gap: var(--vc-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.vc-bento__tarjeta {
+  display: flex;
+  flex-direction: column;
+  padding: var(--vc-space-4);
+  border: 1px solid var(--vc-concrete);
+  border-radius: var(--vc-radius);
+  background: var(--vc-white);
+  transition:
+    border-color var(--vc-dur-base) var(--vc-ease-out),
+    box-shadow var(--vc-dur-base) var(--vc-ease-out),
+    transform var(--vc-dur-base) var(--vc-ease-out);
+}
+.vc-bento__tarjeta:hover { border-color: var(--vc-deep-circuit); box-shadow: var(--vc-shadow-md); transform: translateY(-2px); }
+.vc-bento__tarjeta--videollamada { grid-column: span 4; grid-row: span 2; background: var(--vc-code-black); color: var(--vc-paper); border-color: var(--vc-code-black); }
+.vc-bento__tarjeta--canal,
+.vc-bento__tarjeta--transcripcion { grid-column: span 2; }
+.vc-bento__tarjeta--analisis,
+.vc-bento__tarjeta--reportes { grid-column: span 3; }
+
+.vc-bento__arte { flex: 1; display: flex; align-items: center; min-height: 96px; margin-bottom: var(--vc-space-4); }
+.vc-bento__titulo { margin: 0 0 var(--vc-space-2); font-size: var(--vc-text-h2); }
+.vc-bento__texto { margin: 0; max-width: 46ch; color: inherit; opacity: 0.8; }
+
+/* Arte: videollamada (dos ventanas y REC) */
+.vc-arte-llamada { position: relative; display: block; width: 100%; height: 100%; min-height: 220px; }
+.vc-arte-llamada i:nth-child(1) { position: absolute; inset: 0 22% 0 0; border-radius: var(--vc-radius-lg); background: var(--vc-dark-surface); }
+.vc-arte-llamada i:nth-child(2) {
+  position: absolute;
+  right: 0;
+  bottom: 12%;
+  width: 34%;
+  aspect-ratio: 5 / 3;
+  border: 2px solid var(--vc-code-black);
+  border-radius: var(--vc-radius-lg);
+  background: var(--vc-deep-circuit);
+  transition: transform var(--vc-dur-slow) var(--vc-ease-out);
+}
+.vc-bento__tarjeta:hover .vc-arte-llamada i:nth-child(2) { transform: translate(-12px, -12px); }
+.vc-arte-llamada b {
+  position: absolute;
+  top: var(--vc-space-3);
+  left: var(--vc-space-3);
+  padding: 2px var(--vc-space-2);
+  border: 1px solid var(--vc-filament);
+  border-radius: var(--vc-radius);
+  color: var(--vc-filament);
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.1em;
+}
+
+/* Avatar del consumidor dentro de la ventana principal */
+.vc-arte-llamada em {
+  position: absolute;
+  top: 50%;
+  left: 39%;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--vc-deep-circuit);
+  color: var(--vc-paper);
+  font: 700 2rem var(--vc-font-display);
+  font-style: normal;
+  transform: translate(-50%, -50%);
+}
+
+/* Arte: canal aislado (una barra Filament entre barras neutras) */
+.vc-arte-canal { display: flex; align-items: center; gap: 6px; height: 72px; }
+.vc-arte-canal i {
+  width: 8px;
+  height: 30%;
+  border-radius: var(--vc-radius-pill);
+  background: var(--vc-concrete);
+  animation: vc-funciones-canal 1.6s var(--vc-ease-in-out) infinite alternate;
+}
+.vc-arte-canal i:nth-child(2n) { animation-delay: -0.4s; }
+.vc-arte-canal i:nth-child(3n) { animation-delay: -0.8s; }
+.vc-arte-canal i:nth-child(4) { background: var(--vc-filament); height: 100%; }
+@keyframes vc-funciones-canal { to { height: 70%; } }
+
+/* Arte: transcripción (líneas que se escriben) */
+.vc-arte-texto { display: grid; gap: var(--vc-space-2); width: 100%; }
+.vc-arte-texto i { display: block; height: 10px; border-radius: var(--vc-radius); background: var(--vc-line); transform-origin: left; animation: vc-funciones-texto 3s var(--vc-ease-out) infinite; }
+.vc-arte-texto i:nth-child(1) { width: 90%; }
+.vc-arte-texto i:nth-child(2) { width: 70%; animation-delay: 0.3s; }
+.vc-arte-texto i:nth-child(3) { width: 80%; animation-delay: 0.6s; background: var(--vc-teal-soft); }
+@keyframes vc-funciones-texto { 0% { transform: scaleX(0); } 40%, 100% { transform: scaleX(1); } }
+
+/* Arte: anillo de intención */
+.vc-arte-anillo {
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+  border-radius: 50%;
+  background: conic-gradient(var(--vc-filament) 0 78%, var(--vc-line) 78% 100%);
+  transition: transform var(--vc-dur-slow) var(--vc-ease-out);
+}
+.vc-arte-anillo b {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--vc-white);
+  font: 700 var(--vc-text-h2) var(--vc-font-display);
+}
+.vc-bento__tarjeta:hover .vc-arte-anillo { transform: rotate(-12deg); }
+
+/* Arte: barras de reporte que crecen al pasar el puntero */
+.vc-arte-barras { display: flex; align-items: flex-end; gap: var(--vc-space-2); height: 96px; }
+.vc-arte-barras i { width: 22px; border-radius: var(--vc-radius) var(--vc-radius) 0 0; background: var(--vc-deep-circuit); transform-origin: bottom; transition: transform var(--vc-dur-slow) var(--vc-ease-out); }
+.vc-arte-barras i:nth-child(1) { height: 40%; }
+.vc-arte-barras i:nth-child(2) { height: 65%; }
+.vc-arte-barras i:nth-child(3) { height: 50%; }
+.vc-arte-barras i:nth-child(4) { height: 85%; background: var(--vc-filament); }
+.vc-arte-barras i:nth-child(5) { height: 70%; }
+.vc-bento__tarjeta:hover .vc-arte-barras i { transform: scaleY(1.12); }
+
+/* ---------- Tableta ---------- */
+@media (max-width: 959px) {
+  .vc-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vc-bento__tarjeta--videollamada { grid-column: span 2; grid-row: span 1; }
+  .vc-bento__tarjeta--canal,
+  .vc-bento__tarjeta--transcripcion,
+  .vc-bento__tarjeta--analisis,
+  .vc-bento__tarjeta--reportes { grid-column: span 1; }
+}
+
+/* ---------- Móvil ---------- */
+@media (max-width: 599px) {
+  .vc-bento { grid-template-columns: 1fr; }
+  .vc-bento__tarjeta--videollamada,
+  .vc-bento__tarjeta--canal,
+  .vc-bento__tarjeta--transcripcion,
+  .vc-bento__tarjeta--analisis,
+  .vc-bento__tarjeta--reportes { grid-column: span 1; }
+  .vc-arte-llamada { min-height: 160px; }
+}
+
+/* ---------- Movimiento reducido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .vc-arte-canal i,
+  .vc-arte-texto i { animation: none; }
+  .vc-bento__tarjeta:hover { transform: none; }
+}

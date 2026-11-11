@@ -33,22 +33,15 @@
 .vc-shell__salir:hover { background: var(--vc-deep-circuit); }
 .vc-shell__salir:focus-visible { outline: none; box-shadow: var(--vc-focus); }
 
+/* Marca: enlace al home con el logotipo único (vc-logo) */
 .vc-shell__brand {
   display: flex;
   align-items: center;
-  gap: var(--vc-space-2);
+  min-height: 44px;
   padding: var(--vc-space-4) var(--vc-space-3);
-  font: 700 var(--vc-text-lg) var(--vc-font-display);
-  text-transform: uppercase;
+  text-decoration: none;
 }
-/* Logotipo de barras de audio en Filament */
-.vc-shell__logo { display: inline-flex; align-items: center; gap: 3px; height: 28px; }
-.vc-shell__logo i { display: block; width: 4px; border-radius: 2px; background: var(--vc-filament); }
-.vc-shell__logo i:nth-child(1) { height: 10px; }
-.vc-shell__logo i:nth-child(2) { height: 20px; }
-.vc-shell__logo i:nth-child(3) { height: 28px; }
-.vc-shell__logo i:nth-child(4) { height: 18px; }
-.vc-shell__logo i:nth-child(5) { height: 8px; }
+.vc-shell__brand:focus-visible { outline: none; box-shadow: inset var(--vc-focus); }
 
 nav { display: flex; flex-direction: column; margin-top: var(--vc-space-3); }
 nav a {

@@ -1,15 +1,28 @@
 import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
+import { RUTA_APP, RUTAS } from './core/rutas';
 import { autenticadoGuard, invitadoGuard, roleGuard } from './guards/role';
 import { rutaInicio, SessionService } from './services/session';
 import { Shell } from './shell/shell';
 
 /**
- * Un módulo por cada módulo del producto (M1 a M8) y uno público para el consumidor,
- * todos con carga bajo demanda. Las guardas por rol ordenan la navegación por perfil (HU-01);
- * el back-end sigue validando el permiso en cada endpoint.
+ * Mapa de navegación de Voz Cliente.
+ *
+ * - Raíz (/): home público del producto (Figura 3 del informe de diseño).
+ * - /auth, /publico, /sala y /representante: pantallas sin el layout de la aplicación.
+ * - /app: pantallas con sesión y menú lateral, un módulo por cada módulo del producto (M2 a M8),
+ *   con carga bajo demanda. Las guardas por rol ordenan la navegación (HU-01); el back-end sigue
+ *   validando el permiso en cada endpoint.
  */
 export const routes: Routes = [
+  // Home público
+  {
+    path: '',
+    pathMatch: 'full',
+    title: 'Voz Cliente · La voz de tu cliente, convertida en datos',
+    loadComponent: () => import('./home/home.component').then((m) => m.HomeComponent),
+  },
+
   // Sin sesión
   {
     path: 'auth',
@@ -17,18 +30,21 @@ export const routes: Routes = [
     canActivate: [invitadoGuard],
     loadComponent: () => import('./auth/auth').then((m) => m.Auth),
   },
-  { path: 'publico/:token', title: 'Ingreso del consumidor', loadComponent: () => import('./public-room/public-room').then((m) => m.PublicRoom) },
+  {
+    path: 'publico/:token',
+    title: 'Ingreso del consumidor',
+    loadComponent: () => import('./public-room/public-room').then((m) => m.PublicRoom),
+  },
   { path: 'ui', loadComponent: () => import('./ui-demo/ui-demo').then((m) => m.UiDemo) },
 
-  // Videollamada (Eduardo)
-  // Enlace que recibe el consumidor: /sala/<token>
+  // Videollamada: enlace del consumidor (/sala/<token>)
   {
     path: 'sala/:token',
     title: 'Videollamada',
     loadComponent: () => import('./videollamada/videollamada').then((m) => m.Videollamada),
     data: { rol: 'consumidor' },
   },
-  // Enlace del representante: /representante/<token>?entrevistaId=123
+  // Videollamada: enlace del representante (/representante/<token>?entrevistaId=123)
   {
     path: 'representante/:token',
     title: 'Videollamada',
@@ -36,36 +52,104 @@ export const routes: Routes = [
     data: { rol: 'representante' },
   },
 
-  // Con el layout de la aplicación
+  // Con sesión: layout de la aplicación bajo /app
   {
-    path: '',
+    // El path no lleva la barra inicial: 'app' sale de RUTA_APP ('/app').
+    path: RUTA_APP.slice(1),
     component: Shell,
     canActivate: [autenticadoGuard],
     children: [
-
-      { path: 'inicio', title: 'Inicio', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./home').then((m) => m.Home) },
-      { path: 'productos', title: 'Productos', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./products/products').then((m) => m.Products) },
-      { path: 'productos/:id', title: 'Detalle de producto', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./product-detail/product-detail').then((m) => m.ProductDetail) },
-      { path: 'representantes', title: 'Representantes', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./representatives/representatives').then((m) => m.Representatives) },
-      { path: 'salas', title: 'Salas y videollamada', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'REPRESENTANTE')], loadComponent: () => import('./rooms/rooms').then((m) => m.Rooms) },
-      { path: 'transcripciones', title: 'Transcripción', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./transcription/transcription').then((m) => m.Transcription) },
-      { path: 'entrevistas', title: 'Entrevistas y procesamiento', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./interviews/interviews').then((m) => m.Interviews),},
-      { path: 'entrevistas/:id', title: 'Detalle de entrevista', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./interview-detail/interview-detail').then(  (m) => m.InterviewDetail ),},
-      { path: 'analisis', title: 'Análisis con IA', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./analysis/analysis').then((m) => m.Analysis) },
-      { path: 'reportes', title: 'Estadísticas y reportes', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')], loadComponent: () => import('./reports/reports').then((m) => m.Reports) },
-      { path: 'paquetes', title: 'Paquetes y cobros', canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR')], loadComponent: () => import('./packages/packages').then((m) => m.Packages) },
-      { path: 'admin', title: 'Administración', canActivate: [roleGuard('ADMINISTRADOR')], loadComponent: () => import('./admin/admin').then((m) => m.Admin) },
-
-      // Cada perfil entra a su propia pantalla de inicio.
+      {
+        path: 'inicio',
+        title: 'Inicio',
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        loadComponent: () => import('./home').then((m) => m.Home),
+      },
+      {
+        path: 'productos',
+        title: 'Productos',
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        loadComponent: () => import('./products/products').then((m) => m.Products),
+      },
+      {
+        path: 'productos/:id',
+        title: 'Detalle de producto',
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        loadComponent: () => import('./product-detail/product-detail').then((m) => m.ProductDetail),
+      },
+      {
+        path: 'representantes',
+        title: 'Representantes',
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        loadComponent: () => import('./representatives/representatives').then((m) => m.Representatives),
+      },
+      {
+        path: 'salas',
+        title: 'Salas y videollamada',
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'REPRESENTANTE')],
+        loadComponent: () => import('./rooms/rooms').then((m) => m.Rooms),
+      },
+      {
+        path: 'entrevistas',
+        title: 'Entrevistas y procesamiento',
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        loadComponent: () => import('./interviews/interviews').then((m) => m.Interviews),
+      },
+      {
+        path: 'entrevistas/:id',
+        title: 'Detalle de entrevista',
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        loadComponent: () => import('./interview-detail/interview-detail').then((m) => m.InterviewDetail),
+      },
+      {
+        path: 'analisis',
+        title: 'Análisis con IA',
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        loadComponent: () => import('./analysis/analysis').then((m) => m.Analysis),
+      },
+      {
+        path: 'reportes',
+        title: 'Estadísticas y reportes',
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        loadComponent: () => import('./reports/reports').then((m) => m.Reports),
+      },
+      {
+        path: 'paquetes',
+        title: 'Paquetes y cobros',
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR')],
+        loadComponent: () => import('./packages/packages').then((m) => m.Packages),
+      },
+      {
+        path: 'admin',
+        title: 'Administración',
+        canActivate: [roleGuard('ADMINISTRADOR')],
+        loadComponent: () => import('./admin/admin').then((m) => m.Admin),
+      },
+      // /app sin pantalla: cada perfil entra a su propio inicio.
       {
         path: '',
         pathMatch: 'full',
         redirectTo: () => {
           const usuario = inject(SessionService).usuario();
-          return usuario ? rutaInicio(usuario.rol) : '/auth';
+          return usuario ? rutaInicio(usuario.rol) : RUTAS.ingreso;
         },
       },
     ],
   },
+
+  // Compatibilidad: las rutas anteriores a /app redirigen a su nueva ubicación.
+  { path: 'inicio', redirectTo: RUTAS.inicio },
+  { path: 'productos', redirectTo: RUTAS.productos },
+  { path: 'productos/:id', redirectTo: `${RUTAS.productos}/:id` },
+  { path: 'representantes', redirectTo: RUTAS.representantes },
+  { path: 'salas', redirectTo: RUTAS.salas },
+  { path: 'entrevistas', redirectTo: RUTAS.entrevistas },
+  { path: 'entrevistas/:id', redirectTo: `${RUTAS.entrevistas}/:id` },
+  { path: 'analisis', redirectTo: RUTAS.analisis },
+  { path: 'reportes', redirectTo: RUTAS.reportes },
+  { path: 'paquetes', redirectTo: RUTAS.paquetes },
+  { path: 'admin', redirectTo: RUTAS.admin },
+
+  // Cualquier otra ruta vuelve al home.
   { path: '**', redirectTo: '' },
 ];

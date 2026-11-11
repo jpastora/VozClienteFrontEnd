@@ -1,0 +1,165 @@
+<vc-home-nav [enlaces]="enlaces" [conSesion]="!!usuario()" />
+
+<main class="vc-home">
+  <!-- 1 · Hero: propuesta de valor -->
+  <section id="inicio" class="vc-hero" aria-labelledby="ttlHome">
+    <div class="vc-hero__contenido vc-contenedor">
+      <p class="vc-hero__eyebrow" vcReveal>
+        <span class="vc-hero__punto" aria-hidden="true"></span>
+        Voz Cliente · Entrevistas con IA
+      </p>
+
+      <h1 id="ttlHome" class="vc-hero__titulo">
+        <span class="vc-hero__linea" vcReveal [vcRevealRetraso]="80">La voz de tu cliente,</span>
+        <span class="vc-hero__linea" vcReveal [vcRevealRetraso]="200">convertida en <em>datos</em></span>
+      </h1>
+
+      <p class="vc-hero__texto" vcReveal [vcRevealRetraso]="320">
+        Entrevista por videollamada a quienes ya compraron, transcribe solo la voz del cliente y obtén
+        intención de compra y competencia por producto.
+      </p>
+
+      <div class="vc-hero__acciones" vcReveal [vcRevealRetraso]="440">
+        @if (usuario()) {
+          <a id="lnkHeroPanel" class="vc-boton vc-boton--acento" [routerLink]="rutas.app">Ir a mi panel</a>
+        } @else {
+          <a id="lnkHeroIngresar" class="vc-boton vc-boton--acento" [routerLink]="rutas.ingreso">
+            <span class="vc-boton__g" aria-hidden="true">G</span>
+            Empezar con Google
+          </a>
+        }
+        <a id="lnkHeroComoFunciona" class="vc-boton vc-boton--contorno-claro" href="#como-funciona">Ver cómo funciona</a>
+      </div>
+    </div>
+
+    <!-- Onda de audio: «la voz» que el resto de la página convierte en datos -->
+    <div class="vc-hero__pista vc-contenedor" vcReveal [vcRevealRetraso]="560">
+      <div class="vc-hero__pista-meta" aria-hidden="true">
+        <span><i class="vc-hero__rec"></i>Rec · canal del cliente</span>
+        <span>00:58 / 12:40</span>
+      </div>
+      <vc-waveform />
+    </div>
+  </section>
+
+  <!-- 2 · Cinta de capacidades -->
+  <div class="vc-cinta" aria-label="Capacidades de Voz Cliente">
+    <ul class="vc-cinta__pista">
+      @for (capacidad of capacidades; track capacidad) {
+        <li>{{ capacidad }}</li>
+      }
+      <!-- Copia para el bucle continuo; se oculta a lectores de pantalla -->
+      @for (capacidad of capacidades; track capacidad) {
+        <li aria-hidden="true">{{ capacidad }}</li>
+      }
+    </ul>
+  </div>
+
+  <!-- 3 · Propuesta: cifras del producto -->
+  <section class="vc-seccion vc-seccion--clara" aria-labelledby="ttlPropuesta">
+    <div class="vc-contenedor">
+      <p class="vc-numeracion" vcReveal>01 / 05 · Propuesta</p>
+      <h2 id="ttlPropuesta" class="vc-seccion__titulo" vcReveal>
+        Las conversaciones con tus clientes, convertidas en métricas por producto
+      </h2>
+
+      <ul class="vc-cifras">
+        @for (cifra of cifras; track cifra.unidad; let i = $index) {
+          <li class="vc-cifra" vcReveal [vcRevealRetraso]="i * 120">
+            <p class="vc-cifra__valor" [class.is-destacada]="cifra.destacada">
+              <strong [vcCountUp]="cifra.valor">{{ cifra.valor }}</strong>
+              <span>{{ cifra.unidad }}</span>
+            </p>
+            <p class="vc-cifra__texto">{{ cifra.descripcion }}</p>
+          </li>
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- 4 · Cómo funciona (Figura 3: pasos de uso) -->
+  <section id="como-funciona" class="vc-seccion vc-seccion--clara vc-seccion--borde" aria-labelledby="ttlPasos">
+    <div class="vc-contenedor">
+      <p class="vc-numeracion" vcReveal>02 / 05 · Cómo funciona</p>
+      <h2 id="ttlPasos" class="vc-seccion__titulo" vcReveal>De la conversación al dato en cuatro pasos</h2>
+      <vc-home-pasos [pasos]="pasos" />
+    </div>
+  </section>
+
+  <!-- 5 · Resultados (Figura 3: ejemplo de resultados) -->
+  <section id="resultados" class="vc-seccion vc-seccion--circuito" aria-labelledby="ttlResultados">
+    <div class="vc-contenedor vc-resultados">
+      <div class="vc-resultados__texto">
+        <p class="vc-numeracion vc-numeracion--clara" vcReveal>03 / 05 · Resultados</p>
+        <h2 id="ttlResultados" class="vc-seccion__titulo" vcReveal>Cada entrevista termina en una respuesta clara</h2>
+        <p class="vc-resultados__parrafo" vcReveal [vcRevealRetraso]="120">
+          La transcripción conserva solo lo que dijo el cliente, con marcas de tiempo. La IA clasifica la
+          intención de compra, señala el fragmento que la respalda y cuenta las marcas de la competencia.
+        </p>
+        <ul class="vc-resultados__lista" vcReveal [vcRevealRetraso]="240">
+          <li>Intención de compra alta, media o baja</li>
+          <li>Fragmento de apoyo para cada resultado</li>
+          <li>Menciones de la competencia por producto</li>
+        </ul>
+      </div>
+      <vc-home-demo class="vc-resultados__demo" [lineas]="transcripcion" vcReveal [vcRevealRetraso]="160" />
+    </div>
+  </section>
+
+  <!-- 6 · Funcionalidades -->
+  <section id="funcionalidades" class="vc-seccion vc-seccion--clara" aria-labelledby="ttlFunciones">
+    <div class="vc-contenedor">
+      <p class="vc-numeracion" vcReveal>04 / 05 · Funcionalidades</p>
+      <h2 id="ttlFunciones" class="vc-seccion__titulo" vcReveal>Todo el flujo en una sola plataforma</h2>
+
+      <vc-home-funcionalidades [funcionalidades]="funcionalidades" />
+    </div>
+  </section>
+
+  <!-- 7 · Paquetes (Figura 3, RF-17) -->
+  <section id="paquetes" class="vc-seccion vc-seccion--oscura" aria-labelledby="ttlPaquetes">
+    <div class="vc-contenedor">
+      <p class="vc-numeracion vc-numeracion--clara" vcReveal>05 / 05 · Paquetes</p>
+      <h2 id="ttlPaquetes" class="vc-seccion__titulo" vcReveal>Paga solo por las entrevistas que se graban</h2>
+      <vc-home-paquetes [conSesion]="!!usuario()" />
+    </div>
+  </section>
+
+  <!-- 8 · Llamado final -->
+  <section class="vc-final" aria-labelledby="ttlFinal">
+    <div class="vc-contenedor vc-final__contenido">
+      <vc-waveform class="vc-final__onda" [cantidad]="32" />
+      <h2 id="ttlFinal" class="vc-final__titulo" vcReveal>Empieza a escuchar a tus clientes</h2>
+      <p class="vc-final__texto" vcReveal [vcRevealRetraso]="120">
+        Ingresa con tu cuenta de Google. Si es tu primer ingreso, se crea la cuenta de tu empresa.
+      </p>
+      <div vcReveal [vcRevealRetraso]="240">
+        @if (usuario()) {
+          <a id="lnkFinalPanel" class="vc-boton vc-boton--acento" [routerLink]="rutas.app">Ir a mi panel</a>
+        } @else {
+          <a id="lnkFinalIngresar" class="vc-boton vc-boton--acento" [routerLink]="rutas.ingreso">
+            <span class="vc-boton__g" aria-hidden="true">G</span>
+            Continuar con Google
+          </a>
+        }
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="vc-pie">
+  <div class="vc-contenedor vc-pie__contenido">
+    <div class="vc-pie__marca">
+      <vc-logo tono="oscuro" tamano="sm" [animado]="true" />
+      <p>La voz de tu cliente, convertida en datos.</p>
+    </div>
+    <nav class="vc-pie__nav" aria-label="Secciones">
+      @for (enlace of enlaces; track enlace.id) {
+        <a [href]="'#' + enlace.id">{{ enlace.texto }}</a>
+      }
+    </nav>
+    <p class="vc-pie__legal">
+      © {{ anio }} Voz Cliente · Proyecto de Ingeniería del Software 3 · Universidad Cenfotec
+    </p>
+  </div>
+</footer>

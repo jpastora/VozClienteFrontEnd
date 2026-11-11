@@ -11,6 +11,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 import { EntrevistaApi } from '../core/entrevista-api';
 import { API_URL } from '../core/config';
+import { RUTAS } from '../core/rutas';
 
 import {
   EntrevistaListadoDTO,
@@ -37,6 +38,9 @@ export class Interviews implements OnInit {
 
   private readonly entrevistaApi = inject(EntrevistaApi);
   private readonly http = inject(HttpClient);
+
+  /** Rutas absolutas para los enlaces de la plantilla. */
+  protected readonly rutas = RUTAS;
 
   // ============================================
   // DATOS REALES
