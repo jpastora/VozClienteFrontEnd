@@ -17,6 +17,7 @@ import {
   ProductoApi,
   EstadoProducto
 } from '../core/producto-api';
+import { RUTAS } from '../core/rutas';
 import { ProductForm } from '../product-form/product-form';
 
 @Component({
@@ -40,6 +41,9 @@ export class Products implements OnDestroy {
 
   // HU-06: paginación de 10 productos
   protected readonly porPagina = 10;
+
+  /** Rutas absolutas para los enlaces de la plantilla. */
+  protected readonly rutas = RUTAS;
 
   // Siempre debe ser un arreglo, nunca undefined.
   protected readonly productos = signal<ProductoDTO[]>([]);

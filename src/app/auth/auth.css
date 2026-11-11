@@ -1,69 +1,166 @@
+/*
+ * Ingreso con Google (Figura 4 del informe de diseño): dos columnas a pantalla completa.
+ * Izquierda: panel de marca en Code Black. Derecha: el ingreso sobre Paper.
+ * En tableta y móvil el panel de marca queda arriba, más bajo.
+ */
 .vc-auth {
-  min-height: 100dvh;
   display: grid;
-  place-items: center;
-  padding: var(--vc-space-4);
+  grid-template-columns: minmax(0, 7fr) minmax(0, 9fr);
+  min-height: 100dvh;
   background: var(--vc-paper);
 }
 
-/* Tarjeta con filete Filament arriba, como los diálogos del sistema visual */
-.vc-auth__card {
-  width: min(440px, 100%);
-  border-top: 4px solid var(--vc-filament);
+/* ---------- Panel de marca ---------- */
+.vc-auth__marca {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: var(--vc-space-3);
+  justify-content: space-between;
+  gap: var(--vc-space-6);
+  padding: var(--vc-space-6) var(--vc-space-6) var(--vc-space-6);
+  overflow: hidden;
+  background: var(--vc-code-black);
+  color: var(--vc-paper);
 }
-.vc-auth__card h1 { margin: 0; }
-.vc-auth__card .vc-eyebrow { margin: var(--vc-space-2) 0 0; }
 
-.vc-auth__brand {
-  display: flex;
+.vc-auth__logo {
+  align-self: flex-start;
+  min-height: 44px;
+  display: inline-flex;
   align-items: center;
-  gap: var(--vc-space-2);
-  font: 700 var(--vc-text-lg) var(--vc-font-display);
-  text-transform: uppercase;
+  border-radius: var(--vc-radius);
+  text-decoration: none;
 }
-/* Logotipo de barras de audio, igual que en el menú lateral */
-.vc-auth__logo { display: inline-flex; align-items: center; gap: 3px; height: 28px; }
-.vc-auth__logo i { display: block; width: 4px; border-radius: 2px; background: var(--vc-deep-circuit); }
-.vc-auth__logo i:nth-child(1) { height: 10px; }
-.vc-auth__logo i:nth-child(2) { height: 20px; }
-.vc-auth__logo i:nth-child(3) { height: 28px; background: var(--vc-filament); }
-.vc-auth__logo i:nth-child(4) { height: 18px; }
-.vc-auth__logo i:nth-child(5) { height: 8px; }
+.vc-auth__logo:focus-visible { outline: none; box-shadow: var(--vc-focus); }
 
-.vc-auth__texto { margin: 0; line-height: 1.6; }
+.vc-auth__propuesta { position: relative; }
 
-/* Mensaje de estado: se distingue por icono y texto, no solo por color (guía de estilo, msg) */
+/* Onda de audio detrás del titular: decorativa y tenue para no competir con el texto */
+.vc-auth__onda {
+  --vc-waveform-alto: 120px;
+
+  margin-bottom: var(--vc-space-5);
+  max-width: 420px;
+  opacity: 0.55;
+}
+
+.vc-auth__titular {
+  max-width: 13ch;
+  margin: 0;
+  font: 700 var(--vc-text-display-sm) / var(--vc-leading-tight) var(--vc-font-display);
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+}
+/* «datos» subrayado en Filament: la única palabra destacada */
+.vc-auth__titular em {
+  font-style: normal;
+  background: linear-gradient(var(--vc-filament), var(--vc-filament)) 0 92% / 100% 0.1em no-repeat;
+}
+
+.vc-auth__bajada {
+  max-width: 38ch;
+  margin: var(--vc-space-4) 0 0;
+  color: var(--vc-concrete);
+  line-height: var(--vc-leading-body);
+}
+
+/* ---------- Ingreso ---------- */
+.vc-auth__panel {
+  display: grid;
+  place-items: center;
+  padding: var(--vc-space-6) var(--vc-gutter);
+}
+
+.vc-auth__contenido {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-4);
+  animation: vc-auth-entrada var(--vc-dur-slow) var(--vc-ease-out) both;
+}
+.vc-auth__contenido h1 { margin: 0; font-size: var(--vc-text-h1); }
+
+.vc-auth__texto { margin: 0; font-size: var(--vc-text-md); line-height: var(--vc-leading-body); }
+
+/* Botón de Google: blanco con borde Concrete, como el prototipo; 56 px de alto */
+.vc-auth__google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--vc-space-3);
+  width: 100%;
+  min-height: 56px;
+  padding: 0 var(--vc-space-4);
+  background: var(--vc-white);
+  color: var(--vc-code-black);
+  border: 1px solid var(--vc-concrete);
+  border-radius: var(--vc-radius);
+  font: 600 var(--vc-text-md) var(--vc-font-body);
+  cursor: pointer;
+  transition:
+    border-color var(--vc-dur-fast) var(--vc-ease-out),
+    box-shadow var(--vc-dur-fast) var(--vc-ease-out),
+    transform var(--vc-dur-fast) var(--vc-ease-out);
+}
+.vc-auth__google:hover { border-color: var(--vc-code-black); box-shadow: var(--vc-shadow-md); transform: translateY(-1px); }
+.vc-auth__google:active { transform: none; box-shadow: var(--vc-shadow-sm); }
+.vc-auth__google:focus-visible { outline: none; box-shadow: var(--vc-focus); }
+.vc-auth__g { width: 20px; height: 20px; flex: none; }
+
+/* Mensaje de estado: se distingue por icono y palabra (Error / Aviso), no solo por color (msg) */
 .vc-auth__mensaje {
   display: flex;
-  gap: var(--vc-space-2);
+  gap: var(--vc-space-3);
   align-items: flex-start;
-  padding: var(--vc-space-3);
+  padding: var(--vc-space-3) var(--vc-space-4);
   border: 1px solid var(--vc-danger);
-  border-left-width: 4px;
   border-radius: var(--vc-radius);
   background: var(--vc-white);
   color: var(--vc-color-text);
-  font-size: var(--vc-text-sm);
+  line-height: var(--vc-leading-body);
+  animation: vc-auth-entrada var(--vc-dur-base) var(--vc-ease-out) both;
 }
+.vc-auth__mensaje--aviso { border-color: var(--vc-warning); }
 .vc-auth__mensaje p { margin: 0; }
-.vc-auth__icono {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--vc-danger);
-  color: var(--vc-white);
-  font-weight: 700;
-  font-size: var(--vc-text-xs);
+.vc-auth__etiqueta { flex: none; display: inline-flex; gap: 6px; white-space: nowrap; }
+
+.vc-auth__nota { margin: 0; color: var(--vc-muted); font-size: var(--vc-text-sm); line-height: var(--vc-leading-body); }
+
+.vc-auth__volver {
+  align-self: flex-start;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  color: var(--vc-deep-circuit);
+  font-weight: 600;
+  text-decoration: none;
+}
+.vc-auth__volver:hover { text-decoration: underline; }
+.vc-auth__volver:focus-visible { outline: none; box-shadow: var(--vc-focus); border-radius: var(--vc-radius); }
+
+@keyframes vc-auth-entrada {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
 }
 
-/* Botón a lo ancho y con área táctil de 44 px como mínimo */
-.vc-auth__card vc-button { display: block; }
-.vc-auth__card vc-button ::ng-deep .vc-button { width: 100%; min-height: 44px; font-size: var(--vc-text-md); }
+/* ---------- Tableta y móvil: marca arriba, ingreso abajo ---------- */
+@media (max-width: 900px) {
+  .vc-auth { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .vc-auth__marca { gap: var(--vc-space-4); padding: var(--vc-space-4) var(--vc-gutter) var(--vc-space-5); }
+  .vc-auth__onda { --vc-waveform-alto: 64px; margin-bottom: var(--vc-space-3); }
+  .vc-auth__titular { max-width: none; font-size: clamp(2rem, 1.5rem + 3vw, 3rem); }
+  .vc-auth__bajada { display: none; }
+  .vc-auth__panel { place-items: start center; padding-top: var(--vc-space-5); }
+}
 
-.vc-auth__nota { margin: 0; color: var(--vc-muted); font-size: var(--vc-text-xs); line-height: 1.5; }
+/* Móvil angosto: la etiqueta Error / Aviso queda sobre el texto */
+@media (max-width: 480px) {
+  .vc-auth__mensaje { flex-direction: column; gap: var(--vc-space-1); }
+}
+
+/* Movimiento reducido: sin entradas animadas */
+@media (prefers-reduced-motion: reduce) {
+  .vc-auth__contenido,
+  .vc-auth__mensaje { animation: none; }
+  .vc-auth__google:hover { transform: none; }
+}

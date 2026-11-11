@@ -1,0 +1,28 @@
+<ul class="vc-bento">
+  @for (funcion of funcionalidades(); track funcion.clave; let i = $index) {
+    <li class="vc-bento__tarjeta" [class]="'vc-bento__tarjeta--' + funcion.clave" vcReveal [vcRevealRetraso]="i * 80">
+      <!-- Ilustración animada de cada funcionalidad -->
+      <div class="vc-bento__arte" aria-hidden="true">
+        @switch (funcion.clave) {
+          @case ('videollamada') {
+            <span class="vc-arte-llamada"><i></i><i></i><b>REC</b><em>MR</em></span>
+          }
+          @case ('canal') {
+            <span class="vc-arte-canal"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          }
+          @case ('transcripcion') {
+            <span class="vc-arte-texto"><i></i><i></i><i></i></span>
+          }
+          @case ('analisis') {
+            <span class="vc-arte-anillo"><b>78%</b></span>
+          }
+          @case ('reportes') {
+            <span class="vc-arte-barras"><i></i><i></i><i></i><i></i><i></i></span>
+          }
+        }
+      </div>
+      <h3 class="vc-bento__titulo">{{ funcion.titulo }}</h3>
+      <p class="vc-bento__texto">{{ funcion.descripcion }}</p>
+    </li>
+  }
+</ul>

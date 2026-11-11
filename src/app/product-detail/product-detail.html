@@ -1,4 +1,4 @@
-<a class="vc-pdetail__volver" routerLink="/productos">← Volver a productos</a>
+<a class="vc-pdetail__volver" [routerLink]="rutas.productos">← Volver a productos</a>
 
 @if (cargando()) {
   <p class="vc-pdetail__msg" role="status">Cargando producto…</p>
@@ -21,7 +21,7 @@
         } @else {
           <vc-button variant="secondary" [disabled]="cambiandoEstado()" (click)="activar()">Activar</vc-button>
         }
-        <vc-button variant="secondary" routerLink="/reportes">Ver estadísticas</vc-button>
+        <vc-button variant="secondary" [routerLink]="rutas.reportes">Ver estadísticas</vc-button>
       </div>
       @if (errorEstado()) {
         <p class="vc-pdetail__error" role="alert">{{ errorEstado() }}</p>

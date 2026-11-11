@@ -1,0 +1,70 @@
+<div class="vc-pasos">
+  <div class="vc-pasos__columna">
+    <span class="vc-pasos__riel" aria-hidden="true">
+      <span class="vc-pasos__avance" [style.transform]="'scaleY(' + avance() + ')'"></span>
+    </span>
+
+    <ol class="vc-pasos__lista">
+      @for (paso of pasos(); track paso.numero; let i = $index) {
+        <li
+          class="vc-pasos__paso"
+          [class.is-activo]="activo() === i"
+          tabindex="0"
+          (focus)="seleccionar(i)"
+          (click)="seleccionar(i)"
+        >
+          <span class="vc-pasos__numero">{{ paso.numero }}</span>
+          <h3 class="vc-pasos__titulo">{{ paso.titulo }}</h3>
+          <p class="vc-pasos__texto">{{ paso.descripcion }}</p>
+        </li>
+      }
+    </ol>
+  </div>
+
+  <!-- Vista ilustrativa del paso activo (datos de ejemplo) -->
+  <div class="vc-pasos__vista" aria-hidden="true">
+    <div class="vc-pasos__marco">
+      <span class="vc-pasos__marco-barra"><i></i><i></i><i></i></span>
+      @switch (activo()) {
+        @case (0) {
+          <div class="vc-pasos__mock">
+            <span class="vc-eyebrow">Producto · Calzado</span>
+            <strong class="vc-pasos__mock-titulo">Pegasus 41</strong>
+            <span class="vc-pasos__chip vc-pasos__chip--ok">Activo</span>
+            <span class="vc-pasos__linea"></span>
+            <span class="vc-pasos__linea vc-pasos__linea--corta"></span>
+            <span class="vc-pasos__boton">+ Nuevo producto</span>
+          </div>
+        }
+        @case (1) {
+          <div class="vc-pasos__mock">
+            <span class="vc-eyebrow">Enlace del consumidor</span>
+            <code class="vc-pasos__url">vozcliente.com/sala/7f3k…q9</code>
+            <span class="vc-pasos__chip vc-pasos__chip--marca">Pendiente</span>
+            <span class="vc-pasos__meta">Vence en 7 días</span>
+            <span class="vc-pasos__boton vc-pasos__boton--ok">✓ Enlace copiado</span>
+          </div>
+        }
+        @case (2) {
+          <div class="vc-pasos__mock vc-pasos__mock--oscuro">
+            <span class="vc-pasos__rec"><i></i>Grabando · canal del cliente</span>
+            <span class="vc-pasos__avatar">MR</span>
+            <span class="vc-pasos__propio"></span>
+            <span class="vc-pasos__controles"><i></i><i></i><i class="is-fin"></i></span>
+          </div>
+        }
+        @case (3) {
+          <div class="vc-pasos__mock">
+            <span class="vc-eyebrow">Intención de compra</span>
+            <span class="vc-pasos__barra vc-pasos__barra--alta"><span style="--ancho: 64%"></span><b>Alta</b></span>
+            <span class="vc-pasos__barra"><span style="--ancho: 24%"></span><b>Media</b></span>
+            <span class="vc-pasos__barra"><span style="--ancho: 12%"></span><b>Baja</b></span>
+            <span class="vc-eyebrow">Competencia mencionada</span>
+            <span class="vc-pasos__chips"><span>Marca A · 4</span><span>Marca B · 2</span></span>
+          </div>
+        }
+      }
+    </div>
+    <p class="vc-pasos__nota">Vista ilustrativa · datos de ejemplo</p>
+  </div>
+</div>

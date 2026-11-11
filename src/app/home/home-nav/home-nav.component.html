@@ -1,0 +1,39 @@
+<div class="vc-nav">
+  <a class="vc-nav__marca" href="#inicio" aria-label="Voz Cliente, volver al inicio" (click)="cerrarMenu()">
+    <vc-logo tono="oscuro" />
+  </a>
+
+  <button
+    id="btnMenuHome"
+    type="button"
+    class="vc-nav__menu"
+    aria-controls="lstSeccionesHome"
+    [attr.aria-expanded]="menuAbierto()"
+    (click)="alternarMenu()"
+  >
+    <span class="vc-nav__menu-icono" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="vc-sr-only">{{ menuAbierto() ? 'Cerrar menú' : 'Abrir menú' }}</span>
+  </button>
+
+  <nav class="vc-nav__panel" [class.is-abierto]="menuAbierto()" aria-label="Secciones del home">
+    <ul id="lstSeccionesHome" class="vc-nav__lista">
+      @for (enlace of enlaces(); track enlace.id) {
+        <li>
+          <a
+            class="vc-nav__enlace"
+            [href]="'#' + enlace.id"
+            [class.is-activo]="seccionActiva() === enlace.id"
+            [attr.aria-current]="seccionActiva() === enlace.id ? 'location' : null"
+            (click)="cerrarMenu()"
+          >{{ enlace.texto }}</a>
+        </li>
+      }
+    </ul>
+
+    @if (conSesion()) {
+      <a id="lnkNavPanel" class="vc-nav__cta" [routerLink]="rutas.app">Ir a mi panel</a>
+    } @else {
+      <a id="lnkNavIngresar" class="vc-nav__cta" [routerLink]="rutas.ingreso">Ingresar</a>
+    }
+  </nav>
+</div>

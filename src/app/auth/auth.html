@@ -1,30 +1,53 @@
 <main class="vc-auth">
-  <section class="vc-auth__card vc-panel" aria-labelledby="ttlIngreso">
-    <div class="vc-auth__brand">
-      <span class="vc-auth__logo" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
-      Voz Cliente
+  <!-- Panel de marca (Figura 4 del informe de diseño): logotipo, propuesta de valor y onda de audio -->
+  <section class="vc-auth__marca" aria-label="Voz Cliente">
+    <a class="vc-auth__logo" [routerLink]="rutas.home" aria-label="Voz Cliente, volver al inicio">
+      <vc-logo tono="oscuro" tamano="lg" [animado]="true" />
+    </a>
+
+    <div class="vc-auth__propuesta">
+      <vc-waveform class="vc-auth__onda" [cantidad]="36" />
+      <p class="vc-auth__titular" vcReveal>La voz de su cliente, en <em>datos</em></p>
+      <p class="vc-auth__bajada" vcReveal [vcRevealRetraso]="120">
+        Entrevistas por videollamada convertidas en intención de compra y competencia por producto.
+      </p>
     </div>
+  </section>
 
-    <p class="vc-eyebrow">Brightcode Labs</p>
-    <h1 id="ttlIngreso">Ingresar</h1>
-    <p class="vc-auth__texto">
-      Usa tu cuenta de Google para entrar a la plataforma. No necesitas crear otra contraseña.
-    </p>
+  <!-- Ingreso único con Google y mensajes de error o aviso (RF-01) -->
+  <section class="vc-auth__panel" aria-labelledby="ttlIngreso">
+    <div class="vc-auth__contenido">
+      <h1 id="ttlIngreso">Ingresar</h1>
+      <p class="vc-auth__texto">Use su cuenta de Google. Voz Cliente no administra contraseñas.</p>
 
-    @if (mensajeError(); as mensaje) {
-      <div id="msgErrorIngreso" class="vc-auth__mensaje" role="alert">
-        <span class="vc-auth__icono" aria-hidden="true">!</span>
-        <p><strong>No se completó el ingreso.</strong> {{ mensaje }}</p>
-      </div>
-    }
+      <button id="btnIngresarGoogle" type="button" class="vc-auth__google" (click)="ingresar()">
+        <svg class="vc-auth__g" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+        </svg>
+        {{ mensaje() ? 'Intentar de nuevo con Google' : 'Continuar con Google' }}
+      </button>
 
-    <vc-button id="btnIngresarGoogle" variant="primary" (click)="ingresar()">
-      {{ mensajeError() ? 'Intentar de nuevo con Google' : 'Continuar con Google' }}
-    </vc-button>
+      @if (mensaje(); as m) {
+        <div
+          id="msgIngreso"
+          class="vc-auth__mensaje"
+          [class.vc-auth__mensaje--aviso]="m.tipo === 'aviso'"
+          role="alert"
+        >
+          <strong class="vc-auth__etiqueta">
+            <span aria-hidden="true">{{ m.tipo === 'aviso' ? '!' : '✕' }}</span>
+            {{ m.tipo === 'aviso' ? 'Aviso' : 'Error' }}
+          </strong>
+          <p>{{ m.texto }}</p>
+        </div>
+      }
 
-    <p class="vc-auth__nota">
-      Al continuar, Google comparte con Voz Cliente tu nombre y tu correo. Si es tu primer ingreso, se crea la cuenta de
-      tu empresa.
-    </p>
+      <p class="vc-auth__nota">Al ingresar por primera vez se crea su cuenta de empresa como cliente-administrador.</p>
+
+      <a class="vc-auth__volver" [routerLink]="rutas.home">← Volver al inicio</a>
+    </div>
   </section>
 </main>
