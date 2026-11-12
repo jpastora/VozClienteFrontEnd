@@ -156,7 +156,7 @@ export class Videollamada implements OnInit, OnDestroy {
 
      
       if (this.esRep) {
-        // 1. Prioriza si viene por URL (útil para recargas o pruebas)
+        // 1. Prioriza si viene por URL 
         const q = Number(this.route.snapshot.queryParamMap.get('entrevistaId'));
         
         if (Number.isFinite(q) && q > 0) {
