@@ -19,6 +19,7 @@ import { firstValueFrom } from 'rxjs';
 import { GUIA_SUGERIDA, SEGUNDOS_REINTENTO } from '../core/config';
 import { EntrevistaApi } from '../core/entrevista-api';
 import { GrabacionApi } from '../core/grabacion-api';
+import { GuiaApi } from '../core/guia-api';
 import { GrabacionDTO, ResultadoGrabacion, Rol, SalaDTO, SenalMensaje } from '../core/models';
 import { RecorderService } from '../core/recorder.service';
 import { SalaApi } from '../core/sala-api';
@@ -26,6 +27,8 @@ import { SignalingService } from '../core/signaling.service';
 import { WebrtcService } from '../core/webrtc.service';
 import { LogoComponent } from '../shared/logo/logo.component';
 import { MediaStreamDirective } from './media-stream.directive';
+import { ProductoApi } from '../core/producto-api';
+
 
 type Fase = 'cargando' | 'error' | 'lobby' | 'conectando' | 'llamada' | 'subiendo' | 'finalizada';
 
@@ -42,10 +45,12 @@ export class Videollamada implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private salaApi = inject(SalaApi);
   private grabacionApi = inject(GrabacionApi);
+  private guiaApi = inject(GuiaApi);
   private entrevistaApi = inject(EntrevistaApi);
   private destroyRef = inject(DestroyRef);
   private signaling = inject(SignalingService);
   private titulo = inject(Title);
+  private productoNombre = signal('');
   protected rtc = inject(WebrtcService);
   protected rec = inject(RecorderService);
 
@@ -53,7 +58,8 @@ export class Videollamada implements OnInit, OnDestroy {
   protected readonly esRep = this.rol === 'representante';
   private readonly token = this.route.snapshot.paramMap.get('token') ?? '';
 
-  protected guia = GUIA_SUGERIDA;
+  /** Preguntas que ve el representante: la guía elegida al generar el enlace o, si no hay, la sugerida. */
+  protected guia = signal<string[]>(GUIA_SUGERIDA);
   protected fase = signal<Fase>('cargando');
   protected sala = signal<SalaDTO | null>(null);
   protected error = signal('');
@@ -78,12 +84,15 @@ export class Videollamada implements OnInit, OnDestroy {
   protected grabacion = signal<GrabacionDTO | null>(null);
   protected resumenFinal = signal('');
 
+  
+
   /** Nombre del producto de la sala; si el back-end no lo envía se muestra su número. */
   protected tituloSala = computed(() => {
     const s = this.sala();
     if (!s) return '';
-    return s.productoNombre?.trim() || `Producto #${s.productoId}`;
+    return this.productoNombre() || s.productoNombre?.trim() || `Producto #${s.productoId}`;
   });
+
   protected etiquetaRemota = computed(() => this.nombreRemoto() || (this.esRep ? 'Consumidor' : 'Representante'));
   protected inicialesRemoto = computed(() => this.iniciales(this.etiquetaRemota()));
 
@@ -93,6 +102,7 @@ export class Videollamada implements OnInit, OnDestroy {
   private terminando = false;
   private relojId?: ReturnType<typeof setInterval>;
   private cuentaId?: ReturnType<typeof setInterval>;
+  private productoApi = inject(ProductoApi);
 
   constructor() {
     // Representante: empieza a grabar el canal del cliente cuando la conexión queda establecida.
@@ -120,6 +130,17 @@ export class Videollamada implements OnInit, OnDestroy {
     try {
       const sala = await firstValueFrom(this.salaApi.obtener(this.token));
       this.sala.set(sala);
+
+      // Si la sala tiene un ID de producto pero no trajo el nombre, lo consultamos
+      if (this.esRep && sala.productoId && !sala.productoNombre) {
+        try {
+          const producto = await firstValueFrom(this.productoApi.obtener(sala.productoId));
+          this.productoNombre.set(producto.nombre);
+        } catch (error) {
+          console.warn('No se pudo cargar el nombre del producto desde el API', error);
+        }
+      }
+
       this.titulo.setTitle(`Sala del producto ${this.tituloSala()} · Voz Cliente`);
 
       const vencida = sala.venceEn ? new Date(sala.venceEn).getTime() < Date.now() : false;
@@ -128,11 +149,42 @@ export class Videollamada implements OnInit, OnDestroy {
         return;
       }
 
-      if (this.esRep) {
-        const q = Number(this.route.snapshot.queryParamMap.get('entrevistaId') ?? sala.entrevistaId);
-        this.entrevistaId.set(Number.isFinite(q) && q > 0 ? q : null);
-        this.nombreRemoto.set(sala.nombreConsumidor ?? '');
+      if (!this.esRep && sala.estado === 'RESPONDIDO') {
+        this.fallo('Este enlace ya fue utilizado. Solicita uno nuevo.');
+        return;
       }
+
+     
+      if (this.esRep) {
+        // 1. Prioriza si viene por URL 
+        const q = Number(this.route.snapshot.queryParamMap.get('entrevistaId'));
+        
+        if (Number.isFinite(q) && q > 0) {
+          this.entrevistaId.set(q);
+        } else {
+          // 2. Busca automáticamente la entrevista usando el ID de la sala
+          try {
+            const entrevistas = await firstValueFrom(this.entrevistaApi.obtenerPorSala(sala.id!));
+            
+            if (entrevistas && entrevistas.length > 0 && entrevistas[0].id) {
+              // Si la entrevista existe y tiene ID, lo asignamos
+              this.entrevistaId.set(entrevistas[0].id); 
+            } else {
+              // Usamos un ternario: si sala.entrevistaId existe, lo usamos, si no, null estricto
+              this.entrevistaId.set(sala.entrevistaId ? sala.entrevistaId : null); 
+            }
+          } catch (error) {
+            console.warn('Error al cargar la entrevista vinculada a la sala', error);
+            // Igual aquí, prevenimos el undefined con el ternario
+            this.entrevistaId.set(sala.entrevistaId ? sala.entrevistaId : null);
+          }
+        }
+
+        this.nombreRemoto.set(sala.nombreConsumidor ?? '');
+        this.cargarGuia();
+      }
+     
+
       this.nombre.set(
         (!this.esRep ? sala.nombreConsumidor : null) ?? localStorage.getItem(CLAVE_NOMBRE) ?? '',
       );
@@ -140,6 +192,18 @@ export class Videollamada implements OnInit, OnDestroy {
     } catch {
       this.fallo('No se encontró la sala o el enlace no es válido.');
     }
+  }
+  /** Carga la guía indicada en ?guiaId=; si falla (o no viene) se queda la guía sugerida. */
+  private cargarGuia(): void {
+    const id = Number(this.route.snapshot.queryParamMap.get('guiaId'));
+    if (!Number.isFinite(id) || id <= 0) return;
+    this.guiaApi.obtener(id).subscribe({
+      next: (g) => {
+        const preguntas = (g.preguntas ?? []).filter((p) => p?.trim());
+        if (preguntas.length) this.guia.set(preguntas);
+      },
+      error: () => { /* sin permiso o guía eliminada: se mantiene la guía sugerida */ },
+    });
   }
 
   // ---------- Entrada a la sala ----------

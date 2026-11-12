@@ -11,8 +11,10 @@ import { RepresentanteApi } from '../core/representante-api';
 import { RUTAS } from '../core/rutas';
 import { SalaApi } from '../core/sala-api';
 import { Dialog } from '../dialog/dialog';
+import { GuiaPreguntas } from '../guia-preguntas/guia-preguntas';
 import { ProductForm } from '../product-form/product-form';
 import { SessionService } from '../services/session';
+
 
 type TonoBadge = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
 
@@ -23,7 +25,7 @@ function estadoVigente(sala: SalaDTO): string {
 }
 
 @Component({
-  imports: [Badge, Button, DatePipe, Dialog, ProductForm, RouterLink],
+  imports: [Badge, Button, DatePipe, Dialog, GuiaPreguntas, ProductForm, RouterLink],
   selector: 'vc-product-detail',
   styleUrl: './product-detail.css',
   templateUrl: './product-detail.html',
@@ -43,6 +45,8 @@ export class ProductDetail {
 
   private readonly cuentaId = computed(() => this.sesion.usuario()?.id ?? CUENTA_ID_PRUEBA);
 
+  protected readonly sesionEmpresaId = computed(() => this.sesion.usuario()?.empresaId ?? null);
+
   protected readonly producto = signal<ProductoDTO | null>(null);
   protected readonly catalogo = signal<ProductoDTO[]>([]);
   protected readonly salas = signal<SalaDTO[]>([]);
@@ -60,9 +64,15 @@ export class ProductDetail {
   protected readonly enlaceRepresentante = signal<string | null>(null);
   protected readonly copiado = signal<'consumidor' | 'representante' | null>(null);
 
+  protected readonly copiadoFila = signal<string | null>(null);
+  protected readonly filaExpandida = signal<string | null>(null);
+
   /** Representantes de la empresa; el elegido atenderá la entrevista. */
   protected readonly representantes = signal<CuentaDTO[]>([]);
   protected readonly representanteId = signal<number | null>(null);
+
+  /** Guía de preguntas elegida para el representante (null = sin guía). */
+  protected readonly guiaId = signal<number | null>(null);
 
   protected readonly filas = computed(() =>
     [...this.salas()]
@@ -80,13 +90,23 @@ export class ProductDetail {
 
   protected cargar(): void {
     const id = Number(this.id());
+    this.restaurarGuia();
     this.cargando.set(true);
     this.error.set(null);
     this.representanteApi.listar().subscribe({
       next: (cuentas) => {
         const reps = cuentas.filter((c) => c.rol === 'REPRESENTANTE' && c.estado !== 'INACTIVA');
         this.representantes.set(reps);
-        if (this.representanteId() === null && reps.length) this.representanteId.set(reps[0].id);
+
+        // El representante asignado al producto tiene prioridad.
+        const asignado = this.producto()?.representanteId ?? null;
+
+        if (asignado != null && reps.some((r) => r.id === asignado)) {
+          this.representanteId.set(asignado);
+        } else if (this.representanteId() === null && reps.length) {
+          // Sin asignado (o ya inactivo), usar el primero de la lista.
+          this.representanteId.set(reps[0].id);
+        }
       },
       // Sin lista de cuentas se usa la cuenta de prueba como representante.
       error: () => this.representantes.set([]),
@@ -95,6 +115,11 @@ export class ProductDetail {
     this.productoApi.obtener(id).subscribe({
       next: (producto) => {
         this.producto.set(producto);
+
+        // El representante asignado al producto tiene prioridad.
+        if (producto.representanteId != null) {
+          this.representanteId.set(producto.representanteId);
+        }
 
         // Cargar las salas asociadas al producto.
         this.salaApi.listarPorProducto(id).subscribe({
@@ -179,9 +204,57 @@ export class ProductDetail {
   }
 
   // Enlaces de sala
-  protected cambiarRepresentante(evento: Event): void {
-    this.representanteId.set(Number((evento.target as HTMLSelectElement).value));
+  // Enlaces de sala
+protected cambiarRepresentante(evento: Event): void {
+  const p = this.producto();
+  const id = Number((evento.target as HTMLSelectElement).value);
+  if (p?.id == null || !Number.isFinite(id)) return;
+
+  const anterior = this.representanteId();
+  this.representanteId.set(id);
+  this.errorEnlace.set(null);
+
+  this.productoApi.actualizar(p.id, {
+    nombre: p.nombre,
+    descripcion: p.descripcion,
+    categoria: p.categoria,
+    esActivo: p.esActivo,
+    representanteId: id,
+  }).subscribe({
+    next: (g) => this.producto.update((x) => ({ ...x, ...g })),
+    error: () => {
+      this.representanteId.set(anterior);
+      this.errorEnlace.set('No se pudo asignar el representante al producto.');
+    },
+  });
+}
+
+  private claveRepresentante(): string {
+    return `vc.representante.producto.${this.id()}`;
   }
+
+  // Guía de preguntas
+  protected cambiarGuia(id: number | null): void {
+    this.guiaId.set(id);
+    try {
+      if (id == null) localStorage.removeItem(this.claveGuia());
+      else localStorage.setItem(this.claveGuia(), String(id));
+    } catch { }
+  }
+
+  private restaurarGuia(): void {
+    try {
+      const v = localStorage.getItem(this.claveGuia());
+      this.guiaId.set(v ? Number(v) : null);
+    } catch { }
+  }
+
+  private claveGuia(): string {
+    return `vc.guia.producto.${this.id()}`;
+  }
+
+
+  
 
   protected generarEnlace(): void {
     const p = this.producto();
@@ -200,7 +273,10 @@ export class ProductDetail {
         // El representante necesita una entrevista para poder subir la grabación.
         this.entrevistaApi.iniciar(sala.id!, representanteId).subscribe({
           next: (entrevista) => {
-            this.enlaceRepresentante.set(`${urlBase()}/representante/${sala.token}?entrevistaId=${entrevista.id}`);
+            // La guía elegida viaja en el enlace para que el representante la vea durante la llamada.
+            const guia = this.guiaId();
+            const params = `entrevistaId=${entrevista.id}${guia != null ? `&guiaId=${guia}` : ''}`;
+            this.enlaceRepresentante.set(`${urlBase()}/representante/${sala.token}?${params}`);
             this.generando.set(false);
           },
           error: (err) => {
@@ -238,5 +314,43 @@ export class ProductDetail {
   }
   protected sufijo(token: string): string {
     return '…' + token.slice(-6).toUpperCase();
+  }
+
+  // Método para abrir/cerrar el detalle del enlace
+  protected alternarDetalleHistorico(sala: SalaDTO): void {
+    if (this.filaExpandida() === sala.token) {
+      this.filaExpandida.set(null); // Lo cierra si ya está abierto
+    } else {
+      this.filaExpandida.set(sala.token); // Lo abre
+    }
+  }
+
+  // Genera la URL del consumidor para la tabla
+  protected urlConsumidorHistorico(sala: SalaDTO): string {
+    return `${urlBase()}/sala/${sala.token}`;
+  }
+
+  // Genera la URL del representante para la tabla
+  protected urlRepresentanteHistorico(sala: SalaDTO): string {
+    const idEntrevista = (sala as any).entrevistaId; 
+    return idEntrevista 
+      ? `${urlBase()}/representante/${sala.token}?entrevistaId=${idEntrevista}`
+      : `${urlBase()}/representante/${sala.token}`;
+  }
+
+
+  protected async copiarHistorico(sala: SalaDTO, quien: 'consumidor' | 'representante'): Promise<void> {
+    const url = quien === 'consumidor' 
+      ? this.urlConsumidorHistorico(sala) 
+      : this.urlRepresentanteHistorico(sala);
+
+    try {
+      await navigator.clipboard.writeText(url);
+      const idBoton = `${sala.token}-${quien}`;
+      this.copiadoFila.set(idBoton);
+      setTimeout(() => this.copiadoFila.update((c) => (c === idBoton ? null : c)), 2500);
+    } catch {
+      this.error.set('No se pudo copiar el enlace de la tabla.');
+    }
   }
 }

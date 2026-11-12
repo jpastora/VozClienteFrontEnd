@@ -1,0 +1,34 @@
+:host { display: block; }
+
+.vc-rooms__enlace { display: flex; flex-direction: column; align-items: flex-start; gap: var(--vc-space-2); max-width: 640px; margin-bottom: var(--vc-space-4); }
+.vc-rooms__enlace h2 { margin-bottom: 0; }
+.vc-rooms__nota { margin: 0; color: var(--vc-muted); font-size: var(--vc-text-sm); }
+.vc-rooms__acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--vc-space-2); }
+.vc-rooms__opciones { display: flex; flex-direction: column; gap: var(--vc-space-2); }
+.vc-rooms__url {
+  align-self: stretch;
+  padding: var(--vc-space-2) var(--vc-space-3);
+  border: 1px dashed var(--vc-deep-circuit);
+  border-radius: var(--vc-radius);
+  background: var(--vc-paper);
+  font-size: var(--vc-text-sm);
+  overflow-wrap: anywhere;
+}
+.vc-rooms__copiado { color: var(--vc-success); font-size: var(--vc-text-sm); font-weight: 600; }
+.vc-rooms__token { font-family: var(--vc-font-mono); color: var(--vc-muted); font-weight: 400 !important; }
+.vc-rooms__vacio td { text-align: center; color: var(--vc-muted); font-weight: 400 !important; padding: var(--vc-space-5); }
+.vc-rooms__error { margin: 0; color: var(--vc-danger); font-size: var(--vc-text-sm); }
+.vc-rooms__msg { color: var(--vc-muted); margin: var(--vc-space-4) 0; }
+.vc-rooms__msg--error { color: var(--vc-danger); }
+.vc-rooms__link { align-self: stretch; display: flex; flex-direction: column; align-items: flex-start; gap: var(--vc-space-1); }
+.vc-rooms__link--sep { margin-top: var(--vc-space-3); }
+.vc-rooms__rep { display: flex; flex-direction: column; gap: var(--vc-space-1); font-size: var(--vc-text-sm); }
+.vc-rooms__rep label { font-weight: 600; }
+.vc-rooms__rep select { font: inherit; padding: 8px 12px; border: 1px solid var(--vc-concrete); border-radius: var(--vc-radius); background: var(--vc-white); }
+.vc-rooms__rep select:focus-visible { outline: none; border-color: var(--vc-deep-circuit); box-shadow: var(--vc-focus); }
+.vc-rooms__celda-detalle { padding: 0; }
+.vc-rooms__enlace-historico {
+  padding: var(--vc-space-3) var(--vc-space-4);
+  background-color: var(--vc-paper, #ffffff);
+  border-bottom: 1px solid var(--vc-concrete, #e0e0e0);
+}

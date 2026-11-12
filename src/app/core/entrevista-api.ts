@@ -104,4 +104,8 @@ export class EntrevistaApi {
     );
   }
 
+  public obtenerPorSala(salaId: number): Observable<EntrevistaDTO[]> {
+    return this.http.get<EntrevistaDTO[]>(`${API_URL}/entrevistas/sala/${salaId}`);
+  }
+
 }

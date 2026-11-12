@@ -48,6 +48,7 @@ export const routes: Routes = [
   {
     path: 'representante/:token',
     title: 'Videollamada',
+    canActivate: [autenticadoGuard],
     loadComponent: () => import('./videollamada/videollamada').then((m) => m.Videollamada),
     data: { rol: 'representante' },
   },
@@ -59,6 +60,7 @@ export const routes: Routes = [
     component: Shell,
     canActivate: [autenticadoGuard],
     children: [
+
       {
         path: 'inicio',
         title: 'Inicio',
@@ -126,6 +128,7 @@ export const routes: Routes = [
         loadComponent: () => import('./admin/admin').then((m) => m.Admin),
       },
       // /app sin pantalla: cada perfil entra a su propio inicio.
+
       {
         path: '',
         pathMatch: 'full',

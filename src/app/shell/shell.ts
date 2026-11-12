@@ -23,7 +23,7 @@ const OPCIONES_MENU: OpcionMenu[] = [
   { ruta: RUTAS.salas, texto: 'Salas', roles: ['CLIENTE_ADMINISTRADOR', 'REPRESENTANTE'] },
   { ruta: RUTAS.reportes, texto: 'Estadísticas', roles: ['CLIENTE_ADMINISTRADOR'] },
   { ruta: RUTAS.paquetes, texto: 'Paquetes y saldo', roles: ['CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR'] },
-  { ruta: RUTAS.admin, texto: 'Administración', roles: ['ADMINISTRADOR'] },
+  { ruta: RUTAS.admin, texto: 'Usuarios', roles: ['ADMINISTRADOR'] },
 ];
 
 const NOMBRES_ROL: Record<RolInfo, string> = {

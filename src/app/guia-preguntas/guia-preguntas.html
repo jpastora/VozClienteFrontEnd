@@ -1,0 +1,106 @@
+<div class="vc-guia">
+  <label class="vc-guia__label" for="cmbGuiaPreguntas">Guía de preguntas</label>
+  <div class="vc-guia__fila">
+    <select
+      id="cmbGuiaPreguntas"
+      class="vc-guia__select"
+      [disabled]="cargando()"
+      (change)="cambiarSeleccion($event)"
+    >
+      <option value="" [selected]="guiaId() === null">Sin guía</option>
+      @for (g of guias(); track g.id) {
+        <option [value]="g.id" [selected]="g.id === guiaId()">{{ g.titulo }}</option>
+      }
+    </select>
+    <vc-button variant="secondary" (click)="abrir()">Gestionar</vc-button>
+  </div>
+  @if (seleccionada(); as g) {
+    <span class="vc-guia__meta">{{ g.preguntas.length }} {{ g.preguntas.length === 1 ? 'pregunta' : 'preguntas' }} · se mostrará al representante</span>
+  }
+  @if (errorLista() && !abierto()) {
+    <span class="vc-guia__error" role="alert">{{ errorLista() }}</span>
+  }
+</div>
+
+<vc-dialog [open]="abierto()" [title]="tituloDialogo()" (closed)="cerrar()">
+  @if (vista() === 'lista') {
+    <div class="vc-guia__panel">
+      <p class="vc-guia__nota">Las guías son de toda la empresa. La elegida se muestra al representante durante la llamada.</p>
+
+      @if (cargando()) {
+        <p class="vc-guia__nota" role="status">Cargando guías…</p>
+      } @else if (!guias().length) {
+        <p class="vc-guia__vacio">Aún no hay guías. Crea la primera.</p>
+      } @else {
+        <ul class="vc-guia__lista">
+          @for (g of guias(); track g.id) {
+            <li class="vc-guia__item">
+              <div class="vc-guia__item-info">
+                <strong>{{ g.titulo }}</strong>
+                <span class="vc-eyebrow">{{ g.preguntas.length }} {{ g.preguntas.length === 1 ? 'pregunta' : 'preguntas' }}</span>
+              </div>
+              @if (confirmandoId() === g.id) {
+                <div class="vc-guia__acciones">
+                  <span class="vc-guia__confirmar">¿Eliminar?</span>
+                  <vc-button variant="secondary" [disabled]="eliminando()" (click)="cancelarEliminar()">No</vc-button>
+                  <vc-button variant="danger" [disabled]="eliminando()" (click)="eliminar(g)">Sí, eliminar</vc-button>
+                </div>
+              } @else {
+                <div class="vc-guia__acciones">
+                  <vc-button variant="secondary" (click)="editar(g)">Editar</vc-button>
+                  <vc-button variant="secondary" (click)="pedirEliminar(g)">Eliminar</vc-button>
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (errorLista()) {
+        <p class="vc-guia__error" role="alert">{{ errorLista() }}</p>
+      }
+      <div class="vc-guia__botones">
+        <vc-button variant="secondary" (click)="cerrar()">Cerrar</vc-button>
+        <vc-button (click)="nueva()">Nueva guía</vc-button>
+      </div>
+    </div>
+  } @else {
+    <form class="vc-guia__panel" (submit)="$event.preventDefault(); guardar()" novalidate>
+      <vc-field controlId="txtTituloGuia" label="Título *" [value]="titulo()" (valueChange)="cambiarTitulo($event)" [error]="errorTitulo()" />
+
+      <fieldset class="vc-guia__preguntas">
+        <legend class="vc-guia__label">Preguntas *</legend>
+        @for (p of preguntas(); track $index) {
+          <div class="vc-guia__pregunta">
+            <span class="vc-guia__num" aria-hidden="true">{{ $index + 1 }}.</span>
+            <input
+              class="vc-guia__control"
+              [value]="p"
+              [attr.aria-label]="'Pregunta ' + ($index + 1)"
+              [attr.aria-invalid]="errorPreguntas() && !p.trim() ? true : null"
+              (input)="cambiarPregunta($index, $event)"
+            />
+            <button type="button" class="vc-guia__icono" aria-label="Subir pregunta" [disabled]="$first" (click)="mover($index, -1)">↑</button>
+            <button type="button" class="vc-guia__icono" aria-label="Bajar pregunta" [disabled]="$last" (click)="mover($index, 1)">↓</button>
+            <button type="button" class="vc-guia__icono" aria-label="Quitar pregunta" (click)="quitarPregunta($index)">✕</button>
+          </div>
+        }
+        <div>
+          <vc-button variant="secondary" (click)="agregarPregunta()">+ Agregar pregunta</vc-button>
+        </div>
+        @if (errorPreguntas()) {
+          <span class="vc-guia__error" role="alert">{{ errorPreguntas() }}</span>
+        }
+      </fieldset>
+
+      @if (errorGuardar()) {
+        <p class="vc-guia__error" role="alert">{{ errorGuardar() }}</p>
+      }
+      <div class="vc-guia__botones">
+        <vc-button variant="secondary" [disabled]="guardando()" (click)="volverALista()">Cancelar</vc-button>
+        <vc-button type="submit" [disabled]="guardando()">{{ guardando() ? 'Guardando…' : 'Guardar guía' }}</vc-button>
+      </div>
+    </form>
+  }
+</vc-dialog>
+
