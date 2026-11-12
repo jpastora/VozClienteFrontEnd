@@ -42,6 +42,7 @@
           <td>{{ r.ultimoIngresoEn ? (r.ultimoIngresoEn | date: 'dd/MM/yyyy HH:mm') : 'Aún no ingresa' }}</td>
           <td class="vc-reps__acciones">
             @if (r.estado !== 'INACTIVA') {
+              <vc-button variant="secondary" (click)="pedirContrasena(r)">Contraseña</vc-button>
               <vc-button variant="danger" (click)="pedirDesactivar(r)">Desactivar</vc-button>
             } @else {
               <span class="vc-reps__sin-accion">—</span>
@@ -66,18 +67,26 @@
 <vc-dialog [open]="formAbierto()" title="Nuevo representante" (closed)="cerrarForm()">
   <form class="vc-reps__form" (submit)="$event.preventDefault(); guardar()" novalidate>
     <p class="vc-reps__nota">
-      Usa el correo de Google con el que el representante va a ingresar. La cuenta queda pendiente hasta su primer
-      ingreso.
+      Usa el correo con el que el representante va a ingresar. Si no tiene cuenta de Google, asígnale una contraseña
+      inicial y compártesela. La cuenta queda pendiente hasta su primer ingreso.
     </p>
     <vc-field controlId="txtNombreRepresentante" label="Nombre completo *" [(value)]="nombre" [error]="errorNombre()" />
     <vc-field
       controlId="txtCorreoRepresentante"
-      label="Correo de Google *"
+      label="Correo *"
       type="email"
       [value]="correo()"
       (valueChange)="cambiarCorreo($event)"
       [error]="errorCorreo()"
     />
+    <vc-field
+      controlId="txtContrasenaRepresentante"
+      label="Contraseña inicial (opcional)"
+      type="password"
+      [(value)]="contrasenaInicial"
+      [error]="errorContrasenaInicial()"
+    />
+    <p class="vc-reps__nota">Entre 8 y 72 caracteres, con al menos una letra y un número.</p>
     @if (errorGuardar()) {
       <p class="vc-reps__error" role="alert">{{ errorGuardar() }}</p>
     }
@@ -105,5 +114,42 @@
         {{ desactivando() ? 'Desactivando…' : 'Desactivar' }}
       </vc-button>
     </div>
+  }
+</vc-dialog>
+<vc-dialog [open]="porContrasena() !== null" title="Contraseña del representante" (closed)="cerrarContrasena()">
+  @if (porContrasena(); as r) {
+    @if (contrasenaAsignada()) {
+      <p role="status">
+        Listo. «{{ r.nombreCompleto }}» ya puede ingresar con su correo y la contraseña nueva. Compártesela por un medio
+        privado.
+      </p>
+      <div class="vc-reps__botones">
+        <vc-button (click)="cerrarContrasena()">Cerrar</vc-button>
+      </div>
+    } @else {
+      <form class="vc-reps__form" (submit)="$event.preventDefault(); guardarContrasena()" novalidate>
+        <p class="vc-reps__nota">
+          Asigna una contraseña a «{{ r.nombreCompleto }}» ({{ r.correo }}) para que ingrese sin cuenta de Google. Si ya
+          tenía una, se reemplaza.
+        </p>
+        <vc-field
+          controlId="txtNuevaContrasenaRepresentante"
+          label="Contraseña nueva *"
+          type="password"
+          [(value)]="nuevaContrasena"
+          [error]="errorNuevaContrasena()"
+        />
+        <p class="vc-reps__nota">Entre 8 y 72 caracteres, con al menos una letra y un número.</p>
+        @if (errorGuardarContrasena()) {
+          <p class="vc-reps__error" role="alert">{{ errorGuardarContrasena() }}</p>
+        }
+        <div class="vc-reps__botones">
+          <vc-button variant="secondary" (click)="cerrarContrasena()">Cancelar</vc-button>
+          <vc-button id="btnGuardarContrasenaRepresentante" type="submit" [disabled]="guardandoContrasena()">
+            {{ guardandoContrasena() ? 'Guardando…' : 'Asignar contraseña' }}
+          </vc-button>
+        </div>
+      </form>
+    }
   }
 </vc-dialog>

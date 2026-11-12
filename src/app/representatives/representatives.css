@@ -37,3 +37,4 @@
 .vc-reps__nota { margin: 0; color: var(--vc-muted); font-size: var(--vc-text-sm); max-width: 44ch; }
 .vc-reps__error { margin: 0; color: var(--vc-danger); font-size: var(--vc-text-sm); }
 .vc-reps__botones { display: flex; justify-content: flex-end; gap: var(--vc-space-2); margin-top: var(--vc-space-3); }
+.vc-reps__acciones vc-button + vc-button { margin-left: var(--vc-space-2); }

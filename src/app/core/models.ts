@@ -115,6 +115,8 @@ export interface CuentaDTO {
 export interface CrearRepresentanteRequest {
   nombreCompleto: string;
   correo: string;
+  /** Opcional: contraseña inicial para que ingrese sin cuenta de Google. */
+  contrasena?: string;
 }
 
 /** Espejo de PaqueteDTO del back-end (/api/paquetes). */

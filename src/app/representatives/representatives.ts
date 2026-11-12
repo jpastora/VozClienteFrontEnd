@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Badge } from '../badge/badge';
 import { Button } from '../button/button';
+import { errorContrasena } from '../core/contrasena';
 import { CuentaDTO } from '../core/models';
 import { RepresentanteApi } from '../core/representante-api';
 import { Dialog } from '../dialog/dialog';
@@ -55,6 +56,8 @@ export class Representatives {
   protected readonly formAbierto = signal(false);
   protected readonly nombre = signal('');
   protected readonly correo = signal('');
+  /** Opcional: contraseña inicial para que el representante ingrese sin Google. */
+  protected readonly contrasenaInicial = signal('');
   protected readonly intento = signal(false);
   protected readonly guardando = signal(false);
   protected readonly errorGuardar = signal<string | null>(null);
@@ -80,6 +83,23 @@ export class Representatives {
     }
     return this.errorCorreoServidor();
   });
+
+  protected readonly errorContrasenaInicial = computed<string | null>(() => {
+    if (!this.intento() || !this.contrasenaInicial()) return null;
+    return errorContrasena(this.contrasenaInicial());
+  });
+
+  // Contraseña de un representante existente
+  protected readonly porContrasena = signal<CuentaDTO | null>(null);
+  protected readonly nuevaContrasena = signal('');
+  protected readonly intentoContrasena = signal(false);
+  protected readonly guardandoContrasena = signal(false);
+  protected readonly errorGuardarContrasena = signal<string | null>(null);
+  protected readonly contrasenaAsignada = signal<string | null>(null);
+
+  protected readonly errorNuevaContrasena = computed<string | null>(() =>
+    this.intentoContrasena() ? errorContrasena(this.nuevaContrasena()) : null,
+  );
 
   // Desactivación
   protected readonly porDesactivar = signal<CuentaDTO | null>(null);
@@ -118,6 +138,7 @@ export class Representatives {
   protected abrirNuevo(): void {
     this.nombre.set('');
     this.correo.set('');
+    this.contrasenaInicial.set('');
     this.intento.set(false);
     this.errorGuardar.set(null);
     this.errorCorreoServidor.set(null);
@@ -135,11 +156,18 @@ export class Representatives {
 
   protected guardar(): void {
     this.intento.set(true);
-    if (this.errorNombre() || this.errorCorreo()) return;
+    if (this.errorNombre() || this.errorCorreo() || this.errorContrasenaInicial()) return;
 
     this.guardando.set(true);
     this.errorGuardar.set(null);
-    this.api.crear({ nombreCompleto: this.nombre().trim(), correo: this.correo().trim().toLowerCase() }).subscribe({
+    const contrasena = this.contrasenaInicial();
+    this.api
+      .crear({
+        nombreCompleto: this.nombre().trim(),
+        correo: this.correo().trim().toLowerCase(),
+        ...(contrasena ? { contrasena } : {}),
+      })
+      .subscribe({
       next: (creado) => {
         this.representantes.update((lista) =>
           [...lista, creado].sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto)),
@@ -156,6 +184,44 @@ export class Representatives {
         } else {
           this.errorGuardar.set(err?.error?.mensaje ?? 'No se pudo registrar al representante. Intenta de nuevo.');
         }
+      },
+    });
+  }
+
+  // --- Contraseña ---
+
+  protected pedirContrasena(representante: CuentaDTO): void {
+    this.nuevaContrasena.set('');
+    this.intentoContrasena.set(false);
+    this.errorGuardarContrasena.set(null);
+    this.contrasenaAsignada.set(null);
+    this.porContrasena.set(representante);
+  }
+
+  protected cerrarContrasena(): void {
+    if (!this.guardandoContrasena()) this.porContrasena.set(null);
+  }
+
+  protected guardarContrasena(): void {
+    const representante = this.porContrasena();
+    this.intentoContrasena.set(true);
+    if (!representante || this.errorNuevaContrasena()) return;
+
+    this.guardandoContrasena.set(true);
+    this.errorGuardarContrasena.set(null);
+    this.api.asignarContrasena(representante.id, this.nuevaContrasena()).subscribe({
+      next: () => {
+        this.guardandoContrasena.set(false);
+        this.contrasenaAsignada.set(representante.nombreCompleto);
+        this.nuevaContrasena.set('');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.guardandoContrasena.set(false);
+        this.errorGuardarContrasena.set(
+          err.status === 400
+            ? 'La contraseña no cumple las reglas.'
+            : 'No se pudo asignar la contraseña. Intenta de nuevo.',
+        );
       },
     });
   }

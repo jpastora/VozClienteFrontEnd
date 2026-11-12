@@ -58,6 +58,36 @@ export class SessionService {
     this._usuario.set(usuario);
   }
 
+  /**
+   * Ingresa con correo y contraseña y lleva a la pantalla de inicio del perfil.
+   *
+   * @param correo correo de la cuenta
+   * @param contrasena contraseña
+   * @returns promesa que falla con el HttpErrorResponse del back-end si no se pudo ingresar
+   */
+  async ingresarConContrasena(correo: string, contrasena: string): Promise<void> {
+    const usuario = await firstValueFrom(this.authApi.ingresar(correo, contrasena));
+    await this.abrir(usuario);
+  }
+
+  /**
+   * Crea la cuenta con correo y contraseña (cliente-administrador) y entra a la aplicación.
+   *
+   * @param nombreCompleto nombre de la persona
+   * @param correo correo de la cuenta
+   * @param contrasena contraseña
+   * @returns promesa que falla con el HttpErrorResponse del back-end si no se pudo registrar
+   */
+  async registrar(nombreCompleto: string, correo: string, contrasena: string): Promise<void> {
+    const usuario = await firstValueFrom(this.authApi.registrar(nombreCompleto, correo, contrasena));
+    await this.abrir(usuario);
+  }
+
+  private async abrir(usuario: UsuarioInfo): Promise<void> {
+    this._usuario.set(usuario);
+    await this.router.navigateByUrl(rutaInicio(usuario.rol));
+  }
+
   /** Navega al ingreso con Google; al volver, el back-end redirige a la aplicación con la sesión iniciada. */
   iniciarConGoogle(): void {
     window.location.assign(URL_INGRESO_GOOGLE);

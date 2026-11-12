@@ -1,17 +1,23 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { errorContrasena, REGLA_CONTRASENA } from '../core/contrasena';
 import { RUTAS } from '../core/rutas';
+import { Field } from '../field/field';
 import { SessionService } from '../services/session';
 import { RevealDirective } from '../shared/directivas/reveal.directive';
 import { LogoComponent } from '../shared/logo/logo.component';
 import { WaveformComponent } from '../shared/waveform/waveform.component';
 
-/** Mensaje que se muestra bajo el botón de Google. */
+/** Mensaje que se muestra en la pantalla de ingreso. */
 interface MensajeIngreso {
   /** error: el ingreso falló y se puede reintentar; aviso: la cuenta necesita una acción externa. */
   tipo: 'error' | 'aviso';
   texto: string;
 }
+
+/** Ingresar con una cuenta existente o crear una nueva. */
+type Modo = 'ingresar' | 'registro';
 
 /**
  * Mensajes para cada código que envía el back-end en /auth?error=... (RF-01, manejo de excepciones).
@@ -53,12 +59,20 @@ const MENSAJE_GENERICO: MensajeIngreso = {
   texto: 'No se pudo iniciar sesión. Intente de nuevo.',
 };
 
+const SIN_CONEXION: MensajeIngreso = {
+  tipo: 'error',
+  texto: 'No pudimos conectar con el servidor. Intente de nuevo en unos minutos.',
+};
+
+const PATRON_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /**
- * Pantalla de ingreso con Google (HU-01, Figura 4 del informe de diseño): panel de marca en
- * Code Black a la izquierda y el ingreso en Paper a la derecha.
+ * Pantalla de ingreso (HU-01, Figura 4 del informe de diseño): panel de marca en Code Black a la
+ * izquierda y el ingreso en Paper a la derecha. Se ingresa con correo y contraseña propios de la
+ * aplicación o con Google, y desde aquí se crea una cuenta nueva.
  */
 @Component({
-  imports: [LogoComponent, RevealDirective, RouterLink, WaveformComponent],
+  imports: [Field, LogoComponent, RevealDirective, RouterLink, WaveformComponent],
   selector: 'vc-auth',
   styleUrl: './auth.css',
   templateUrl: './auth.html',
@@ -66,20 +80,115 @@ const MENSAJE_GENERICO: MensajeIngreso = {
 export class Auth {
   private readonly sesion = inject(SessionService);
 
-  /** Parámetro ?error= que deja el back-end cuando el ingreso no se completa. */
+  /** Parámetro ?error= que deja el back-end cuando el ingreso con Google no se completa. */
   readonly error = input<string>();
 
   /** Rutas absolutas para los enlaces de la plantilla. */
   protected readonly rutas = RUTAS;
+  protected readonly reglaContrasena = REGLA_CONTRASENA;
 
-  /** Mensaje del código recibido, o nulo si no hubo error. */
+  protected readonly modo = signal<Modo>('ingresar');
+  protected readonly nombre = signal('');
+  protected readonly correo = signal('');
+  protected readonly contrasena = signal('');
+  protected readonly confirmacion = signal('');
+  protected readonly intento = signal(false);
+  protected readonly enviando = signal(false);
+
+  /** Resultado del último envío del formulario; tiene prioridad sobre el mensaje de Google. */
+  private readonly mensajeFormulario = signal<MensajeIngreso | null>(null);
+
+  /** Mensaje visible: el del formulario o, si no hay, el que dejó el ingreso con Google. */
   protected readonly mensaje = computed<MensajeIngreso | null>(() => {
+    const formulario = this.mensajeFormulario();
+    if (formulario) return formulario;
     const codigo = this.error();
     return codigo ? (MENSAJES[codigo] ?? MENSAJE_GENERICO) : null;
   });
 
+  // ---- Validación por campo (conserva lo escrito) ----
+
+  protected readonly errorNombre = computed<string | null>(() => {
+    if (!this.intento() || this.modo() !== 'registro') return null;
+    const valor = this.nombre().trim();
+    if (!valor) return 'El nombre es obligatorio.';
+    if (valor.length < 2 || valor.length > 100) return 'Entre 2 y 100 caracteres.';
+    return null;
+  });
+
+  protected readonly errorCorreo = computed<string | null>(() => {
+    if (!this.intento()) return null;
+    const valor = this.correo().trim();
+    if (!valor) return 'El correo es obligatorio.';
+    if (!PATRON_CORREO.test(valor)) return 'El formato del correo no es válido.';
+    return null;
+  });
+
+  protected readonly errorContrasena = computed<string | null>(() => {
+    if (!this.intento()) return null;
+    if (this.modo() === 'ingresar') return this.contrasena() ? null : 'La contraseña es obligatoria.';
+    return errorContrasena(this.contrasena());
+  });
+
+  protected readonly errorConfirmacion = computed<string | null>(() => {
+    if (!this.intento() || this.modo() !== 'registro') return null;
+    return this.confirmacion() === this.contrasena() ? null : 'Las contraseñas no coinciden.';
+  });
+
+  /** Cambia entre ingresar y crear cuenta, conservando el correo escrito. */
+  protected cambiarModo(modo: Modo): void {
+    this.modo.set(modo);
+    this.intento.set(false);
+    this.contrasena.set('');
+    this.confirmacion.set('');
+    this.mensajeFormulario.set(null);
+  }
+
+  /** Ingresa o crea la cuenta con correo y contraseña. */
+  protected async enviar(): Promise<void> {
+    this.intento.set(true);
+    if (this.errorNombre() || this.errorCorreo() || this.errorContrasena() || this.errorConfirmacion()) return;
+
+    this.enviando.set(true);
+    this.mensajeFormulario.set(null);
+    const correo = this.correo().trim().toLowerCase();
+    try {
+      if (this.modo() === 'ingresar') {
+        await this.sesion.ingresarConContrasena(correo, this.contrasena());
+      } else {
+        await this.sesion.registrar(this.nombre().trim(), correo, this.contrasena());
+      }
+    } catch (error: unknown) {
+      this.mensajeFormulario.set(this.mensajeDeError(error));
+      // Se borra la contraseña por seguridad; sin marcar el campo vacío como error todavía.
+      this.contrasena.set('');
+      this.confirmacion.set('');
+      this.intento.set(false);
+    } finally {
+      this.enviando.set(false);
+    }
+  }
+
   /** Inicia (o reintenta) el ingreso con Google. */
-  protected ingresar(): void {
+  protected ingresarConGoogle(): void {
     this.sesion.iniciarConGoogle();
+  }
+
+  private mensajeDeError(error: unknown): MensajeIngreso {
+    const estado = error instanceof HttpErrorResponse ? error.status : -1;
+    if (this.modo() === 'ingresar') {
+      if (estado === 401) return { tipo: 'error', texto: 'Correo o contraseña incorrectos.' };
+      if (estado === 403) return MENSAJES['cuenta_inactiva'];
+    } else {
+      if (estado === 409) {
+        return {
+          tipo: 'aviso',
+          texto: 'Ya existe una cuenta con este correo. Ingrese con su contraseña o con Google.',
+        };
+      }
+      if (estado === 400) return { tipo: 'error', texto: `Revise los datos. ${REGLA_CONTRASENA}` };
+    }
+    if (estado === 0 || estado >= 500) return SIN_CONEXION;
+    return MENSAJE_GENERICO;
   }
 }
