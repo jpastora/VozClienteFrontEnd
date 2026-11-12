@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { SessionService } from '../services/session';
-import { URL_SESION } from './auth-api';
+import { RUTAS_AUTH_SIN_SESION } from './auth-api';
 import { RUTAS } from './rutas';
 
 /**
@@ -15,7 +15,7 @@ export const PETICION_PUBLICA = new HttpContextToken<boolean>(() => false);
 /**
  * Cuando la API responde 401 (la sesión expiró por inactividad o se cerró), limpia la sesión y
  * lleva a la pantalla de ingreso con un mensaje (HU-01). No actúa sobre la consulta inicial de la
- * sesión, que responde 401 de forma normal cuando nadie ha ingresado, ni sobre peticiones públicas.
+ * sesión ni el ingreso con contraseña, que responden 401 de forma normal, ni sobre peticiones públicas.
  */
 export const sesionInterceptor: HttpInterceptorFn = (request, next) => {
   const sesion = inject(SessionService);
@@ -28,7 +28,7 @@ export const sesionInterceptor: HttpInterceptorFn = (request, next) => {
         error instanceof HttpErrorResponse &&
         error.status === 401 &&
         !esPublica &&
-        !request.url.endsWith(URL_SESION)
+        !RUTAS_AUTH_SIN_SESION.some((ruta) => request.url.endsWith(ruta))
       ) {
         const habiaSesion = sesion.autenticado();
         sesion.establecer(null);
