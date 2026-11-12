@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Badge } from '../badge/badge';
 import { Button } from '../button/button';
-import { errorContrasena } from '../core/contrasena';
+import { errorContrasena, errorNombre, normalizarNombre, REGLA_CONTRASENA } from '../core/contrasena';
 import { CuentaDTO } from '../core/models';
 import { RepresentanteApi } from '../core/representante-api';
 import { Dialog } from '../dialog/dialog';
@@ -12,8 +12,6 @@ import { Field } from '../field/field';
 type FiltroEstado = 'todos' | 'PENDIENTE' | 'ACTIVA' | 'INACTIVA';
 type TonoBadge = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
 
-const MAX_NOMBRE = 100;
-const MIN_NOMBRE = 2;
 const MAX_CORREO = 254;
 const PATRON_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -65,11 +63,7 @@ export class Representatives {
 
   protected readonly errorNombre = computed<string | null>(() => {
     if (!this.intento()) return null;
-    const valor = this.nombre().trim();
-    if (!valor) return 'El nombre completo es obligatorio.';
-    if (valor.length < MIN_NOMBRE) return `Mínimo ${MIN_NOMBRE} caracteres.`;
-    if (valor.length > MAX_NOMBRE) return `Máximo ${MAX_NOMBRE} caracteres.`;
-    return null;
+    return errorNombre(this.nombre());
   });
 
   protected readonly errorCorreo = computed<string | null>(() => {
@@ -90,6 +84,7 @@ export class Representatives {
   });
 
   // Contraseña de un representante existente
+  protected readonly reglaContrasena = REGLA_CONTRASENA;
   protected readonly porContrasena = signal<CuentaDTO | null>(null);
   protected readonly nuevaContrasena = signal('');
   protected readonly intentoContrasena = signal(false);
@@ -163,7 +158,7 @@ export class Representatives {
     const contrasena = this.contrasenaInicial();
     this.api
       .crear({
-        nombreCompleto: this.nombre().trim(),
+        nombreCompleto: normalizarNombre(this.nombre()),
         correo: this.correo().trim().toLowerCase(),
         ...(contrasena ? { contrasena } : {}),
       })

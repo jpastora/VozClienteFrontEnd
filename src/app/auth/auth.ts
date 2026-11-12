@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { errorContrasena, REGLA_CONTRASENA } from '../core/contrasena';
+import { errorContrasena, errorNombre, normalizarNombre, REGLA_CONTRASENA } from '../core/contrasena';
 import { RUTAS } from '../core/rutas';
 import { Field } from '../field/field';
 import { SessionService } from '../services/session';
@@ -110,10 +110,7 @@ export class Auth {
 
   protected readonly errorNombre = computed<string | null>(() => {
     if (!this.intento() || this.modo() !== 'registro') return null;
-    const valor = this.nombre().trim();
-    if (!valor) return 'El nombre es obligatorio.';
-    if (valor.length < 2 || valor.length > 100) return 'Entre 2 y 100 caracteres.';
-    return null;
+    return errorNombre(this.nombre());
   });
 
   protected readonly errorCorreo = computed<string | null>(() => {
@@ -156,7 +153,7 @@ export class Auth {
       if (this.modo() === 'ingresar') {
         await this.sesion.ingresarConContrasena(correo, this.contrasena());
       } else {
-        await this.sesion.registrar(this.nombre().trim(), correo, this.contrasena());
+        await this.sesion.registrar(normalizarNombre(this.nombre()), correo, this.contrasena());
       }
     } catch (error: unknown) {
       this.mensajeFormulario.set(this.mensajeDeError(error));
@@ -186,7 +183,7 @@ export class Auth {
           texto: 'Ya existe una cuenta con este correo. Ingrese con su contraseña o con Google.',
         };
       }
-      if (estado === 400) return { tipo: 'error', texto: `Revise los datos. ${REGLA_CONTRASENA}` };
+      if (estado === 400) return { tipo: 'error', texto: 'Revise los datos: el nombre solo admite letras y la contraseña debe cumplir las reglas.' };
     }
     if (estado === 0 || estado >= 500) return SIN_CONEXION;
     return MENSAJE_GENERICO;

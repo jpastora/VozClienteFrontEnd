@@ -86,7 +86,7 @@
       [(value)]="contrasenaInicial"
       [error]="errorContrasenaInicial()"
     />
-    <p class="vc-reps__nota">Entre 8 y 72 caracteres, con al menos una letra y un número.</p>
+    <p class="vc-reps__nota">{{ reglaContrasena }}</p>
     @if (errorGuardar()) {
       <p class="vc-reps__error" role="alert">{{ errorGuardar() }}</p>
     }
@@ -139,7 +139,7 @@
           [(value)]="nuevaContrasena"
           [error]="errorNuevaContrasena()"
         />
-        <p class="vc-reps__nota">Entre 8 y 72 caracteres, con al menos una letra y un número.</p>
+        <p class="vc-reps__nota">{{ reglaContrasena }}</p>
         @if (errorGuardarContrasena()) {
           <p class="vc-reps__error" role="alert">{{ errorGuardarContrasena() }}</p>
         }
