@@ -306,3 +306,17 @@ export interface EntrevistaDetalleDTO {
 
   analisis: EntrevistaAnalisisDetalleDTO | null;
 }
+
+
+// ============================================
+// GUÍAS DE PREGUNTAS
+// ============================================
+
+
+export interface GuiaDTO {
+  id?: number;
+  titulo: string;
+  preguntas: string[];
+  empresaId: number;
+  cuentaId: number;
+}

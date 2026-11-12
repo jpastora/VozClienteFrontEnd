@@ -11,8 +11,10 @@ import { RepresentanteApi } from '../core/representante-api';
 import { RUTAS } from '../core/rutas';
 import { SalaApi } from '../core/sala-api';
 import { Dialog } from '../dialog/dialog';
+import { GuiaPreguntas } from '../guia-preguntas/guia-preguntas';
 import { ProductForm } from '../product-form/product-form';
 import { SessionService } from '../services/session';
+
 
 type TonoBadge = 'neutral' | 'success' | 'warning' | 'danger' | 'brand';
 
@@ -23,7 +25,7 @@ function estadoVigente(sala: SalaDTO): string {
 }
 
 @Component({
-  imports: [Badge, Button, DatePipe, Dialog, ProductForm, RouterLink],
+  imports: [Badge, Button, DatePipe, Dialog, GuiaPreguntas, ProductForm, RouterLink],
   selector: 'vc-product-detail',
   styleUrl: './product-detail.css',
   templateUrl: './product-detail.html',
@@ -42,6 +44,8 @@ export class ProductDetail {
   protected readonly rutas = RUTAS;
 
   private readonly cuentaId = computed(() => this.sesion.usuario()?.id ?? CUENTA_ID_PRUEBA);
+
+  protected readonly sesionEmpresaId = computed(() => this.sesion.usuario()?.empresaId ?? null);
 
   protected readonly producto = signal<ProductoDTO | null>(null);
   protected readonly catalogo = signal<ProductoDTO[]>([]);
@@ -67,6 +71,9 @@ export class ProductDetail {
   protected readonly representantes = signal<CuentaDTO[]>([]);
   protected readonly representanteId = signal<number | null>(null);
 
+  /** Guía de preguntas elegida para el representante (null = sin guía). */
+  protected readonly guiaId = signal<number | null>(null);
+
   protected readonly filas = computed(() =>
     [...this.salas()]
       .sort((a, b) => (b.emitidaEn ?? '').localeCompare(a.emitidaEn ?? ''))
@@ -83,6 +90,7 @@ export class ProductDetail {
 
   protected cargar(): void {
     const id = Number(this.id());
+    this.restaurarGuia();
     this.cargando.set(true);
     this.error.set(null);
     this.representanteApi.listar().subscribe({
@@ -207,6 +215,26 @@ export class ProductDetail {
     return `vc.representante.producto.${this.id()}`;
   }
 
+  // Guía de preguntas
+  protected cambiarGuia(id: number | null): void {
+    this.guiaId.set(id);
+    try {
+      if (id == null) localStorage.removeItem(this.claveGuia());
+      else localStorage.setItem(this.claveGuia(), String(id));
+    } catch { }
+  }
+
+  private restaurarGuia(): void {
+    try {
+      const v = localStorage.getItem(this.claveGuia());
+      this.guiaId.set(v ? Number(v) : null);
+    } catch { }
+  }
+
+  private claveGuia(): string {
+    return `vc.guia.producto.${this.id()}`;
+  }
+
 
   
 
@@ -227,7 +255,10 @@ export class ProductDetail {
         // El representante necesita una entrevista para poder subir la grabación.
         this.entrevistaApi.iniciar(sala.id!, representanteId).subscribe({
           next: (entrevista) => {
-            this.enlaceRepresentante.set(`${urlBase()}/representante/${sala.token}?entrevistaId=${entrevista.id}`);
+            // La guía elegida viaja en el enlace para que el representante la vea durante la llamada.
+            const guia = this.guiaId();
+            const params = `entrevistaId=${entrevista.id}${guia != null ? `&guiaId=${guia}` : ''}`;
+            this.enlaceRepresentante.set(`${urlBase()}/representante/${sala.token}?${params}`);
             this.generando.set(false);
           },
           error: (err) => {

@@ -39,18 +39,25 @@
       @if (!p.esActivo) {
         <p class="vc-pdetail__nota">Activa el producto para generar enlaces.</p>
       }
-      @if (representantes().length) {
-        <div class="vc-pdetail__rep">
-          <label for="cmbRepresentante">Representante que atenderá</label>
-          <select id="cmbRepresentante" (change)="cambiarRepresentante($event)">
-            @for (r of representantes(); track r.id) {
-            <option [value]="r.id" [selected]="r.id === representanteId()">
-              {{ r.nombreCompleto }}
-            </option>
-            }
-          </select>
-        </div>
-      }
+      <div class="vc-pdetail__opciones">
+        @if (representantes().length) {
+          <div class="vc-pdetail__rep">
+            <label for="cmbRepresentante">Representante que atenderá</label>
+            <select id="cmbRepresentante" (change)="cambiarRepresentante($event)">
+              @for (r of representantes(); track r.id) {
+              <option [value]="r.id" [selected]="r.id === representanteId()">
+                {{ r.nombreCompleto }}
+              </option>
+              }
+            </select>
+          </div>
+        }
+        <vc-guia-preguntas
+          [empresaId]="p.empresaId ?? sesionEmpresaId()"
+          [guiaId]="guiaId()"
+          (guiaIdChange)="cambiarGuia($event)"
+        />
+      </div>
       @if (enlaceConsumidor(); as url) {
         <div class="vc-pdetail__link">
           <span class="vc-eyebrow">Enlace del consumidor</span>

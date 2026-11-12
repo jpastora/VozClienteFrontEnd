@@ -106,7 +106,7 @@
             <div class="panel">
               <h3 class="panel-titulo">GUÍA SUGERIDA</h3>
               <ol class="guia">
-                @for (pregunta of guia; track $index) {
+                @for (pregunta of guia(); track $index) {
                   <li>{{ pregunta }}</li>
                 }
               </ol>
