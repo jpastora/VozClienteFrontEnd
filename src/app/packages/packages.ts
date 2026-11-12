@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Badge } from '../badge/badge';
@@ -19,9 +19,15 @@ function nuevaClave(): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
+/** Paquete con los datos derivados que muestra la tarjeta. */
+interface PaqueteVista extends PaqueteDTO {
+  precioPorSala: number;
+  recomendado: boolean;
+}
+
 /** Catálogo de paquetes, pago simulado, saldo e historial de compras (RF-17, RF-18). */
 @Component({
-  imports: [Badge, Button, DatePipe, DecimalPipe, Dialog, MetricCard],
+  imports: [Badge, Button, CurrencyPipe, DatePipe, DecimalPipe, Dialog, MetricCard],
   selector: 'vc-packages',
   styleUrl: './packages.css',
   templateUrl: './packages.html',
@@ -43,6 +49,17 @@ export class Packages {
   protected readonly paquetes = signal<PaqueteDTO[]>([]);
   protected readonly cargandoPaquetes = signal(true);
   protected readonly errorPaquetes = signal<string | null>(null);
+
+  /** Paquetes con precio por sala; el del medio se destaca igual que en el home. */
+  protected readonly vista = computed<PaqueteVista[]>(() => {
+    const lista = this.paquetes();
+    const indiceRecomendado = Math.floor(lista.length / 2);
+    return lista.map((paquete, indice) => ({
+      ...paquete,
+      precioPorSala: paquete.precio / paquete.cantidadSalas,
+      recomendado: lista.length > 1 && indice === indiceRecomendado,
+    }));
+  });
 
   // Historial
   protected readonly compras = signal<CompraDTO[]>([]);
