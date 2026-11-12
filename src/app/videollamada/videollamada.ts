@@ -29,6 +29,7 @@ import { LogoComponent } from '../shared/logo/logo.component';
 import { MediaStreamDirective } from './media-stream.directive';
 import { ProductoApi } from '../core/producto-api';
 
+
 type Fase = 'cargando' | 'error' | 'lobby' | 'conectando' | 'llamada' | 'subiendo' | 'finalizada';
 
 const CLAVE_NOMBRE = 'voz-cliente:nombre';
@@ -130,19 +131,16 @@ export class Videollamada implements OnInit, OnDestroy {
       const sala = await firstValueFrom(this.salaApi.obtener(this.token));
       this.sala.set(sala);
 
-      // --- INICIO ACTUALIZACIÓN (Opción 1) ---
       // Si la sala tiene un ID de producto pero no trajo el nombre, lo consultamos
       if (this.esRep && sala.productoId && !sala.productoNombre) {
         try {
           const producto = await firstValueFrom(this.productoApi.obtener(sala.productoId));
-          this.productoNombre.set(producto.nombre); // Ajusta "producto.nombre" si tu DTO usa otra propiedad
+          this.productoNombre.set(producto.nombre);
         } catch (error) {
           console.warn('No se pudo cargar el nombre del producto desde el API', error);
         }
       }
-      // --- FIN ACTUALIZACIÓN ---
 
-      // Asignamos el título DESPUÉS de haber actualizado la señal del productoNombre
       this.titulo.setTitle(`Sala del producto ${this.tituloSala()} · Voz Cliente`);
 
       const vencida = sala.venceEn ? new Date(sala.venceEn).getTime() < Date.now() : false;
@@ -156,12 +154,37 @@ export class Videollamada implements OnInit, OnDestroy {
         return;
       }
 
+     
       if (this.esRep) {
-        const q = Number(this.route.snapshot.queryParamMap.get('entrevistaId') ?? sala.entrevistaId);
-        this.entrevistaId.set(Number.isFinite(q) && q > 0 ? q : null);
+        // 1. Prioriza si viene por URL (útil para recargas o pruebas)
+        const q = Number(this.route.snapshot.queryParamMap.get('entrevistaId'));
+        
+        if (Number.isFinite(q) && q > 0) {
+          this.entrevistaId.set(q);
+        } else {
+          // 2. Busca automáticamente la entrevista usando el ID de la sala
+          try {
+            const entrevistas = await firstValueFrom(this.entrevistaApi.obtenerPorSala(sala.id!));
+            
+            if (entrevistas && entrevistas.length > 0 && entrevistas[0].id) {
+              // Si la entrevista existe y tiene ID, lo asignamos
+              this.entrevistaId.set(entrevistas[0].id); 
+            } else {
+              // Usamos un ternario: si sala.entrevistaId existe, lo usamos, si no, null estricto
+              this.entrevistaId.set(sala.entrevistaId ? sala.entrevistaId : null); 
+            }
+          } catch (error) {
+            console.warn('Error al cargar la entrevista vinculada a la sala', error);
+            // Igual aquí, prevenimos el undefined con el ternario
+            this.entrevistaId.set(sala.entrevistaId ? sala.entrevistaId : null);
+          }
+        }
+
         this.nombreRemoto.set(sala.nombreConsumidor ?? '');
         this.cargarGuia();
       }
+     
+
       this.nombre.set(
         (!this.esRep ? sala.nombreConsumidor : null) ?? localStorage.getItem(CLAVE_NOMBRE) ?? '',
       );
