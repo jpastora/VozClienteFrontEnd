@@ -1,2 +1,181 @@
-<h1>M8 Administración de la plataforma</h1>
-<p>Ingresos y estadísticas globales. Pantalla pendiente de implementar.</p>
+<h1>Usuarios</h1>
+<p class="vc-eyebrow">Cuentas, roles y bitácora de cambios</p>
+
+<section class="vc-adm__filters" aria-label="Filtros">
+  <vc-field
+    class="vc-adm__search"
+    controlId="txtBuscarUsuario"
+    label="Buscar por nombre o correo"
+    [value]="busqueda()"
+    (valueChange)="buscar($event)"
+  />
+  <div class="vc-adm__filtro">
+    <label class="vc-adm__label" for="cmbRolUsuario">Rol</label>
+    <select id="cmbRolUsuario" class="vc-adm__select" [value]="filtroRol()" (change)="cambiarFiltroRol($event)">
+      <option value="todos">Todos</option>
+      @for (rol of roles; track rol) {
+        <option [value]="rol">{{ etiquetaRol(rol) }}</option>
+      }
+    </select>
+  </div>
+  <div class="vc-adm__filtro">
+    <label class="vc-adm__label" for="cmbEstadoUsuario">Estado</label>
+    <select id="cmbEstadoUsuario" class="vc-adm__select" [value]="filtroEstado()" (change)="cambiarFiltroEstado($event)">
+      <option value="todos">Todos</option>
+      <option value="PENDIENTE">Pendiente</option>
+      <option value="ACTIVA">Activa</option>
+      <option value="INACTIVA">Inactiva</option>
+    </select>
+  </div>
+  <vc-button id="btnNuevoUsuario" class="vc-adm__nuevo" (click)="abrirNuevo()">+ Nuevo cliente-administrador</vc-button>
+</section>
+
+@if (cargando()) {
+  <p class="vc-adm__msg" role="status">Cargando usuarios…</p>
+} @else if (errorCarga()) {
+  <div class="vc-adm__msg vc-adm__msg--error" role="alert">
+    {{ errorCarga() }}
+    <vc-button variant="secondary" (click)="cargar()">Reintentar</vc-button>
+  </div>
+} @else {
+  <table class="vc-table">
+    <thead>
+      <tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Último ingreso</th><th>Acciones</th></tr>
+    </thead>
+    <tbody>
+      @for (c of filtradas(); track c.id) {
+        <tr>
+          <td>
+            {{ c.nombreCompleto }}
+            @if (c.id === miId()) {
+              <span class="vc-adm__yo">(tú)</span>
+            }
+          </td>
+          <td class="vc-adm__correo">{{ c.correo || '—' }}</td>
+          <td><vc-badge [tone]="tonoRol(c.rol)">{{ etiquetaRol(c.rol) }}</vc-badge></td>
+          <td><vc-badge [tone]="tonoEstado(c.estado)">{{ etiquetaEstado(c.estado) }}</vc-badge></td>
+          <td>{{ c.ultimoIngresoEn ? (c.ultimoIngresoEn | date: 'dd/MM/yyyy HH:mm') : 'Aún no ingresa' }}</td>
+          <td class="vc-adm__acciones">
+            @if (c.id !== miId()) {
+              <vc-button variant="secondary" (click)="pedirCambio(c)">Cambiar rol</vc-button>
+            }
+            <vc-button variant="secondary" (click)="verHistorial(c)">Historial</vc-button>
+          </td>
+        </tr>
+      } @empty {
+        <tr class="vc-adm__vacio">
+          <td colspan="6">
+            @if (cuentas().length === 0) {
+              Aún no hay usuarios.
+            } @else {
+              Ningún usuario coincide con los filtros.
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+<vc-dialog [open]="formAbierto()" title="Nuevo cliente-administrador" (closed)="cerrarForm()">
+  <form class="vc-adm__form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <p class="vc-adm__nota">
+      La cuenta se crea como cliente-administrador y queda pendiente hasta su primer ingreso. Usa el correo de Google
+      de la persona: quien ingrese con ese correo se queda con la cuenta.
+    </p>
+    <vc-field controlId="txtNombreUsuario" label="Nombre completo *" [(value)]="nombre" [error]="errorNombre()" />
+    <vc-field
+      controlId="txtCorreoUsuario"
+      label="Correo de Google *"
+      type="email"
+      [value]="correo()"
+      (valueChange)="cambiarCorreo($event)"
+      [error]="errorCorreo()"
+    />
+    <vc-field
+      controlId="txtCorreoUsuarioRepetido"
+      label="Confirma el correo *"
+      type="email"
+      [(value)]="correoRepetido"
+      [error]="errorCorreoRepetido()"
+    />
+    @if (errorGuardar()) {
+      <p class="vc-adm__error" role="alert">{{ errorGuardar() }}</p>
+    }
+    <div class="vc-adm__botones">
+      <vc-button variant="secondary" (click)="cerrarForm()">Cancelar</vc-button>
+      <vc-button id="btnGuardarUsuario" type="submit" [disabled]="guardando()">
+        {{ guardando() ? 'Guardando…' : 'Crear cuenta' }}
+      </vc-button>
+    </div>
+  </form>
+</vc-dialog>
+
+<vc-dialog [open]="porCambiar() !== null" title="Cambiar rol" (closed)="cancelarCambio()">
+  @if (porCambiar(); as c) {
+    <div class="vc-adm__form">
+      <p class="vc-adm__texto">
+        Cuenta: <strong>{{ c.nombreCompleto }}</strong><br />
+        Rol actual: {{ etiquetaRol(c.rol) }}
+      </p>
+      <div class="vc-adm__filtro">
+        <label class="vc-adm__label" for="cmbNuevoRol">Nuevo rol</label>
+        <select id="cmbNuevoRol" class="vc-adm__select" (change)="elegirRol($event)">
+          <option value="">Selecciona un rol</option>
+          @for (rol of rolesDisponibles(c); track rol) {
+            <option [value]="rol">{{ etiquetaRol(rol) }}</option>
+          }
+        </select>
+      </div>
+      @if (nuevoRol() === 'ADMINISTRADOR') {
+        <p class="vc-adm__aviso" role="note">
+          Un administrador de la plataforma tiene acceso a la administración de cuentas. Confirma que es la persona
+          correcta.
+        </p>
+      }
+      <p class="vc-adm__nota">El cambio aplica desde la siguiente solicitud de esa persona y queda en el historial.</p>
+      @if (errorCambio()) {
+        <p class="vc-adm__error" role="alert">{{ errorCambio() }}</p>
+      }
+      <div class="vc-adm__botones">
+        <vc-button variant="secondary" (click)="cancelarCambio()">Cancelar</vc-button>
+        <vc-button id="btnConfirmarCambioRol" [disabled]="cambiando() || nuevoRol() === null" (click)="confirmarCambio()">
+          {{ cambiando() ? 'Guardando…' : 'Cambiar rol' }}
+        </vc-button>
+      </div>
+    </div>
+  }
+</vc-dialog>
+
+<vc-dialog [open]="historialDe() !== null" title="Historial de cambios de rol" (closed)="cerrarHistorial()">
+  @if (historialDe(); as c) {
+    <div class="vc-adm__form">
+      <p class="vc-adm__texto">Cuenta: <strong>{{ c.nombreCompleto }}</strong></p>
+      @if (cargandoHistorial()) {
+        <p class="vc-adm__msg" role="status">Cargando historial…</p>
+      } @else if (errorHistorial()) {
+        <p class="vc-adm__error" role="alert">{{ errorHistorial() }}</p>
+      } @else {
+        <table class="vc-table">
+          <thead>
+            <tr><th>Fecha</th><th>Cambio</th><th>Hecho por</th></tr>
+          </thead>
+          <tbody>
+            @for (h of historial(); track h.id) {
+              <tr>
+                <td>{{ h.creadoEn | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ etiquetaRol(h.rolAnterior) }} → {{ etiquetaRol(h.rolNuevo) }}</td>
+                <td>{{ autor(h.autorId) }}</td>
+              </tr>
+            } @empty {
+              <tr class="vc-adm__vacio"><td colspan="3">Esta cuenta no tiene cambios de rol.</td></tr>
+            }
+          </tbody>
+        </table>
+      }
+      <div class="vc-adm__botones">
+        <vc-button variant="secondary" (click)="cerrarHistorial()">Cerrar</vc-button>
+      </div>
+    </div>
+  }
+</vc-dialog>

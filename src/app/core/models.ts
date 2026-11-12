@@ -119,6 +119,28 @@ export interface CrearRepresentanteRequest {
   correo: string;
 }
 
+/** Espejo de CrearAdministradorDTO: alta de una cuenta de cliente-administrador (POST /api/cuentas). */
+export interface CrearCuentaRequest {
+  nombreCompleto: string;
+  correo: string;
+}
+
+/** Espejo de CambiarRolRequestDTO: la versión evita pisar un cambio hecho por otra persona. */
+export interface CambiarRolRequest {
+  nuevoRol: 'ADMINISTRADOR' | 'CLIENTE_ADMINISTRADOR' | 'REPRESENTANTE';
+  version: number;
+}
+
+/** Espejo de CambioRolDTO: una fila de la bitácora de cambios de rol de una cuenta. */
+export interface CambioRolDTO {
+  id: number;
+  cuentaId: number;
+  autorId: number;
+  rolAnterior: string;
+  rolNuevo: string;
+  creadoEn: string;
+}
+
 /** Espejo de PaqueteDTO del back-end (/api/paquetes). */
 export interface PaqueteDTO {
   id: number;
