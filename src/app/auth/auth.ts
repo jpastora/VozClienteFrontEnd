@@ -209,6 +209,12 @@ export class Auth {
     if (this.modo() === 'ingresar') {
       if (estado === 401) return { tipo: 'error', texto: 'Correo o contraseña incorrectos.' };
       if (estado === 403) return MENSAJES['cuenta_inactiva'];
+      if (estado === 429) {
+        return {
+          tipo: 'aviso',
+          texto: 'Demasiados intentos fallidos. Espere 15 minutos e intente de nuevo, o ingrese con Google.',
+        };
+      }
     } else {
       if (estado === 409) {
         return {
