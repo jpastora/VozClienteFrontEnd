@@ -77,6 +77,7 @@ export interface ResultadoGrabacion {
 export interface ProductoDTO {
   id?: number;
   empresaId?: number;
+  representanteId?: number | null; 
   nombre: string;
   descripcion?: string | null;
   categoria?: string | null;
@@ -92,6 +93,7 @@ export interface ProductoRequest {
   descripcion?: string | null;
   categoria?: string | null;
   esActivo?: boolean;
+  representanteId?: number | null; 
 }
 
 // ============================================
@@ -327,4 +329,18 @@ export interface EntrevistaDetalleDTO {
   fragmentos: FragmentoTranscripcionDTO[] | null;
 
   analisis: EntrevistaAnalisisDetalleDTO | null;
+}
+
+
+// ============================================
+// GUÍAS DE PREGUNTAS
+// ============================================
+
+
+export interface GuiaDTO {
+  id?: number;
+  titulo: string;
+  preguntas: string[];
+  empresaId: number;
+  cuentaId: number;
 }

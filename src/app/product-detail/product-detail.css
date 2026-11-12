@@ -31,3 +31,8 @@
 .vc-pdetail__rep label { font-weight: 600; }
 .vc-pdetail__rep select { font: inherit; padding: 8px 12px; border: 1px solid var(--vc-concrete); border-radius: var(--vc-radius); background: var(--vc-white); }
 .vc-pdetail__rep select:focus-visible { outline: none; border-color: var(--vc-deep-circuit); box-shadow: var(--vc-focus); }
+.vc-pdetail__enlace-historico {
+  padding: var(--vc-space-3) var(--vc-space-4);
+  background-color: var(--vc-paper, #ffffff);
+  border-bottom: 1px solid var(--vc-concrete, #e0e0e0);
+}

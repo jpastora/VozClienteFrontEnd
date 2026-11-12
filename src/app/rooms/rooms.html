@@ -1,2 +1,153 @@
-<h1>M3 Salas y videollamada</h1>
-<p>Salas, enlaces y videollamada WebRTC. Pantalla pendiente de implementar.</p>
+<h1>Salas y videollamada</h1>
+<p class="vc-eyebrow">Genera los enlaces de la entrevista para tus productos</p>
+
+@if (cargando()) {
+  <p class="vc-rooms__msg" role="status">Cargando productos…</p>
+} @else if (!productos().length) {
+  @if (error()) {
+    <div class="vc-rooms__msg vc-rooms__msg--error" role="alert">
+      {{ error() }}
+      <vc-button variant="secondary" (click)="cargar()">Reintentar</vc-button>
+    </div>
+  } @else {
+    <p class="vc-rooms__msg">
+      {{ esRepresentante() ? 'Aún no tienes productos asignados.' : 'No hay productos activos disponibles para generar enlaces.' }}
+    </p>
+  }
+} @else if (producto(); as p) {
+  <section class="vc-panel vc-rooms__enlace" aria-label="Generar enlace de sala">
+    <div class="vc-rooms__rep">
+      <label for="cmbProducto">Producto</label>
+      <select id="cmbProducto" (change)="cambiarProducto($event)">
+        @for (prod of productos(); track prod.id) {
+          <option [value]="prod.id" [selected]="prod.id === productoId()">{{ prod.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <h2>Generar enlace de sala</h2>
+    <p class="vc-rooms__nota">
+      Cada enlace es único y vence en 7 días. Se descuenta una sala solo si la entrevista se graba correctamente.
+    </p>
+    <vc-button variant="accent" [disabled]="generando()" (click)="generarEnlace()">
+      {{ generando() ? 'Generando…' : '⟳ Generar enlace' }}
+    </vc-button>
+
+    <div class="vc-rooms__opciones">
+      @if (!esRepresentante() && representantes().length) {
+        <div class="vc-rooms__rep">
+          <label for="cmbRepresentante">Representante que atenderá</label>
+          <select id="cmbRepresentante" (change)="cambiarRepresentante($event)">
+            @for (r of representantes(); track r.id) {
+              <option [value]="r.id" [selected]="r.id === representanteId()">{{ r.nombreCompleto }}</option>
+            }
+          </select>
+        </div>
+      }
+      <vc-guia-preguntas
+        [empresaId]="p.empresaId ?? sesionEmpresaId()"
+        [guiaId]="guiaId()"
+        (guiaIdChange)="cambiarGuia($event)"
+      />
+    </div>
+
+    @if (enlaceConsumidor(); as url) {
+      <div class="vc-rooms__link">
+        <span class="vc-eyebrow">Enlace del consumidor</span>
+        <code class="vc-rooms__url" aria-label="Enlace del consumidor">{{ url }}</code>
+        <div class="vc-rooms__acciones">
+          <vc-button variant="secondary" (click)="copiar('consumidor')">Copiar enlace</vc-button>
+          @if (copiado() === 'consumidor') {
+            <span class="vc-rooms__copiado" role="status">✓ Enlace copiado</span>
+          }
+        </div>
+      </div>
+    }
+    @if (enlaceRepresentante(); as url) {
+      <div class="vc-rooms__link">
+        <span class="vc-eyebrow">Enlace del representante</span>
+        <code class="vc-rooms__url" aria-label="Enlace del representante">{{ url }}</code>
+        <div class="vc-rooms__acciones">
+          <vc-button variant="secondary" (click)="copiar('representante')">Copiar enlace</vc-button>
+          @if (copiado() === 'representante') {
+            <span class="vc-rooms__copiado" role="status">✓ Enlace copiado</span>
+          }
+        </div>
+      </div>
+    }
+    @if (errorEnlace()) {
+      <p class="vc-rooms__error" role="alert">{{ errorEnlace() }}</p>
+    }
+  </section>
+
+  @if (error()) {
+    <p class="vc-rooms__msg vc-rooms__msg--error" role="alert">{{ error() }}</p>
+  }
+
+  <table class="vc-table vc-rooms__tabla">
+    <thead>
+      <tr>
+        <th>Enlace</th>
+        <th>Emitido</th>
+        <th>Vence</th>
+        <th>Consumidor</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (s of filas(); track s.id ?? s.token) {
+        <tr>
+          <td class="vc-rooms__token" title="Token: {{ s.token }}">{{ sufijo(s.token) }}</td>
+          <td>{{ s.emitidaEn | date: 'dd/MM/yyyy' }}</td>
+          <td>{{ s.venceEn | date: 'dd/MM/yyyy' }}</td>
+          <td>{{ s.nombreConsumidor || '—' }}</td>
+          <td><vc-badge [tone]="tono(s.vigente)">{{ etiqueta(s.vigente) }}</vc-badge></td>
+          <td>
+            <div class="vc-rooms__acciones">
+              <vc-button variant="secondary" (click)="alternarDetalleHistorico(s)">
+                {{ filaExpandida() === s.token ? 'Ocultar enlace' : 'Ver enlace' }}
+              </vc-button>
+            </div>
+          </td>
+        </tr>
+
+        @if (filaExpandida() === s.token) {
+          <tr>
+            <td colspan="6" class="vc-rooms__celda-detalle">
+              <div class="vc-rooms__enlace-historico">
+                <div class="vc-rooms__link">
+                  <span class="vc-eyebrow">Enlace del consumidor</span>
+                  <code class="vc-rooms__url" aria-label="Enlace del consumidor">{{ urlConsumidorHistorico(s) }}</code>
+                  <div class="vc-rooms__acciones">
+                    <vc-button variant="secondary" (click)="copiarHistorico(s, 'consumidor')">Copiar enlace</vc-button>
+                    @if (copiadoFila() === s.token + '-consumidor') {
+                      <span class="vc-rooms__copiado" role="status">✓ Enlace copiado</span>
+                    }
+                  </div>
+                </div>
+
+                <div class="vc-rooms__link vc-rooms__link--sep">
+                  <span class="vc-eyebrow">Enlace del representante</span>
+                  <code class="vc-rooms__url" aria-label="Enlace del representante">{{ urlRepresentanteHistorico(s) }}</code>
+                  <div class="vc-rooms__acciones">
+                    <vc-button variant="secondary" (click)="copiarHistorico(s, 'representante')">Copiar enlace</vc-button>
+                    @if (copiadoFila() === s.token + '-representante') {
+                      <span class="vc-rooms__copiado" role="status">✓ Enlace copiado</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        }
+      } @empty {
+        <tr class="vc-rooms__vacio">
+          <td colspan="6">
+            {{ cargandoSalas() ? 'Cargando enlaces…' : 'Aún no hay enlaces generados para este producto.' }}
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

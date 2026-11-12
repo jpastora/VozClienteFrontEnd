@@ -49,7 +49,7 @@
           @if (esRep) {
             <label class="campo">
               <span>ID de la entrevista</span>
-              <input name="entrevista" type="number" min="1" [ngModel]="entrevistaId()" (ngModelChange)="entrevistaId.set($event)" />
+              <input name="entrevista" type="number" min="1" [ngModel]="entrevistaId()" (ngModelChange)="entrevistaId.set($event)" readonly />
             </label>
             <p class="nota">Se grabará el audio y video del consumidor y se subirá al finalizar la llamada.</p>
           } @else {
@@ -106,7 +106,7 @@
             <div class="panel">
               <h3 class="panel-titulo">GUÍA SUGERIDA</h3>
               <ol class="guia">
-                @for (pregunta of guia; track $index) {
+                @for (pregunta of guia(); track $index) {
                   <li>{{ pregunta }}</li>
                 }
               </ol>

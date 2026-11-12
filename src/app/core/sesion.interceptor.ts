@@ -12,6 +12,10 @@ import { RUTAS } from './rutas';
  */
 export const PETICION_PUBLICA = new HttpContextToken<boolean>(() => false);
 
+const RUTAS_SIN_SESION = ['/sala/', '/publico/'];
+const enPantallaSinSesion = (): boolean =>
+  RUTAS_SIN_SESION.some((prefijo) => location.pathname.startsWith(prefijo));
+
 /**
  * Cuando la API responde 401 (la sesión expiró por inactividad o se cerró), limpia la sesión y
  * lleva a la pantalla de ingreso con un mensaje (HU-01). No actúa sobre la consulta inicial de la
@@ -20,6 +24,7 @@ export const PETICION_PUBLICA = new HttpContextToken<boolean>(() => false);
 export const sesionInterceptor: HttpInterceptorFn = (request, next) => {
   const sesion = inject(SessionService);
   const router = inject(Router);
+  
 
   return next(request).pipe(
     catchError((error: unknown) => {
@@ -28,7 +33,12 @@ export const sesionInterceptor: HttpInterceptorFn = (request, next) => {
         error instanceof HttpErrorResponse &&
         error.status === 401 &&
         !esPublica &&
+
         !RUTAS_AUTH_SIN_SESION.some((ruta) => request.url.endsWith(ruta))
+
+        !enPantallaSinSesion() && 
+        !request.url.endsWith(URL_SESION)
+
       ) {
         const habiaSesion = sesion.autenticado();
         sesion.establecer(null);
