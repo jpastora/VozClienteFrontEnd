@@ -24,20 +24,36 @@
       <vc-button variant="secondary" (click)="cargarPaquetes()">Reintentar</vc-button>
     </div>
   } @else {
-    <div class="vc-pkg__grid">
-      @for (p of paquetes(); track p.id) {
-        <article class="vc-panel vc-pkg__card">
-          <p class="vc-eyebrow">{{ p.nombre }}</p>
-          <p class="vc-pkg__salas">{{ p.cantidadSalas }} <span>salas</span></p>
-          <p class="vc-pkg__precio">{{ p.precio | number: '1.2-2' }}</p>
-          @if (puedeComprar()) {
-            <vc-button variant="accent" (click)="elegir(p)">Comprar</vc-button>
+    <ul class="vc-pkg__grid">
+      @for (p of vista(); track p.id) {
+        <li class="vc-pkg__card" [class.is-recomendado]="p.recomendado">
+          @if (p.recomendado) {
+            <span class="vc-pkg__sello">Recomendado</span>
           }
-        </article>
+          <p class="vc-pkg__nombre">{{ p.nombre }}</p>
+          <p class="vc-pkg__salas">
+            <strong>{{ p.cantidadSalas }}</strong>
+            <span>salas de entrevista</span>
+          </p>
+          <p class="vc-pkg__precio">{{ p.precio | currency: 'USD' : 'symbol' : '1.0-0' }}</p>
+          <p class="vc-pkg__unitario">{{ p.precioPorSala | currency: 'USD' : 'symbol' : '1.0-2' }} por sala</p>
+
+          <ul class="vc-pkg__incluye">
+            <li>Grabación del canal del cliente</li>
+            <li>Transcripción y análisis con IA</li>
+            <li>Estadísticas y reporte por producto</li>
+          </ul>
+
+          @if (puedeComprar()) {
+            <button type="button" class="vc-pkg__cta" [attr.id]="'btnComprar' + p.id" (click)="elegir(p)">
+              Comprar paquete
+            </button>
+          }
+        </li>
       } @empty {
-        <p class="vc-pkg__msg">No hay paquetes disponibles por ahora.</p>
+        <li class="vc-pkg__msg">No hay paquetes disponibles por ahora.</li>
       }
-    </div>
+    </ul>
   }
 </section>
 
