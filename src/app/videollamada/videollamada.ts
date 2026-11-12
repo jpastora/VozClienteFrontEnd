@@ -132,7 +132,7 @@ export class Videollamada implements OnInit, OnDestroy {
 
       // --- INICIO ACTUALIZACIÓN (Opción 1) ---
       // Si la sala tiene un ID de producto pero no trajo el nombre, lo consultamos
-      if (sala.productoId && !sala.productoNombre) {
+      if (this.esRep && sala.productoId && !sala.productoNombre) {
         try {
           const producto = await firstValueFrom(this.productoApi.obtener(sala.productoId));
           this.productoNombre.set(producto.nombre); // Ajusta "producto.nombre" si tu DTO usa otra propiedad
@@ -148,6 +148,11 @@ export class Videollamada implements OnInit, OnDestroy {
       const vencida = sala.venceEn ? new Date(sala.venceEn).getTime() < Date.now() : false;
       if (sala.estado === 'EXPIRADO' || vencida) {
         this.fallo('Este enlace ha expirado. Solicita uno nuevo.');
+        return;
+      }
+
+      if (!this.esRep && sala.estado === 'RESPONDIDO') {
+        this.fallo('Este enlace ya fue utilizado. Solicita uno nuevo.');
         return;
       }
 

@@ -98,17 +98,13 @@ export class ProductDetail {
         const reps = cuentas.filter((c) => c.rol === 'REPRESENTANTE' && c.estado !== 'INACTIVA');
         this.representantes.set(reps);
 
-        // 1) Intentar restaurar el representante guardado.
-        let guardado: number | null = null;
-        try {
-          const v = localStorage.getItem(this.claveRepresentante());
-          guardado = v ? Number(v) : null;
-        } catch { }
+        // El representante asignado al producto tiene prioridad.
+        const asignado = this.producto()?.representanteId ?? null;
 
-        if (guardado != null && reps.some((r) => r.id === guardado)) {
-          this.representanteId.set(guardado);
+        if (asignado != null && reps.some((r) => r.id === asignado)) {
+          this.representanteId.set(asignado);
         } else if (this.representanteId() === null && reps.length) {
-          // 2) Si no hay guardado (o ya no existe/está inactivo), usar el primero.
+          // Sin asignado (o ya inactivo), usar el primero de la lista.
           this.representanteId.set(reps[0].id);
         }
       },
@@ -119,6 +115,11 @@ export class ProductDetail {
     this.productoApi.obtener(id).subscribe({
       next: (producto) => {
         this.producto.set(producto);
+
+        // El representante asignado al producto tiene prioridad.
+        if (producto.representanteId != null) {
+          this.representanteId.set(producto.representanteId);
+        }
 
         // Cargar las salas asociadas al producto.
         this.salaApi.listarPorProducto(id).subscribe({
@@ -203,13 +204,30 @@ export class ProductDetail {
   }
 
   // Enlaces de sala
-  protected cambiarRepresentante(evento: Event): void {
-    const id = Number((evento.target as HTMLSelectElement).value);
-    this.representanteId.set(id);
-    try {
-      localStorage.setItem(this.claveRepresentante(), String(id));
-    } catch { }
-  }
+  // Enlaces de sala
+protected cambiarRepresentante(evento: Event): void {
+  const p = this.producto();
+  const id = Number((evento.target as HTMLSelectElement).value);
+  if (p?.id == null || !Number.isFinite(id)) return;
+
+  const anterior = this.representanteId();
+  this.representanteId.set(id);
+  this.errorEnlace.set(null);
+
+  this.productoApi.actualizar(p.id, {
+    nombre: p.nombre,
+    descripcion: p.descripcion,
+    categoria: p.categoria,
+    esActivo: p.esActivo,
+    representanteId: id,
+  }).subscribe({
+    next: (g) => this.producto.update((x) => ({ ...x, ...g })),
+    error: () => {
+      this.representanteId.set(anterior);
+      this.errorEnlace.set('No se pudo asignar el representante al producto.');
+    },
+  });
+}
 
   private claveRepresentante(): string {
     return `vc.representante.producto.${this.id()}`;

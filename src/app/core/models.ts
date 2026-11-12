@@ -77,6 +77,7 @@ export interface ResultadoGrabacion {
 export interface ProductoDTO {
   id?: number;
   empresaId?: number;
+  representanteId?: number | null; 
   nombre: string;
   descripcion?: string | null;
   categoria?: string | null;
@@ -92,6 +93,7 @@ export interface ProductoRequest {
   descripcion?: string | null;
   categoria?: string | null;
   esActivo?: boolean;
+  representanteId?: number | null; 
 }
 
 // ============================================

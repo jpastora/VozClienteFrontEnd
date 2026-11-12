@@ -48,6 +48,7 @@ export const routes: Routes = [
   {
     path: 'representante/:token',
     title: 'Videollamada',
+    canActivate: [autenticadoGuard],
     loadComponent: () => import('./videollamada/videollamada').then((m) => m.Videollamada),
     data: { rol: 'representante' },
   },
