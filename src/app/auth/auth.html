@@ -17,12 +17,18 @@
   <!-- Ingreso con correo y contraseña o con Google, y registro (RF-01) -->
   <section class="vc-auth__panel" aria-labelledby="ttlIngreso">
     <div class="vc-auth__contenido">
-      <h1 id="ttlIngreso">{{ modo() === 'ingresar' ? 'Ingresar' : 'Crear cuenta' }}</h1>
+      <h1 id="ttlIngreso">{{ titulo() }}</h1>
       <p class="vc-auth__texto">
-        @if (modo() === 'ingresar') {
-          Use su correo y contraseña de Voz Cliente, o su cuenta de Google.
-        } @else {
-          Se crea la cuenta de su empresa y usted queda como cliente-administrador.
+        @switch (modo()) {
+          @case ('ingresar') {
+            Use su correo y contraseña de Voz Cliente, o su cuenta de Google.
+          }
+          @case ('registro') {
+            Se crea la cuenta de su empresa y usted queda como cliente-administrador.
+          }
+          @case ('recuperar') {
+            Escriba el correo de su cuenta y le enviaremos un enlace para crear una contraseña nueva.
+          }
         }
       </p>
 
@@ -46,13 +52,25 @@
           <vc-field controlId="txtNombreRegistro" label="Nombre completo" [(value)]="nombre" [error]="errorNombre()" />
         }
         <vc-field controlId="txtCorreoIngreso" label="Correo" type="email" [(value)]="correo" [error]="errorCorreo()" />
-        <vc-field
-          controlId="txtContrasenaIngreso"
-          label="Contraseña"
-          type="password"
-          [(value)]="contrasena"
-          [error]="errorContrasena()"
-        />
+        @if (modo() !== 'recuperar') {
+          <vc-field
+            controlId="txtContrasenaIngreso"
+            label="Contraseña"
+            type="password"
+            [(value)]="contrasena"
+            [error]="errorContrasena()"
+          />
+        }
+        @if (modo() === 'ingresar') {
+          <button
+            id="btnIrRecuperar"
+            type="button"
+            class="vc-auth__enlace vc-auth__olvido"
+            (click)="cambiarModo('recuperar')"
+          >
+            ¿Olvidó su contraseña?
+          </button>
+        }
         @if (modo() === 'registro') {
           <p class="vc-auth__regla">{{ reglaContrasena }}</p>
           <vc-field
@@ -65,14 +83,11 @@
         }
 
         <button id="btnIngresarContrasena" type="submit" class="vc-auth__principal" [disabled]="enviando()">
-          @if (enviando()) {
-            {{ modo() === 'ingresar' ? 'Ingresando…' : 'Creando cuenta…' }}
-          } @else {
-            {{ modo() === 'ingresar' ? 'Ingresar' : 'Crear cuenta' }}
-          }
+          {{ textoBoton() }}
         </button>
       </form>
 
+      @if (modo() !== 'recuperar') {
       <p class="vc-auth__separador" role="separator"><span>o</span></p>
 
       <button id="btnIngresarGoogle" type="button" class="vc-auth__google" (click)="ingresarConGoogle()">
@@ -84,6 +99,7 @@
         </svg>
         Continuar con Google
       </button>
+      }
 
       <p class="vc-auth__cambio">
         @if (modo() === 'ingresar') {
@@ -91,10 +107,15 @@
           <button id="btnIrRegistro" type="button" class="vc-auth__enlace" (click)="cambiarModo('registro')">
             Crear una cuenta
           </button>
-        } @else {
+        } @else if (modo() === 'registro') {
           ¿Ya tiene cuenta?
           <button id="btnIrIngreso" type="button" class="vc-auth__enlace" (click)="cambiarModo('ingresar')">
             Ingresar
+          </button>
+        } @else {
+          ¿Recordó su contraseña?
+          <button id="btnVolverIngreso" type="button" class="vc-auth__enlace" (click)="cambiarModo('ingresar')">
+            Volver a ingresar
           </button>
         }
       </p>

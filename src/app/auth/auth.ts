@@ -16,8 +16,8 @@ interface MensajeIngreso {
   texto: string;
 }
 
-/** Ingresar con una cuenta existente o crear una nueva. */
-type Modo = 'ingresar' | 'registro';
+/** Ingresar con una cuenta existente, crear una nueva o pedir la recuperación de la contraseña. */
+type Modo = 'ingresar' | 'registro' | 'recuperar';
 
 /**
  * Mensajes para cada código que envía el back-end en /auth?error=... (RF-01, manejo de excepciones).
@@ -64,6 +64,18 @@ const SIN_CONEXION: MensajeIngreso = {
   texto: 'No pudimos conectar con el servidor. Intente de nuevo en unos minutos.',
 };
 
+/**
+ * La recuperación de contraseña necesita enviar un enlace por correo, y el proyecto todavía no tiene
+ * servidor de correo. Por ahora la pantalla existe, pero no envía nada y lo dice con claridad.
+ * TODO (iteración 2): llamar al endpoint de recuperación cuando exista el envío de correos.
+ */
+const RECUPERACION_NO_DISPONIBLE: MensajeIngreso = {
+  tipo: 'aviso',
+  texto:
+    'La recuperación de contraseña por correo todavía no está disponible. Mientras tanto, si su cuenta ' +
+    'usa un correo de Google, puede ingresar con Google; si no, comuníquese con el soporte de Voz Cliente.',
+};
+
 const PATRON_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
@@ -106,6 +118,21 @@ export class Auth {
     return codigo ? (MENSAJES[codigo] ?? MENSAJE_GENERICO) : null;
   });
 
+  protected readonly titulo = computed(() =>
+    ({ ingresar: 'Ingresar', registro: 'Crear cuenta', recuperar: 'Recuperar contraseña' })[this.modo()],
+  );
+
+  protected readonly textoBoton = computed(() => {
+    switch (this.modo()) {
+      case 'ingresar':
+        return this.enviando() ? 'Ingresando…' : 'Ingresar';
+      case 'registro':
+        return this.enviando() ? 'Creando cuenta…' : 'Crear cuenta';
+      case 'recuperar':
+        return 'Enviar enlace';
+    }
+  });
+
   // ---- Validación por campo (conserva lo escrito) ----
 
   protected readonly errorNombre = computed<string | null>(() => {
@@ -122,7 +149,7 @@ export class Auth {
   });
 
   protected readonly errorContrasena = computed<string | null>(() => {
-    if (!this.intento()) return null;
+    if (!this.intento() || this.modo() === 'recuperar') return null;
     if (this.modo() === 'ingresar') return this.contrasena() ? null : 'La contraseña es obligatoria.';
     return errorContrasena(this.contrasena());
   });
@@ -132,7 +159,7 @@ export class Auth {
     return this.confirmacion() === this.contrasena() ? null : 'Las contraseñas no coinciden.';
   });
 
-  /** Cambia entre ingresar y crear cuenta, conservando el correo escrito. */
+  /** Cambia entre ingresar, crear cuenta y recuperar la contraseña, conservando el correo escrito. */
   protected cambiarModo(modo: Modo): void {
     this.modo.set(modo);
     this.intento.set(false);
@@ -145,6 +172,12 @@ export class Auth {
   protected async enviar(): Promise<void> {
     this.intento.set(true);
     if (this.errorNombre() || this.errorCorreo() || this.errorContrasena() || this.errorConfirmacion()) return;
+
+    if (this.modo() === 'recuperar') {
+      // Todavía no se envía ningún correo (ver RECUPERACION_NO_DISPONIBLE).
+      this.mensajeFormulario.set(RECUPERACION_NO_DISPONIBLE);
+      return;
+    }
 
     this.enviando.set(true);
     this.mensajeFormulario.set(null);
@@ -176,6 +209,12 @@ export class Auth {
     if (this.modo() === 'ingresar') {
       if (estado === 401) return { tipo: 'error', texto: 'Correo o contraseña incorrectos.' };
       if (estado === 403) return MENSAJES['cuenta_inactiva'];
+      if (estado === 429) {
+        return {
+          tipo: 'aviso',
+          texto: 'Demasiados intentos fallidos. Espere 15 minutos e intente de nuevo, o ingrese con Google.',
+        };
+      }
     } else {
       if (estado === 409) {
         return {
