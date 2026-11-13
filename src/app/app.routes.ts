@@ -88,7 +88,7 @@ export const routes: Routes = [
       {
         path: 'salas',
         title: 'Salas y videollamada',
-        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'REPRESENTANTE')],
+        canActivate: [roleGuard( 'REPRESENTANTE')],
         loadComponent: () => import('./rooms/rooms').then((m) => m.Rooms),
       },
       {
