@@ -173,6 +173,9 @@
   text-decoration: underline;
   cursor: pointer;
 }
+/* "¿Olvidó su contraseña?": alineado a la derecha, justo debajo del campo de contraseña */
+.vc-auth__olvido { align-self: flex-end; margin-top: calc(var(--vc-space-2) * -1); font-size: var(--vc-text-sm); }
+
 .vc-auth__enlace:focus-visible { outline: none; box-shadow: var(--vc-focus); border-radius: var(--vc-radius); }
 
 .vc-auth__volver {

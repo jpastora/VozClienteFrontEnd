@@ -33,12 +33,8 @@ export const sesionInterceptor: HttpInterceptorFn = (request, next) => {
         error instanceof HttpErrorResponse &&
         error.status === 401 &&
         !esPublica &&
-
+        !enPantallaSinSesion() &&
         !RUTAS_AUTH_SIN_SESION.some((ruta) => request.url.endsWith(ruta))
-
-        !enPantallaSinSesion() && 
-        !request.url.endsWith(URL_SESION)
-
       ) {
         const habiaSesion = sesion.autenticado();
         sesion.establecer(null);
