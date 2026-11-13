@@ -1,0 +1,395 @@
+<section class="detalle-page">
+
+  @if (cargando()) {
+
+    <div class="detalle-no-encontrado">
+      <h1>Cargando entrevista...</h1>
+      <p>Consultando la información registrada.</p>
+    </div>
+
+  } @else if (error()) {
+
+    <div class="detalle-no-encontrado">
+
+      <h1>No se pudo mostrar la entrevista</h1>
+
+      <p>{{ error() }}</p>
+
+      <button
+        type="button"
+        class="btn-audio"
+        (click)="cargarEntrevista(entrevistaId())"
+      >
+        Reintentar consulta
+      </button>
+
+      <a [routerLink]="rutas.entrevistas">
+        Volver al listado
+      </a>
+
+    </div>
+
+  } @else if (detalle(); as datos) {
+
+    <header class="detalle-header">
+
+      <div class="detalle-header__titulo">
+
+        <a
+          [routerLink]="rutas.entrevistas"
+          class="volver"
+          aria-label="Volver al listado de entrevistas"
+        >
+          ←
+        </a>
+
+        <h1>
+          Entrevista ·
+          {{ datos.entrevista.consumidorNombre || 'Sin nombre' }}
+        </h1>
+
+      </div>
+
+    </header>
+
+    <div class="detalle-contenido">
+
+      <!-- PANEL IZQUIERDO -->
+      <section class="panel-transcripcion">
+
+        <div
+          class="pestanas"
+          role="tablist"
+          aria-label="Contenido de entrevista"
+        >
+
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="pestana() === 'transcripcion'"
+            [class.activa]="pestana() === 'transcripcion'"
+            (click)="cambiarPestana('transcripcion')"
+          >
+            Transcripción
+          </button>
+
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="pestana() === 'fragmentos'"
+            [class.activa]="pestana() === 'fragmentos'"
+            (click)="cambiarPestana('fragmentos')"
+          >
+            Fragmentos
+          </button>
+
+        </div>
+
+        @if (pestana() === 'transcripcion') {
+
+          <div class="transcripcion-toolbar">
+
+            <button
+              type="button"
+              class="btn-audio"
+              disabled
+              title="Reproducción de audio no disponible por ahora"
+            >
+              ▶ Escuchar canal del cliente
+            </button>
+
+            <span class="idioma">
+              IDIOMA:
+              {{
+                datos.entrevista.idiomaDetectado?.toUpperCase()
+                || '—'
+              }}
+              ·
+              {{
+                datos.entrevista.probabilidadIdioma ?? '—'
+              }}
+            </span>
+
+          </div>
+
+          @if (datos.fragmentos.length > 0) {
+
+            <div class="texto-transcripcion">
+
+              @for (
+                fragmento of datos.fragmentos;
+                track fragmento.id
+              ) {
+
+                <p>
+
+                  <span class="marca-tiempo">
+                    {{ formatearTiempo(fragmento.segundoInicio) }}
+                  </span>
+
+                  <span
+                    [class.texto-destacado]="fragmento.destacado"
+                  >
+                    {{ fragmento.texto }}
+                  </span>
+
+                </p>
+
+              }
+
+            </div>
+
+          } @else if (datos.entrevista.textoTranscripcion) {
+
+            <div class="texto-transcripcion">
+              <p>
+                {{ datos.entrevista.textoTranscripcion }}
+              </p>
+            </div>
+
+          } @else {
+
+            <div class="estado-vacio">
+
+              <p>
+                {{
+                  datos.entrevista.estadoTranscripcion === 'EN_PROCESO'
+                    ? 'La transcripción se encuentra en proceso.'
+                    : datos.entrevista.estadoTranscripcion === 'CON_ERROR'
+                      ? 'La transcripción no pudo completarse.'
+                      : datos.entrevista.estadoTranscripcion === 'SIN_CONTENIDO'
+                        ? 'No se detectó contenido para transcribir.'
+                        : 'No hay transcripción disponible.'
+                }}
+              </p>
+
+              <span>
+                Estado:
+                {{
+                  textoEstado(
+                    datos.entrevista.estadoTranscripcion
+                  )
+                }}
+              </span>
+
+               @if (procesando()) {
+                <p>Transcribiendo… esto puede tardar varios minutos.</p>
+              }
+
+              @if (puedeTranscribir()) {
+                <button
+                  type="button"
+                  class="btn-audio"
+                  (click)="solicitarTranscripcion()"
+                >
+                  {{
+                    datos.entrevista.estadoTranscripcion === 'CON_ERROR'
+                      ? 'Reintentar transcripción'
+                      : 'Transcribir grabación'
+                  }}
+                </button>
+              }
+
+              @if (mensajeTranscripcion()) {
+                <p class="sin-analisis">{{ mensajeTranscripcion() }}</p>
+              }
+
+            </div>
+
+          }
+
+        } @else {
+
+          <!-- PESTAÑA FRAGMENTOS -->
+          <div class="fragmentos-lista">
+
+            @for (
+              fragmento of datos.fragmentos;
+              track fragmento.id
+            ) {
+
+              <article
+                class="fragmento-item"
+                [class.fragmento-destacado]="fragmento.destacado"
+              >
+
+                <div class="fragmento-horario">
+                  {{ formatearTiempo(fragmento.segundoInicio) }}
+                  –
+                  {{ formatearTiempo(fragmento.segundoFin) }}
+                </div>
+
+                <p>{{ fragmento.texto }}</p>
+
+                @if (fragmento.destacado) {
+                  <span class="fragmento-etiqueta">
+                    FRAGMENTO DESTACADO
+                  </span>
+                }
+
+              </article>
+
+            } @empty {
+
+              <div class="estado-vacio">
+                No hay fragmentos disponibles para esta entrevista.
+              </div>
+
+            }
+
+          </div>
+
+        }
+
+      </section>
+
+      <!-- PANEL DERECHO -->
+      <aside class="panel-lateral">
+
+        <!-- ANÁLISIS -->
+        <section class="tarjeta tarjeta-analisis">
+
+          <p class="tarjeta-etiqueta">
+            INTENCIÓN DE COMPRA
+          </p>
+
+          @if (datos.intencion) {
+
+            <h2>{{ datos.intencion }}</h2>
+
+            @if (datos.sentimiento) {
+
+              <span
+                class="sentimiento"
+                [class.sentimiento-positivo]="
+                  datos.sentimiento === 'POSITIVO'
+                "
+                [class.sentimiento-negativo]="
+                  datos.sentimiento === 'NEGATIVO'
+                "
+              >
+                SENTIMIENTO {{ datos.sentimiento }}
+              </span>
+
+            }
+
+            @if (datos.fragmentoApoyo) {
+
+              <p class="fragmento-apoyo">
+                Fragmento de apoyo:
+                «{{ datos.fragmentoApoyo }}»
+              </p>
+
+            }
+
+          } @else {
+
+            <p class="sin-analisis">
+              Análisis no disponible.
+            </p>
+
+            @if (datos.entrevista.analisis?.estado) {
+              <p class="sin-analisis">
+                Estado:
+                {{
+                  textoEstado(
+                    datos.entrevista.analisis?.estado ?? null
+                  )
+                }}
+              </p>
+            }
+
+          }
+
+        </section>
+
+        <!-- COMPETIDORES -->
+        <section class="tarjeta tarjeta-competidores">
+
+          <h3>Menciones de la competencia</h3>
+
+          @if (datos.competidores.length > 0) {
+
+            <table class="tabla-competidores">
+
+              <thead>
+                <tr>
+                  <th>Competidor</th>
+                  <th>Frecuencia</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                @for (
+                  competidor of datos.competidores;
+                  track competidor.nombre
+                ) {
+
+                  <tr>
+                    <td>{{ competidor.nombre }}</td>
+                    <td>{{ competidor.frecuencia }}</td>
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          } @else {
+
+            <p class="sin-competidores">
+              No hay menciones registradas.
+            </p>
+
+          }
+
+        </section>
+
+        <!-- DATOS GENERALES -->
+        <section class="tarjeta tarjeta-datos">
+
+          <h3>Datos</h3>
+
+          <p>
+            {{ datos.entrevista.productoNombre || 'Sin producto' }}
+            ·
+            {{ formatearFecha(datos.entrevista.inicioEn) }}
+            ·
+            {{ formatearDuracion(datos.entrevista.duracionSegundos) }}
+          </p>
+
+          <p>
+            Representante:
+            {{
+              datos.entrevista.representanteNombre
+              || 'No disponible'
+            }}
+          </p>
+
+        </section>
+
+      </aside>
+
+    </div>
+
+  } @else {
+
+    <div class="detalle-no-encontrado">
+
+      <h1>Entrevista no encontrada</h1>
+
+      <p>
+        No existe información disponible para esta entrevista.
+      </p>
+
+      <a [routerLink]="rutas.entrevistas">
+        Volver al listado
+      </a>
+
+    </div>
+
+  }
+
+</section>

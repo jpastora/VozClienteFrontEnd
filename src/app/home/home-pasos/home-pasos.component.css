@@ -1,0 +1,226 @@
+/* «Cómo funciona»: pasos con línea de avance y vista fija que cambia con el desplazamiento. */
+:host { display: block; }
+
+.vc-pasos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--vc-space-6);
+  align-items: start;
+}
+
+/* ---------- Lista de pasos ---------- */
+.vc-pasos__columna { position: relative; padding-left: var(--vc-space-5); }
+.vc-pasos__lista { margin: 0; padding: 0; list-style: none; }
+.vc-pasos__riel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 6px;
+  width: 2px;
+  background: var(--vc-concrete);
+}
+.vc-pasos__avance {
+  position: absolute;
+  inset: 0;
+  background: var(--vc-filament);
+  transform-origin: top;
+  transition: transform var(--vc-dur-slow) var(--vc-ease-out);
+}
+
+.vc-pasos__paso {
+  position: relative;
+  min-height: 52vh;
+  padding: var(--vc-space-4) 0;
+  outline: none;
+  opacity: 0.4;
+  transition: opacity var(--vc-dur-base) var(--vc-ease-out);
+}
+.vc-pasos__paso:last-child { min-height: 40vh; }
+.vc-pasos__paso.is-activo { opacity: 1; }
+.vc-pasos__paso:focus-visible { box-shadow: var(--vc-focus); border-radius: var(--vc-radius); }
+/* Marcador del paso sobre el riel */
+.vc-pasos__paso::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--vc-space-4) + 6px);
+  left: calc(-1 * var(--vc-space-5) + 1px);
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--vc-concrete);
+  border-radius: 50%;
+  background: var(--vc-paper);
+  transition: border-color var(--vc-dur-base), background-color var(--vc-dur-base);
+}
+.vc-pasos__paso.is-activo::before { border-color: var(--vc-code-black); background: var(--vc-filament); }
+
+.vc-pasos__numero {
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: var(--vc-tracking-mono);
+  color: var(--vc-muted);
+}
+.vc-pasos__titulo { margin: var(--vc-space-2) 0 var(--vc-space-3); font-size: var(--vc-text-display-sm); line-height: 1; }
+.vc-pasos__texto { margin: 0; max-width: 44ch; font-size: var(--vc-text-lg); line-height: var(--vc-leading-body); }
+
+/* ---------- Vista fija ---------- */
+.vc-pasos__vista { position: sticky; top: 120px; }
+
+.vc-pasos__marco {
+  position: relative;
+  min-height: 380px;
+  padding: var(--vc-space-5) var(--vc-space-4) var(--vc-space-4);
+  background: var(--vc-white);
+  border: 1px solid var(--vc-concrete);
+  border-top: 4px solid var(--vc-filament);
+  border-radius: var(--vc-radius);
+  box-shadow: var(--vc-shadow-md);
+  overflow: hidden;
+}
+.vc-pasos__marco-barra { position: absolute; top: 14px; left: var(--vc-space-4); display: flex; gap: 6px; }
+.vc-pasos__marco-barra i { width: 8px; height: 8px; border-radius: 50%; background: var(--vc-concrete); }
+
+.vc-pasos__nota {
+  margin: var(--vc-space-2) 0 0;
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: var(--vc-tracking-mono);
+  text-transform: uppercase;
+  color: var(--vc-muted);
+}
+
+/* Cada vista entra con un fundido corto al cambiar de paso */
+.vc-pasos__mock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--vc-space-3);
+  animation: vc-pasos-entrada var(--vc-dur-slow) var(--vc-ease-out) both;
+}
+@keyframes vc-pasos-entrada {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+.vc-pasos__mock-titulo { font: 700 2.5rem/1 var(--vc-font-display); text-transform: uppercase; }
+.vc-pasos__chip {
+  padding: 2px var(--vc-space-2);
+  border: 1px solid currentColor;
+  border-radius: var(--vc-radius);
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.vc-pasos__chip--ok { color: var(--vc-success); }
+.vc-pasos__chip--marca { background: var(--vc-deep-circuit); border-color: var(--vc-deep-circuit); color: var(--vc-white); }
+.vc-pasos__linea { width: 100%; height: 10px; border-radius: var(--vc-radius); background: var(--vc-line); }
+.vc-pasos__linea--corta { width: 60%; }
+.vc-pasos__boton {
+  margin-top: var(--vc-space-2);
+  padding: 10px var(--vc-space-3);
+  border-radius: var(--vc-radius);
+  background: var(--vc-code-black);
+  color: var(--vc-paper);
+  font-size: var(--vc-text-sm);
+  font-weight: 600;
+}
+.vc-pasos__boton--ok { background: var(--vc-deep-circuit); }
+.vc-pasos__url {
+  width: 100%;
+  padding: var(--vc-space-3);
+  border: 1px dashed var(--vc-concrete);
+  border-radius: var(--vc-radius);
+  background: var(--vc-paper);
+  font-size: var(--vc-text-sm);
+}
+.vc-pasos__meta { font-size: var(--vc-text-sm); color: var(--vc-muted); }
+
+/* Vista de videollamada */
+.vc-pasos__mock--oscuro {
+  position: relative;
+  min-height: 300px;
+  margin: calc(-1 * var(--vc-space-3)) calc(-1 * var(--vc-space-2)) 0;
+  padding: var(--vc-space-4);
+  border-radius: var(--vc-radius-lg);
+  background: var(--vc-dark-surface);
+  color: var(--vc-dark-text);
+  align-items: center;
+}
+.vc-pasos__rec {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-2);
+  padding: 4px var(--vc-space-2);
+  border: 1px solid var(--vc-filament);
+  border-radius: var(--vc-radius);
+  color: var(--vc-filament);
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.vc-pasos__rec i { width: 8px; height: 8px; border-radius: 50%; background: var(--vc-filament); animation: vc-pasos-pulso 1.4s infinite; }
+@keyframes vc-pasos-pulso { 50% { opacity: 0.25; } }
+.vc-pasos__avatar {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 112px;
+  margin-top: var(--vc-space-3);
+  border-radius: 50%;
+  background: var(--vc-deep-circuit);
+  font: 700 2.5rem var(--vc-font-display);
+}
+.vc-pasos__propio {
+  position: absolute;
+  right: var(--vc-space-3);
+  bottom: 64px;
+  width: 96px;
+  height: 60px;
+  border-radius: var(--vc-radius);
+  background: var(--vc-dark-surface-3);
+}
+.vc-pasos__controles { display: flex; gap: var(--vc-space-2); margin-top: auto; }
+.vc-pasos__controles i { width: 44px; height: 32px; border-radius: var(--vc-radius); background: var(--vc-white); }
+.vc-pasos__controles i.is-fin { background: var(--vc-danger); }
+
+/* Vista de análisis: barras que se llenan */
+.vc-pasos__barra {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 32px;
+  border-radius: var(--vc-radius);
+  background: var(--vc-paper);
+  overflow: hidden;
+}
+.vc-pasos__barra span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--ancho);
+  background: var(--vc-deep-circuit);
+  animation: vc-pasos-llenar var(--vc-dur-slow) var(--vc-ease-out) both;
+}
+.vc-pasos__barra--alta span { background: var(--vc-filament); }
+.vc-pasos__barra b { position: relative; margin-left: var(--vc-space-2); font-size: var(--vc-text-sm); color: var(--vc-code-black); }
+.vc-pasos__barra:not(.vc-pasos__barra--alta) b { color: var(--vc-white); }
+@keyframes vc-pasos-llenar { from { width: 0; } }
+.vc-pasos__chips { display: flex; flex-wrap: wrap; gap: var(--vc-space-2); }
+.vc-pasos__chips span {
+  padding: 4px var(--vc-space-2);
+  border: 1px solid var(--vc-concrete);
+  border-radius: var(--vc-radius);
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+}
+
+/* ---------- Móvil y tableta: una columna, sin vista fija ---------- */
+@media (max-width: 959px) {
+  .vc-pasos { grid-template-columns: 1fr; gap: var(--vc-space-5); }
+  .vc-pasos__paso,
+  .vc-pasos__paso:last-child { min-height: 0; opacity: 1; padding-bottom: var(--vc-space-5); }
+  .vc-pasos__vista { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vc-pasos__mock,
+  .vc-pasos__barra span,
+  .vc-pasos__rec i { animation: none; }
+}

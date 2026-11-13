@@ -1,23 +1,52 @@
-# Dependencias y compilación
-node_modules/
-dist/
-.angular/
-coverage/
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
 
 # Secretos y configuración local
 .env
 .env.*
 !.env.example
 
-# IDE
+# IDEs and editors
 .idea/
-.vscode/*
-!.vscode/extensions.json
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
-# Sistema operativo
-.DS_Store
-Thumbs.db
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
 
 # Logs
 *.log
-npm-debug.log*
+
+# System files
+.DS_Store
+Thumbs.db

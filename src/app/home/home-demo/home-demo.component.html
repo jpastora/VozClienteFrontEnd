@@ -1,0 +1,60 @@
+<article class="vc-demo" [class.is-terminado]="terminado()" aria-labelledby="ttlDemo">
+  <header class="vc-demo__cabecera">
+    <div>
+      <p class="vc-demo__eyebrow">Entrevista sobre · Pegasus 41</p>
+      <h3 id="ttlDemo" class="vc-demo__titulo">Entrevista #0248</h3>
+    </div>
+    <span class="vc-demo__estado">Analizada</span>
+  </header>
+
+  <div class="vc-demo__cuerpo">
+    <!-- Transcripción: solo la voz del cliente, con marcas de tiempo -->
+    <section class="vc-demo__transcripcion" aria-label="Transcripción del cliente">
+      <p class="vc-demo__etiqueta">Transcripción · voz del cliente</p>
+      <ol class="vc-demo__lineas">
+        @for (linea of lineasVisibles(); track linea.tiempo) {
+          <li class="vc-demo__linea" [class.is-vacia]="!linea.visible">
+            <span class="vc-demo__tiempo">{{ linea.tiempo }}</span>
+            <span class="vc-demo__texto">
+              <span aria-hidden="true">{{ linea.visible }}</span>@if (linea.escribiendo) {<i class="vc-demo__cursor"></i>}
+              <span class="vc-sr-only">{{ linea.texto }}</span>
+            </span>
+          </li>
+        }
+      </ol>
+    </section>
+
+    <!-- Resultado del análisis con IA -->
+    <section class="vc-demo__analisis" aria-label="Resultado del análisis">
+      <p class="vc-demo__etiqueta">Intención de compra</p>
+      <div class="vc-demo__intencion">
+        <strong class="vc-demo__nivel">Alta</strong>
+        <span class="vc-demo__porcentaje">{{ intencion }}%</span>
+      </div>
+      <span
+        class="vc-demo__medidor"
+        role="meter"
+        aria-label="Intención de compra"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [attr.aria-valuenow]="intencion"
+      >
+        <span class="vc-demo__relleno" [style.--vc-demo-intencion]="intencion + '%'"></span>
+      </span>
+
+      <p class="vc-demo__etiqueta">Fragmento de apoyo</p>
+      <blockquote class="vc-demo__cita">«Sí, lo volvería a comprar»</blockquote>
+
+      <p class="vc-demo__etiqueta">Competencia mencionada</p>
+      <ul class="vc-demo__chips">
+        <li class="vc-demo__chip" style="--vc-demo-orden: 0">Marca competidora A · 1</li>
+        <li class="vc-demo__chip" style="--vc-demo-orden: 1">Precio · objeción</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer class="vc-demo__pie">
+    <span>Datos de ejemplo</span>
+    <button id="btnRepetirDemo" type="button" class="vc-demo__repetir" (click)="repetir()">↻ Repetir demostración</button>
+  </footer>
+</article>

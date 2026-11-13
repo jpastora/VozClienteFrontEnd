@@ -1,2 +1,49 @@
-<h1>M6 Estadísticas y reportes</h1>
-<p>Estadísticas por producto. Pantalla pendiente de implementar.</p>
+<h1>Estadísticas</h1>
+<p class="vc-eyebrow">Intención de compra y competencia por producto</p>
+
+<p class="vc-rep__aviso" role="status">Sin datos: esta pantalla se conectará cuando el back-end exponga las estadísticas.</p>
+
+<section class="vc-rep__filters" aria-label="Filtros">
+  <div class="vc-rep__campo">
+    <label class="vc-rep__label" for="cmbProductoEstadisticas">Producto</label>
+    <select id="cmbProductoEstadisticas" class="vc-rep__control" disabled>
+      <option>Seleccionar producto</option>
+    </select>
+  </div>
+  <div class="vc-rep__campo">
+    <label class="vc-rep__label" for="dtpDesde">Desde</label>
+    <input id="dtpDesde" class="vc-rep__control" type="date" disabled />
+  </div>
+  <div class="vc-rep__campo">
+    <label class="vc-rep__label" for="dtpHasta">Hasta</label>
+    <input id="dtpHasta" class="vc-rep__control" type="date" disabled />
+  </div>
+  <vc-button id="btnDescargarReporte" class="vc-rep__pdf" variant="secondary" [disabled]="true">
+    Descargar reporte PDF
+  </vc-button>
+</section>
+
+<section class="vc-rep__metricas" aria-label="Métricas">
+  <vc-metric-card label="Entrevistas analizadas" value="—" />
+  <vc-metric-card label="Intención de compra" value="—" />
+  <vc-metric-card label="Menciones de competencia" value="—" />
+</section>
+
+<div class="vc-rep__grid">
+  <section class="vc-panel" aria-labelledby="ttlDistribucion">
+    <h2 id="ttlDistribucion">Distribución de la intención</h2>
+    <p class="vc-rep__vacio">Sin datos para graficar.</p>
+  </section>
+
+  <section class="vc-panel" aria-labelledby="ttlCompetidores">
+    <h2 id="ttlCompetidores">Competidores mencionados</h2>
+    <table class="vc-table">
+      <thead>
+        <tr><th>Competidor</th><th>Menciones</th></tr>
+      </thead>
+      <tbody>
+        <tr class="vc-rep__vacio-fila"><td colspan="2">Sin menciones registradas.</td></tr>
+      </tbody>
+    </table>
+  </section>
+</div>

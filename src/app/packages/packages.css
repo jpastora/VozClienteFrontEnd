@@ -1,0 +1,118 @@
+:host { display: block; }
+
+.vc-pkg__saldo { display: flex; align-items: flex-end; gap: var(--vc-space-3); margin: var(--vc-space-3) 0 var(--vc-space-4); }
+.vc-pkg__saldo vc-metric-card { min-width: 220px; }
+.vc-pkg__nota { margin: 0; color: var(--vc-muted); font-size: var(--vc-text-sm); }
+
+/* Tarjetas con la misma estructura del home, en tema claro; la recomendada lleva filete Filament de 4 px. */
+.vc-pkg__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--vc-space-4);
+  margin: 0 0 var(--vc-space-4);
+  padding: 0;
+  list-style: none;
+  align-items: stretch;
+}
+
+.vc-pkg__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-2);
+  padding: var(--vc-space-5) var(--vc-space-4) var(--vc-space-4);
+  border: 1px solid var(--vc-line);
+  border-top: 4px solid var(--vc-concrete);
+  border-radius: var(--vc-radius);
+  background: var(--vc-white);
+  color: var(--vc-code-black);
+  transition:
+    transform var(--vc-dur-base) var(--vc-ease-out),
+    border-color var(--vc-dur-base) var(--vc-ease-out);
+}
+.vc-pkg__card:hover { transform: translateY(-4px); border-color: var(--vc-deep-circuit); }
+.vc-pkg__card.is-recomendado { border-top-color: var(--vc-filament); }
+
+.vc-pkg__sello {
+  position: absolute;
+  top: var(--vc-space-3);
+  right: var(--vc-space-3);
+  padding: 2px var(--vc-space-2);
+  border-radius: var(--vc-radius);
+  background: var(--vc-filament);
+  color: var(--vc-code-black);
+  font: 500 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.vc-pkg__nombre {
+  margin: 0;
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: var(--vc-tracking-mono);
+  text-transform: uppercase;
+  color: var(--vc-muted);
+}
+.vc-pkg__salas { display: flex; align-items: baseline; gap: var(--vc-space-2); margin: 0; }
+.vc-pkg__salas strong { font: 700 4rem/1 var(--vc-font-display); }
+.vc-pkg__salas span { color: var(--vc-muted); }
+.vc-pkg__precio { margin: var(--vc-space-2) 0 0; font: 700 var(--vc-text-h2) var(--vc-font-display); }
+.vc-pkg__unitario { margin: 0; font: 400 var(--vc-text-sm) var(--vc-font-mono); color: var(--vc-muted); }
+
+.vc-pkg__incluye {
+  display: grid;
+  gap: var(--vc-space-2);
+  margin: var(--vc-space-3) 0 var(--vc-space-4);
+  padding: var(--vc-space-3) 0 0;
+  border-top: 1px solid var(--vc-line);
+  list-style: none;
+  font-size: var(--vc-text-sm);
+}
+.vc-pkg__incluye li { display: flex; gap: var(--vc-space-2); }
+.vc-pkg__incluye li::before { content: '✓'; color: var(--vc-deep-circuit); font-weight: 700; }
+
+.vc-pkg__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: auto;
+  padding: 0 var(--vc-space-3);
+  border: 1px solid var(--vc-code-black);
+  border-radius: var(--vc-radius);
+  background: var(--vc-white);
+  color: var(--vc-code-black);
+  font: 600 var(--vc-text-md) var(--vc-font-body);
+  cursor: pointer;
+  transition: background-color var(--vc-dur-fast), color var(--vc-dur-fast);
+}
+.vc-pkg__cta:hover { background: var(--vc-code-black); color: var(--vc-white); }
+.vc-pkg__cta:focus-visible { outline: none; box-shadow: var(--vc-focus); }
+/* En la tarjeta recomendada el botón es el CTA Filament */
+.is-recomendado .vc-pkg__cta { background: var(--vc-filament); border-color: var(--vc-filament); }
+.is-recomendado .vc-pkg__cta:hover { background: var(--vc-filament-hover); color: var(--vc-code-black); }
+
+@media (prefers-reduced-motion: reduce) {
+  .vc-pkg__card:hover { transform: none; }
+}
+
+.vc-pkg__historial { margin-top: var(--vc-space-4); }
+.vc-pkg__ref { font-family: var(--vc-font-mono); font-weight: 400 !important; color: var(--vc-muted); }
+.vc-pkg__vacio td { text-align: center; color: var(--vc-muted); font-weight: 400 !important; padding: var(--vc-space-5); }
+
+.vc-pkg__msg { color: var(--vc-muted); margin: var(--vc-space-3) 0; }
+.vc-pkg__msg--error { color: var(--vc-danger); display: flex; align-items: center; gap: var(--vc-space-3); }
+.vc-pkg__exito {
+  margin: var(--vc-space-3) 0;
+  padding: var(--vc-space-3);
+  border: 1px solid var(--vc-success);
+  border-radius: var(--vc-radius);
+  background: var(--vc-white);
+  color: var(--vc-success);
+  font-weight: 600;
+}
+
+.vc-pkg__confirmar { display: flex; flex-direction: column; gap: var(--vc-space-2); max-width: 44ch; }
+.vc-pkg__confirmar p { margin: 0; }
+.vc-pkg__error { color: var(--vc-danger); font-size: var(--vc-text-sm); }
+.vc-pkg__botones { display: flex; justify-content: flex-end; gap: var(--vc-space-2); margin-top: var(--vc-space-3); }
