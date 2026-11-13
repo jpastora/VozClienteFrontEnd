@@ -101,15 +101,17 @@ export class ProductDetail {
         // El representante asignado al producto tiene prioridad.
         const asignado = this.producto()?.representanteId ?? null;
 
+        // Si no hay asignado (o ya está inactivo) no se preselecciona ninguno:
+        // la persona debe elegirlo, así el cambio se guarda en el backend.
         if (asignado != null && reps.some((r) => r.id === asignado)) {
           this.representanteId.set(asignado);
-        } else if (this.representanteId() === null && reps.length) {
-          // Sin asignado (o ya inactivo), usar el primero de la lista.
-          this.representanteId.set(reps[0].id);
         }
       },
       // Sin lista de cuentas se usa la cuenta de prueba como representante.
-      error: () => this.representantes.set([]),
+      error: (err) => {
+        console.error('No se pudieron cargar los representantes', err);
+        this.representantes.set([]);
+      },
     });
   
     this.productoApi.obtener(id).subscribe({

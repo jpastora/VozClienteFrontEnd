@@ -44,6 +44,9 @@
           <div class="vc-pdetail__rep">
             <label for="cmbRepresentante">Representante que atenderá</label>
             <select id="cmbRepresentante" (change)="cambiarRepresentante($event)">
+              <option value="" disabled [selected]="representanteId() === null">
+                Seleccione un representante
+              </option>
               @for (r of representantes(); track r.id) {
               <option [value]="r.id" [selected]="r.id === representanteId()">
                 {{ r.nombreCompleto }}
