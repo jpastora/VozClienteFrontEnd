@@ -20,7 +20,7 @@ const OPCIONES_MENU: OpcionMenu[] = [
   { ruta: RUTAS.productos, texto: 'Productos', roles: ['CLIENTE_ADMINISTRADOR'] },
   { ruta: RUTAS.representantes, texto: 'Representantes', roles: ['CLIENTE_ADMINISTRADOR'] },
   { ruta: RUTAS.entrevistas, texto: 'Entrevistas', roles: ['CLIENTE_ADMINISTRADOR'] },
-  { ruta: RUTAS.salas, texto: 'Salas', roles: ['CLIENTE_ADMINISTRADOR', 'REPRESENTANTE'] },
+  { ruta: RUTAS.salas, texto: 'Salas', roles: [ 'REPRESENTANTE'] },
   { ruta: RUTAS.reportes, texto: 'Estadísticas', roles: ['CLIENTE_ADMINISTRADOR'] },
   { ruta: RUTAS.paquetes, texto: 'Paquetes y saldo', roles: ['CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR'] },
   { ruta: RUTAS.admin, texto: 'Usuarios', roles: ['ADMINISTRADOR'] },
