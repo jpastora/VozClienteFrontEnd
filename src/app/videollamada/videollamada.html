@@ -10,12 +10,29 @@
     <div class="top-right">
       @if (fase() === 'llamada') {
         @if (esRep) {
-          <span class="badge" [class.badge-espera]="!rec.grabando()">
-            <i class="dot"></i>
-            {{ rec.grabando() ? 'GRABANDO · CANAL DEL CLIENTE' : 'ESPERANDO CONEXIÓN' }}
-          </span>
+          @if (!rec.grabando()) {
+            <span class="badge badge-espera"><i class="dot"></i>ESPERANDO CONEXIÓN</span>
+          } @else if (rec.estadoEnvio() === 'cerrada' || rec.estadoEnvio() === 'rechazada') {
+            <span class="badge badge-error" role="status">
+              <i class="dot"></i>ENVÍO DETENIDO · guardando localmente
+            </span>
+          } @else if (rec.estadoEnvio() === 'sin-conexion') {
+            <span class="badge badge-error" role="status">
+              <i class="dot"></i>Sin conexión · guardando localmente ({{ rec.pendientes() }}
+              {{ rec.pendientes() === 1 ? 'fragmento' : 'fragmentos' }})
+            </span>
+          } @else {
+            <span class="badge badge-rec" role="status">
+              <i class="dot"></i>GRABANDO@if (rec.pendientes() > 0) { · sincronizando }
+            </span>
+          }
         } @else {
-          <span class="badge"><i class="dot"></i>SESIÓN GRABADA</span>
+          <!-- El consumidor solo ve "GRABANDO" cuando ya está conectado con el representante. -->
+          @if (rtc.estado() === 'conectado') {
+            <span class="badge badge-rec"><i class="dot"></i>GRABANDO</span>
+          } @else {
+            <span class="badge badge-espera"><i class="dot"></i>ESPERANDO AL REPRESENTANTE</span>
+          }
         }
       }
       <span class="reloj">{{ hora() }}</span>
@@ -51,7 +68,7 @@
               <span>ID de la entrevista</span>
               <input name="entrevista" type="number" min="1" [ngModel]="entrevistaId()" (ngModelChange)="entrevistaId.set($event)" readonly />
             </label>
-            <p class="nota">Se grabará el audio y video del consumidor y se subirá al finalizar la llamada.</p>
+            <p class="nota">Se grabará el audio y video del consumidor, y tu audio, y se enviarán al servidor mientras dura la llamada.</p>
           } @else {
             <label class="check">
               <input name="acepta" type="checkbox" [ngModel]="acepta()" (ngModelChange)="acepta.set($event)" />
@@ -148,11 +165,15 @@
           <h2>Guardando la grabación</h2>
           @if (!errorSubida()) {
             <div class="barra"><div class="barra-relleno" [style.width.%]="progreso()"></div></div>
-            <p class="muted">{{ progreso() }} %. No cierres esta ventana.</p>
+            <p class="muted">
+              {{ progreso() }} %. Enviando los últimos fragmentos ({{ rec.pendientes() }} pendientes). No cierres esta ventana.
+            </p>
           } @else {
             <p class="error-texto">{{ errorSubida() }}</p>
             <div class="acciones">
-              <button class="btn btn-primario" type="button" (click)="subir()">Reintentar</button>
+              @if (puedeReintentar()) {
+                <button class="btn btn-primario" type="button" (click)="subir()">Reintentar</button>
+              }
               <button class="btn" type="button" (click)="descargarCopia()">Descargar copia .webm</button>
             </div>
           }

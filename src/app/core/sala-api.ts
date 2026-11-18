@@ -51,4 +51,12 @@ export class SalaApi {
     );
   }
   
+
+  /**
+   * DELETE /api/salas/{token}: elimina una sala que no se va a usar (PENDIENTE o EXPIRADA).
+   * El back-end rechaza con 409 las que ya fueron respondidas.
+   */
+  eliminar(token: string): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/salas/${encodeURIComponent(token)}`);
+  }
 }
