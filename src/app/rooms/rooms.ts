@@ -245,6 +245,49 @@ export class Rooms {
   }
 
   // Tabla de enlaces
+  // Eliminar una sala que no se va a usar (confirmación en dos pasos, sin diálogo)
+  protected readonly confirmandoEliminar = signal<string | null>(null);
+  protected readonly eliminando = signal<string | null>(null);
+
+  /** Una sala ya respondida tiene entrevista y grabación asociadas: no se elimina. */
+  protected puedeEliminar(s: { vigente: string }): boolean {
+    return s.vigente !== 'RESPONDIDO';
+  }
+
+  protected pedirEliminar(sala: SalaDTO): void {
+    this.confirmandoEliminar.set(sala.token);
+  }
+
+  protected cancelarEliminar(): void {
+    this.confirmandoEliminar.set(null);
+  }
+
+  protected eliminarSala(sala: SalaDTO): void {
+    this.eliminando.set(sala.token);
+    this.error.set(null);
+    this.salaApi.eliminar(sala.token).subscribe({
+      next: () => {
+        this.salas.update((lista) => lista.filter((x) => x.token !== sala.token));
+        if (this.enlaceConsumidor()?.endsWith(`/${sala.token}`)) {
+          this.enlaceConsumidor.set(null);
+          this.enlaceRepresentante.set(null);
+        }
+        if (this.filaExpandida() === sala.token) this.filaExpandida.set(null);
+        this.eliminando.set(null);
+        this.confirmandoEliminar.set(null);
+      },
+      error: (err) => {
+        this.eliminando.set(null);
+        this.confirmandoEliminar.set(null);
+        this.error.set(
+          err?.status === 409
+            ? 'Esta sala ya fue utilizada y no se puede eliminar.'
+            : (err?.error?.mensaje ?? 'No se pudo eliminar la sala. Intenta de nuevo.'),
+        );
+      },
+    });
+  }
+
   protected tono(estado: string): TonoBadge {
     return estado === 'PENDIENTE' ? 'brand' : estado === 'RESPONDIDO' ? 'success' : 'neutral';
   }

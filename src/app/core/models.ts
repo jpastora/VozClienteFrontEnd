@@ -64,10 +64,29 @@ export type EstadoConexion =
   | 'cerrado';
 
 export interface ResultadoGrabacion {
+  /** Copia completa del canal del cliente (respaldo local para "Descargar copia"). */
   blob: Blob;
   duracionSegundos: number;
   tieneAudioCliente: boolean;
   inesperado: boolean;
+}
+
+/** Canal de la grabación por fragmentos (espejo de CanalGrabacion del back-end). */
+export type CanalGrabacion = 'CLIENTE' | 'REPRESENTANTE';
+
+/** Espejo de FragmentoAckDTO: confirmación de un fragmento recibido. */
+export interface FragmentoAck {
+  entrevistaId: number;
+  canal: CanalGrabacion;
+  ultimaSecuencia: number;
+  bytesConfirmados: number;
+}
+
+/** Cuerpo de finalizar la grabación (POST .../finalizar). */
+export interface FinalizarGrabacionRequest {
+  duracionSegundos: number;
+  tieneAudioCliente: boolean;
+  esParcial: boolean;
 }
 
 // ============================================

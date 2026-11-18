@@ -32,3 +32,4 @@
   background-color: var(--vc-paper, #ffffff);
   border-bottom: 1px solid var(--vc-concrete, #e0e0e0);
 }
+.vc-rooms__confirmar { font-size: 0.875rem; color: var(--vc-danger); }

@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
   DestroyRef,
@@ -33,6 +33,10 @@ import { ProductoApi } from '../core/producto-api';
 type Fase = 'cargando' | 'error' | 'lobby' | 'conectando' | 'llamada' | 'subiendo' | 'finalizada';
 
 const CLAVE_NOMBRE = 'voz-cliente:nombre';
+
+/** Cuánto se intenta vaciar la cola al terminar la llamada (cortada por red: poco, el servidor cierra a los 60 s). */
+const ESPERA_VACIADO_MS = 20_000;
+const ESPERA_VACIADO_PARCIAL_MS = 8_000;
 
 @Component({
   selector: 'app-videollamada',
@@ -79,7 +83,14 @@ export class Videollamada implements OnInit, OnDestroy {
   );
 
   // Subida
-  protected progreso = signal(0);
+  /** Fragmentos que había en cola al empezar el vaciado final; sirve para calcular el progreso. */
+  private totalAVaciar = signal(0);
+  protected progreso = computed(() => {
+    const total = this.totalAVaciar();
+    const pendientes = this.rec.pendientes();
+    if (total <= 0) return pendientes === 0 ? 100 : 0;
+    return Math.round((100 * (total - Math.min(total, pendientes))) / total);
+  });
   protected errorSubida = signal('');
   protected grabacion = signal<GrabacionDTO | null>(null);
   protected resumenFinal = signal('');
@@ -99,20 +110,42 @@ export class Videollamada implements OnInit, OnDestroy {
   private resultado: ResultadoGrabacion | null = null;
   private parcial = false;
   private grabacionIniciada = false;
+  private aceptacionRegistrada = false;
   private terminando = false;
   private relojId?: ReturnType<typeof setInterval>;
   private cuentaId?: ReturnType<typeof setInterval>;
   private productoApi = inject(ProductoApi);
 
   constructor() {
-    // Representante: empieza a grabar el canal del cliente cuando la conexión queda establecida.
+    // Representante: empieza a grabar (un canal por cada lado) cuando la conexión queda establecida,
+    // ya existen ambos streams y se conoce la entrevista. El RecorderService crea la grabación en el
+    // servidor (POST iniciar) antes de enviar el primer fragmento y, mientras tanto, graba y encola.
     effect(() => {
       const estado = this.rtc.estado();
       const remoto = this.rtc.remoteStream();
+      const local = this.rtc.localStream();
+      const id = this.entrevistaId();
       untracked(() => {
-        if (this.esRep && estado === 'conectado' && remoto && !this.grabacionIniciada) {
+        // Solo cuando los dos están en la llamada: conexión establecida y el remoto ya envía pistas.
+        if (
+          this.esRep && estado === 'conectado' && remoto && remoto.getTracks().length > 0 &&
+          local && id && !this.grabacionIniciada
+        ) {
           this.grabacionIniciada = true;
-          this.rec.iniciar(remoto);
+          this.rec.iniciar(remoto, local, id);
+        }
+      });
+    });
+
+    // Consumidor: registra su aceptación de la grabación (PATCH /responder, que pasa la sala a
+    // RESPONDIDO) solo cuando la conexión con el representante queda establecida, que es el mismo
+    // momento en que el representante empieza a grabar.
+    effect(() => {
+      const estado = this.rtc.estado();
+      untracked(() => {
+        if (!this.esRep && estado === 'conectado' && !this.aceptacionRegistrada) {
+          this.aceptacionRegistrada = true;
+          void this.registrarAceptacion();
         }
       });
     });
@@ -222,8 +255,8 @@ export class Videollamada implements OnInit, OnDestroy {
     this.fase.set('conectando');
 
     try {
-      // El consumidor registra su aceptación de la grabación (PATCH /responder).
-      if (!this.esRep) await firstValueFrom(this.salaApi.responder(this.token, nombre));
+      // El consumidor NO marca la sala como RESPONDIDO aquí: se hace cuando los dos ya están
+      // conectados (ver el effect del constructor), así un enlace abierto sin llegar a la llamada no se gasta.
 
       try {
         await this.rtc.obtenerMedios();
@@ -250,6 +283,21 @@ export class Videollamada implements OnInit, OnDestroy {
         this.fallo(e instanceof Error ? e.message : 'No se pudo iniciar la llamada.');
       }
     }
+  }
+
+  /** PATCH /responder con hasta 3 intentos; si todos fallan se deja constancia en consola y la llamada sigue. */
+  private async registrarAceptacion(): Promise<void> {
+    const nombre = this.nombre().trim();
+    for (let intento = 1; intento <= 3; intento++) {
+      try {
+        await firstValueFrom(this.salaApi.responder(this.token, nombre));
+        return;
+      } catch (e) {
+        console.warn(`No se pudo registrar la aceptación (intento ${intento}/3)`, e);
+        await new Promise((r) => setTimeout(r, 1000 * intento));
+      }
+    }
+    console.error('No se pudo registrar la aceptación de la grabación del consumidor.');
   }
 
   // ---------- Señalización entrante ----------
@@ -309,17 +357,20 @@ export class Videollamada implements OnInit, OnDestroy {
 
     if (opts.notificar) this.signaling.enviar({ tipo: 'leave', de: this.rol });
 
-    // Primero se cierra el grabador (mientras las pistas siguen vivas) y luego la conexión.
+    // Primero se cierran los grabadores (mientras las pistas siguen vivas) y luego la conexión.
+    // Lo grabado hasta aquí queda en la cola de envío; se vacía en `subir()`.
     const resultado = this.esRep ? await this.rec.detener() : null;
     this.limpiarRecursos();
 
     // El representante cierra la entrevista en el backend: FINALIZADA, o FALLIDA si fue parcial.
     if (this.esRep) this.cerrarEntrevista(opts.parcial || !!resultado?.inesperado);
 
-    if (resultado && resultado.blob.size > 0) {
+    if (resultado) {
       this.resultado = resultado;
       this.parcial = opts.parcial || resultado.inesperado;
-      void this.subir();
+      this.totalAVaciar.set(this.rec.pendientes());
+      // Si no hubo conexión para vaciar la cola, se espera poco: el servidor cierra por inactividad a los 60 s.
+      void this.subir(this.parcial ? ESPERA_VACIADO_PARCIAL_MS : ESPERA_VACIADO_MS);
     } else {
       this.resumenFinal.set(
         opts.parcial ? 'Se perdió la conexión con la otra persona.' : 'La llamada ha finalizado.',
@@ -338,44 +389,77 @@ export class Videollamada implements OnInit, OnDestroy {
     });
   }
 
-  // ---------- Subida de la grabación ----------
+  // ---------- Vaciado final de la cola y cierre de la grabación ----------
 
-  protected subir(): void {
+  /**
+   * Fase 'subiendo': envía los fragmentos que quedaron en cola y, cuando no queda ninguno, llama a
+   * finalizar. Si algo falla deja un mensaje con lo pendiente; el botón "Reintentar" vuelve a llamarla.
+   */
+  protected async subir(esperaMs = ESPERA_VACIADO_MS): Promise<void> {
     const r = this.resultado;
     const id = this.entrevistaId();
     if (!r || !id) return;
 
     this.errorSubida.set('');
-    this.progreso.set(0);
     this.fase.set('subiendo');
 
-    this.grabacionApi.subir(id, r, this.parcial).subscribe({
-      next: (ev) => {
-        if (ev.type === HttpEventType.UploadProgress) {
-          this.progreso.set(Math.round((100 * ev.loaded) / (ev.total ?? ev.loaded)));
-        } else if (ev.type === HttpEventType.Response) {
-          this.grabacion.set(ev.body);
-          this.resumenFinal.set(
-            this.parcial
-              ? 'La llamada terminó antes de tiempo. La grabación parcial quedó guardada.'
-              : 'La llamada finalizó y la grabación quedó guardada.',
-          );
-          this.fase.set('finalizada');
-        }
-      },
-      error: (e: HttpErrorResponse) => {
-        this.errorSubida.set(
-          e.status === 413
-            ? 'El archivo supera el tamaño máximo permitido por el servidor.'
-            : 'No se pudo subir la grabación. Puedes reintentar o descargar una copia.',
-        );
-      },
+    const vaciada = await this.rec.vaciar(esperaMs);
+    if (!vaciada || this.rec.estadoEnvio() === 'cerrada') {
+      this.errorSubida.set(this.mensajeEnvioFallido());
+      return;
+    }
+
+    try {
+      const g = await firstValueFrom(
+        this.grabacionApi.finalizar(id, r.duracionSegundos, r.tieneAudioCliente, this.parcial),
+      );
+      this.grabacion.set(g);
+      this.resumenFinal.set(
+        this.parcial
+          ? 'La llamada terminó antes de tiempo. La grabación parcial quedó guardada.'
+          : 'La llamada finalizó y la grabación quedó guardada.',
+      );
+      this.fase.set('finalizada');
+    } catch (e) {
+      const status = e instanceof HttpErrorResponse ? e.status : 0;
+      this.errorSubida.set(
+        status === 0 || status >= 500
+          ? 'Se enviaron todos los fragmentos, pero no se pudo cerrar la grabación. Revisa tu conexión y reintenta.'
+          : 'No se pudo cerrar la grabación en el servidor. Puedes descargar una copia local.',
+      );
+    }
+  }
+
+  /** Reintentar solo tiene sentido si el servidor no cerró ni rechazó la grabación. */
+  protected puedeReintentar(): boolean {
+    return !this.rec.envio?.detenido();
+  }
+
+  private mensajeEnvioFallido(): string {
+    const n = this.rec.pendientes();
+    const hasta = (this.rec.ultimaConfirmacion() ?? new Date()).toLocaleTimeString('es-CR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
     });
+    switch (this.rec.estadoEnvio()) {
+      case 'cerrada':
+        return `La grabación se cerró automáticamente; se conservó lo grabado hasta las ${hasta}. Puedes descargar la copia local.`;
+      case 'rechazada':
+        return `El servidor rechazó el envío (${this.rec.detalleError()}). Quedaron ${this.textoFragmentos(n)} sin enviar. Puedes descargar la copia local.`;
+      default:
+        return `No se pudo enviar todo: quedaron ${this.textoFragmentos(n)} pendientes. Puedes reintentar o descargar una copia local.`;
+    }
+  }
+
+  private textoFragmentos(n: number): string {
+    return n === 1 ? '1 fragmento' : `${n} fragmentos`;
   }
 
   protected descargarCopia(): void {
-    if (!this.resultado) return;
-    const url = URL.createObjectURL(this.resultado.blob);
+    const blob = this.rec.copiaLocal() ?? this.resultado?.blob;
+    if (!blob || blob.size === 0) return;
+    const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = `entrevista_${this.entrevistaId()}.webm`;
@@ -417,7 +501,7 @@ export class Videollamada implements OnInit, OnDestroy {
   @HostListener('window:beforeunload', ['$event'])
   protected avisarAntesDeSalir(e: BeforeUnloadEvent): void {
     const f = this.fase();
-    if (f === 'llamada' || f === 'subiendo') e.preventDefault();
+    if (f === 'llamada' || f === 'subiendo' || this.rec.pendientes() > 0) e.preventDefault();
   }
 
   ngOnDestroy(): void {

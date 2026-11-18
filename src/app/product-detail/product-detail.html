@@ -119,6 +119,17 @@
               <vc-button variant="secondary" (click)="alternarDetalleHistorico(s)">
                 {{ filaExpandida() === s.token ? 'Ocultar enlace' : 'Ver enlace' }}
               </vc-button>
+              @if (puedeEliminar(s)) {
+                @if (confirmandoEliminar() === s.token) {
+                  <span class="vc-pdetail__confirmar" role="alert">¿Eliminar este enlace?</span>
+                  <vc-button variant="danger" [disabled]="eliminando() === s.token" (click)="eliminarSala(s)">
+                    {{ eliminando() === s.token ? 'Eliminando…' : 'Sí, eliminar' }}
+                  </vc-button>
+                  <vc-button variant="secondary" [disabled]="eliminando() === s.token" (click)="cancelarEliminar()">Cancelar</vc-button>
+                } @else {
+                  <vc-button variant="secondary" (click)="pedirEliminar(s)">Eliminar</vc-button>
+                }
+              }
             </div>
           </td>
         </tr>

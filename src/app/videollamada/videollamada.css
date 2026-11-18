@@ -64,6 +64,11 @@
 }
 .badge-espera { color: var(--vc-dark-muted); border-color: var(--vc-dark-border); }
 .badge-espera .dot { background: var(--vc-dark-muted); animation: none; }
+/* Indicador de grabación: punto rojo parpadeante; en error, borde y texto de alerta. */
+.badge-rec .dot,
+.badge-error .dot { background: var(--vc-danger); }
+.badge-error { color: var(--vc-danger-on-dark); border-color: var(--vc-danger-on-dark); }
+.badge-error .dot { animation-duration: 0.7s; }
 @keyframes pulso { 50% { opacity: 0.25; } }
 
 /* ---------- Escenario ---------- */
