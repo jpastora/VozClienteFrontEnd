@@ -1,0 +1,66 @@
+<h1>Empresas</h1>
+<p class="vc-eyebrow">Empresas clientes de la plataforma</p>
+
+@if (aviso()) {
+  <p id="msgAvisoEmpresas" class="vc-co__aviso" role="status">{{ aviso() }}</p>
+}
+
+<section class="vc-co__barra">
+  <vc-field
+    class="vc-co__search"
+    controlId="txtBuscarEmpresa"
+    label="Buscar por nombre"
+    [value]="busqueda()"
+    (valueChange)="busqueda.set($event)"
+  />
+  <vc-button id="btnNuevaEmpresa" class="vc-co__nuevo" (click)="abrirNueva()">+ Nueva empresa</vc-button>
+</section>
+
+@if (cargando()) {
+  <p class="vc-co__msg" role="status">Cargando empresas…</p>
+} @else if (errorCarga()) {
+  <div class="vc-co__msg vc-co__msg--error" role="alert">
+    {{ errorCarga() }}
+    <vc-button variant="secondary" (click)="cargar()">Reintentar</vc-button>
+  </div>
+} @else {
+  <table class="vc-table">
+    <thead>
+      <tr><th>Nombre</th><th>Creada</th><th>Acciones</th></tr>
+    </thead>
+    <tbody>
+      @for (e of filtradas(); track e.id) {
+        <tr>
+          <td>{{ e.nombre }}</td>
+          <td>{{ e.creadoEn | date: 'dd/MM/yyyy' }}</td>
+          <td><vc-button variant="secondary" (click)="abrirEdicion(e)">Editar nombre</vc-button></td>
+        </tr>
+      } @empty {
+        <tr class="vc-co__vacio">
+          <td colspan="3">
+            @if (empresas().length === 0) {
+              Aún no hay empresas. Crea la primera con «Nueva empresa».
+            } @else {
+              Ninguna empresa coincide con la búsqueda.
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+<vc-dialog [open]="formAbierto()" [title]="editando() ? 'Editar empresa' : 'Nueva empresa'" (closed)="cerrarForm()">
+  <form class="vc-co__form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <vc-field controlId="txtNombreEmpresa" label="Nombre de la empresa *" [(value)]="nombre" [error]="errorNombre()" />
+    @if (errorGuardar()) {
+      <p class="vc-co__error" role="alert">{{ errorGuardar() }}</p>
+    }
+    <div class="vc-co__botones">
+      <vc-button variant="secondary" (click)="cerrarForm()">Cancelar</vc-button>
+      <vc-button id="btnGuardarEmpresa" type="submit" [disabled]="guardando()">
+        {{ guardando() ? 'Guardando…' : 'Guardar' }}
+      </vc-button>
+    </div>
+  </form>
+</vc-dialog>

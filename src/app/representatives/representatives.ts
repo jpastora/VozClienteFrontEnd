@@ -55,6 +55,8 @@ export class Representatives {
   protected readonly formAbierto = signal(false);
   protected readonly nombre = signal('');
   protected readonly correo = signal('');
+  protected readonly metodoAcceso = signal<'google' | 'contrasena'>('contrasena');
+  private metodoElegidoAMano = false;
   protected readonly intento = signal(false);
   protected readonly guardando = signal(false);
   protected readonly errorGuardar = signal<string | null>(null);
@@ -82,6 +84,10 @@ export class Representatives {
   });
 
   // Desactivación
+  // Contraseña temporal y aviso del último envío
+  protected readonly aviso = signal<{ tipo: 'ok' | 'alerta'; texto: string } | null>(null);
+  protected readonly reenviandoId = signal<number | null>(null);
+
   protected readonly porDesactivar = signal<CuentaDTO | null>(null);
   protected readonly desactivando = signal(false);
   protected readonly errorDesactivar = signal<string | null>(null);
@@ -118,6 +124,8 @@ export class Representatives {
   protected abrirNuevo(): void {
     this.nombre.set('');
     this.correo.set('');
+    this.metodoAcceso.set('contrasena');
+    this.metodoElegidoAMano = false;
     this.intento.set(false);
     this.errorGuardar.set(null);
     this.errorCorreoServidor.set(null);
@@ -131,6 +139,14 @@ export class Representatives {
   protected cambiarCorreo(valor: string): void {
     this.correo.set(valor);
     this.errorCorreoServidor.set(null);
+    if (!this.metodoElegidoAMano) {
+      this.metodoAcceso.set(/@(gmail|googlemail)\.com$/i.test(valor.trim()) ? 'google' : 'contrasena');
+    }
+  }
+
+  protected elegirMetodo(evento: Event): void {
+    this.metodoElegidoAMano = true;
+    this.metodoAcceso.set((evento.target as HTMLSelectElement).value as 'google' | 'contrasena');
   }
 
   protected guardar(): void {
@@ -139,13 +155,19 @@ export class Representatives {
 
     this.guardando.set(true);
     this.errorGuardar.set(null);
-    this.api.crear({ nombreCompleto: this.nombre().trim(), correo: this.correo().trim().toLowerCase() }).subscribe({
+    this.api
+      .crear({
+        nombreCompleto: this.nombre().trim(),
+        correo: this.correo().trim().toLowerCase(),
+        ingresaConGoogle: this.metodoAcceso() === 'google',
+      }).subscribe({
       next: (creado) => {
         this.representantes.update((lista) =>
           [...lista, creado].sort((a, b) => a.nombreCompleto.localeCompare(b.nombreCompleto)),
         );
         this.guardando.set(false);
         this.formAbierto.set(false);
+        this.avisarEnvio(creado, 'Representante creado.');
       },
       error: (err: HttpErrorResponse) => {
         this.guardando.set(false);
@@ -161,6 +183,41 @@ export class Representatives {
   }
 
   // --- Desactivación ---
+
+  /** Cuenta si el correo con la contraseña temporal salió o no. */
+  private avisarEnvio(cuenta: CuentaDTO, inicio: string): void {
+    if (cuenta.correoEnviado === null || cuenta.correoEnviado === undefined) {
+      this.aviso.set({
+        tipo: 'ok',
+        texto: `${inicio} No se envió correo: ${cuenta.correo} debe ingresar con el botón de Google.`,
+      });
+      return;
+    }
+    this.aviso.set(
+      cuenta.correoEnviado
+        ? { tipo: 'ok', texto: `${inicio} Se envió la contraseña temporal a ${cuenta.correo}.` }
+        : {
+            tipo: 'alerta',
+            texto: `${inicio} No se pudo enviar el correo a ${cuenta.correo}. Usa «Reenviar contraseña» cuando el correo esté disponible.`,
+          },
+    );
+  }
+
+  protected reenviarContrasena(representante: CuentaDTO): void {
+    this.reenviandoId.set(representante.id);
+    this.aviso.set(null);
+    this.api.reenviarContrasena(representante.id).subscribe({
+      next: (actualizado) => {
+        this.representantes.update((lista) => lista.map((r) => (r.id === actualizado.id ? { ...r, ...actualizado } : r)));
+        this.reenviandoId.set(null);
+        this.avisarEnvio(actualizado, 'Contraseña temporal nueva generada.');
+      },
+      error: () => {
+        this.reenviandoId.set(null);
+        this.aviso.set({ tipo: 'alerta', texto: 'No se pudo reenviar la contraseña temporal. Intenta de nuevo.' });
+      },
+    });
+  }
 
   protected pedirDesactivar(representante: CuentaDTO): void {
     this.errorDesactivar.set(null);

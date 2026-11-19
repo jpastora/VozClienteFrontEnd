@@ -45,7 +45,7 @@ export class ProductDetail {
 
   private readonly cuentaId = computed(() => this.sesion.usuario()?.id ?? CUENTA_ID_PRUEBA);
 
-  protected readonly sesionEmpresaId = computed(() => this.sesion.usuario()?.empresaId ?? null);
+  protected readonly sesionEmpresaId = computed(() => this.sesion.empresaId());
 
   protected readonly producto = signal<ProductoDTO | null>(null);
   protected readonly catalogo = signal<ProductoDTO[]>([]);

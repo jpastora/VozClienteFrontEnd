@@ -1,0 +1,11 @@
+:host { display: block; }
+.vc-co__barra { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--vc-space-4); margin: var(--vc-space-5) 0; }
+.vc-co__search { flex: 1 1 16rem; max-width: 24rem; }
+.vc-co__nuevo { margin-left: auto; }
+.vc-co__aviso { margin: var(--vc-space-3) 0; font-size: var(--vc-text-sm); color: var(--vc-deep-circuit); }
+.vc-co__vacio td { text-align: center; color: var(--vc-muted); font-weight: 400 !important; padding: var(--vc-space-5); }
+.vc-co__msg { color: var(--vc-muted); margin: var(--vc-space-4) 0; }
+.vc-co__msg--error { color: var(--vc-danger); display: flex; align-items: center; gap: var(--vc-space-3); }
+.vc-co__form { display: flex; flex-direction: column; gap: var(--vc-space-4); min-width: min(26rem, 80vw); }
+.vc-co__error { margin: 0; color: var(--vc-danger); font-size: var(--vc-text-sm); }
+.vc-co__botones { display: flex; justify-content: flex-end; gap: var(--vc-space-3); }
