@@ -12,4 +12,6 @@ export interface UsuarioInfo {
   rol: RolInfo;
   /** Nulo para el administrador de la plataforma. */
   empresaId: number | null;
+  /** Verdadero con contraseña temporal: hay que cambiarla antes de usar la aplicación. */
+  debeCambiarContrasena: boolean;
 }

@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { RUTA_APP, RUTAS } from './core/rutas';
-import { autenticadoGuard, invitadoGuard, roleGuard } from './guards/role';
+import { autenticadoGuard, cambioContrasenaGuard, invitadoGuard, roleGuard } from './guards/role';
 import { rutaInicio, SessionService } from './services/session';
 import { Shell } from './shell/shell';
 
@@ -29,6 +29,13 @@ export const routes: Routes = [
     title: 'Ingresar · Voz Cliente',
     canActivate: [invitadoGuard],
     loadComponent: () => import('./auth/auth').then((m) => m.Auth),
+  },
+  // Contraseña temporal: pantalla obligatoria antes de usar la aplicación.
+  {
+    path: 'cambiar-contrasena',
+    title: 'Cambiar contraseña · Voz Cliente',
+    canActivate: [cambioContrasenaGuard],
+    loadComponent: () => import('./cambiar-contrasena/cambiar-contrasena').then((m) => m.CambiarContrasena),
   },
   {
     path: 'publico/:token',
@@ -70,19 +77,19 @@ export const routes: Routes = [
       {
         path: 'productos',
         title: 'Productos',
-        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR')],
         loadComponent: () => import('./products/products').then((m) => m.Products),
       },
       {
         path: 'productos/:id',
         title: 'Detalle de producto',
-        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR')],
         loadComponent: () => import('./product-detail/product-detail').then((m) => m.ProductDetail),
       },
       {
         path: 'representantes',
         title: 'Representantes',
-        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR')],
         loadComponent: () => import('./representatives/representatives').then((m) => m.Representatives),
       },
       {
@@ -94,25 +101,25 @@ export const routes: Routes = [
       {
         path: 'entrevistas',
         title: 'Entrevistas y procesamiento',
-        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR')],
         loadComponent: () => import('./interviews/interviews').then((m) => m.Interviews),
       },
       {
         path: 'entrevistas/:id',
         title: 'Detalle de entrevista',
-        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR')],
         loadComponent: () => import('./interview-detail/interview-detail').then((m) => m.InterviewDetail),
       },
       {
         path: 'analisis',
         title: 'Análisis con IA',
-        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR')],
         loadComponent: () => import('./analysis/analysis').then((m) => m.Analysis),
       },
       {
         path: 'reportes',
         title: 'Estadísticas y reportes',
-        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR')],
+        canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR')],
         loadComponent: () => import('./reports/reports').then((m) => m.Reports),
       },
       {
@@ -121,6 +128,20 @@ export const routes: Routes = [
         canActivate: [roleGuard('CLIENTE_ADMINISTRADOR', 'ADMINISTRADOR')],
         loadComponent: () => import('./packages/packages').then((m) => m.Packages),
       },
+      {
+        path: 'panel-global',
+        title: 'Panel global',
+        canActivate: [roleGuard('ADMINISTRADOR')],
+        loadComponent: () => import('./panel-global/panel-global').then((m) => m.PanelGlobal),
+      },
+      {
+        path: 'empresas',
+        title: 'Empresas',
+        canActivate: [roleGuard('ADMINISTRADOR')],
+        loadComponent: () => import('./companies/companies').then((m) => m.Companies),
+      },
+      // Ruta vacía que usa el menú para volver a crear la pantalla actual al cambiar de empresa.
+      { path: 'recargar', children: [] },
       {
         path: 'admin',
         title: 'Administración',

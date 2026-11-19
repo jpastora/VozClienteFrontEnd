@@ -8,6 +8,23 @@
     }
   </nav>
 
+  @if (esAdministrador()) {
+    <div class="vc-shell__empresa">
+      <label class="vc-shell__empresa-label" for="cmbEmpresaAtendida">Empresa que atiendes</label>
+      <select id="cmbEmpresaAtendida" class="vc-shell__empresa-select" [value]="empresaId() ?? ''" (change)="elegirEmpresa($event)">
+        <option value="">Todas las empresas (vista global)</option>
+        @for (e of empresas(); track e.id) {
+          <option [value]="e.id" [selected]="e.id === empresaId()">{{ e.nombre }}</option>
+        }
+      </select>
+      @if (errorEmpresas()) {
+        <button type="button" class="vc-shell__empresa-reintento" (click)="cargarEmpresas()">
+          No se pudo cargar. Reintentar
+        </button>
+      }
+    </div>
+  }
+
   @if (usuario(); as u) {
     <div class="vc-shell__usuario">
       <p class="vc-shell__nombre">{{ u.nombreCompleto }}</p>
@@ -17,5 +34,18 @@
   }
 </aside>
 <div class="vc-shell__content">
-  <main class="vc-shell__main"><router-outlet /></main>
+  <main class="vc-shell__main">
+    @if (requiereElegirEmpresa()) {
+      <section class="vc-shell__sinempresa" role="status">
+        <h1>Elige una empresa</h1>
+        <p>
+          Este módulo trabaja sobre los datos de una empresa. Elígela en el selector
+          «Empresa que atiendes» del menú lateral; con «Todas las empresas» solo se ven Panel global, Empresas,
+          Usuarios y Paquetes.
+        </p>
+      </section>
+    } @else {
+      <router-outlet />
+    }
+  </main>
 </div>

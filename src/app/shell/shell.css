@@ -56,3 +56,42 @@ nav a.is-active { background: var(--vc-deep-circuit); border-left-color: var(--v
 
 .vc-shell__content { background: var(--vc-paper); min-width: 0; }
 .vc-shell__main { padding: var(--vc-space-4); }
+
+/* Modo soporte: empresa que atiende el administrador de la plataforma */
+.vc-shell__empresa {
+  margin-top: var(--vc-space-4);
+  padding: var(--vc-space-3);
+  border-top: 1px solid rgb(244 244 242 / 15%);
+}
+.vc-shell__empresa-label {
+  display: block;
+  margin-bottom: var(--vc-space-2);
+  font: 400 var(--vc-text-xs) var(--vc-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vc-concrete);
+}
+.vc-shell__empresa-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  font: inherit;
+  color: var(--vc-paper);
+  background: var(--vc-deep-circuit);
+  border: 1px solid var(--vc-paper);
+  border-radius: var(--vc-radius);
+}
+.vc-shell__empresa-select:focus-visible { outline: none; box-shadow: var(--vc-focus); }
+.vc-shell__empresa-reintento {
+  margin-top: var(--vc-space-2);
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--vc-paper);
+  text-decoration: underline;
+  font: inherit;
+  font-size: var(--vc-text-xs);
+  cursor: pointer;
+}
+.vc-shell__sinempresa { max-width: 56ch; }
+.vc-shell__sinempresa p { color: var(--vc-muted); }

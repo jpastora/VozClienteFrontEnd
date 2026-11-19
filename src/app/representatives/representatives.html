@@ -1,6 +1,12 @@
 <h1>Representantes</h1>
 <p class="vc-eyebrow">Equipo que atiende las entrevistas</p>
 
+@if (aviso(); as a) {
+  <p id="msgAvisoRepresentantes" class="vc-reps__nota" [class.vc-reps__nota--alerta]="a.tipo === 'alerta'" role="status">
+    {{ a.texto }}
+  </p>
+}
+
 <section class="vc-reps__filters" aria-label="Filtros">
   <vc-field
     class="vc-reps__search"
@@ -42,7 +48,14 @@
           <td>{{ r.ultimoIngresoEn ? (r.ultimoIngresoEn | date: 'dd/MM/yyyy HH:mm') : 'Aún no ingresa' }}</td>
           <td class="vc-reps__acciones">
             @if (r.estado !== 'INACTIVA') {
+              <div class="vc-reps__botones">
+              @if (!r.googleSub) {
+                <vc-button variant="secondary" [disabled]="reenviandoId() === r.id" (click)="reenviarContrasena(r)">
+                  {{ reenviandoId() === r.id ? 'Enviando…' : 'Reenviar contraseña' }}
+                </vc-button>
+              }
               <vc-button variant="danger" (click)="pedirDesactivar(r)">Desactivar</vc-button>
+              </div>
             } @else {
               <span class="vc-reps__sin-accion">—</span>
             }
@@ -66,18 +79,31 @@
 <vc-dialog [open]="formAbierto()" title="Nuevo representante" (closed)="cerrarForm()">
   <form class="vc-reps__form" (submit)="$event.preventDefault(); guardar()" novalidate>
     <p class="vc-reps__nota">
-      Usa el correo de Google con el que el representante va a ingresar. La cuenta queda pendiente hasta su primer
-      ingreso.
+      La cuenta queda pendiente hasta su primer ingreso.
     </p>
     <vc-field controlId="txtNombreRepresentante" label="Nombre completo *" [(value)]="nombre" [error]="errorNombre()" />
     <vc-field
       controlId="txtCorreoRepresentante"
-      label="Correo de Google *"
+      label="Correo *"
       type="email"
       [value]="correo()"
       (valueChange)="cambiarCorreo($event)"
       [error]="errorCorreo()"
     />
+    <div class="vc-reps__metodo">
+      <label class="vc-reps__label" for="cmbMetodoAccesoRepresentante">Cómo ingresa *</label>
+      <select id="cmbMetodoAccesoRepresentante" class="vc-reps__select" (change)="elegirMetodo($event)">
+        <option value="contrasena" [selected]="metodoAcceso() === 'contrasena'">Contraseña temporal por correo</option>
+        <option value="google" [selected]="metodoAcceso() === 'google'">Con su cuenta de Google (sin contraseña)</option>
+      </select>
+      <p class="vc-reps__nota">
+        @if (metodoAcceso() === 'google') {
+          No se envía correo ni contraseña: entra con el botón de Google usando este correo.
+        } @else {
+          Se envía una contraseña temporal (vence en 7 días y hay que cambiarla al entrar).
+        }
+      </p>
+    </div>
     @if (errorGuardar()) {
       <p class="vc-reps__error" role="alert">{{ errorGuardar() }}</p>
     }

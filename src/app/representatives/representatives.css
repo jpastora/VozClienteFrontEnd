@@ -37,3 +37,9 @@
 .vc-reps__nota { margin: 0; color: var(--vc-muted); font-size: var(--vc-text-sm); max-width: 44ch; }
 .vc-reps__error { margin: 0; color: var(--vc-danger); font-size: var(--vc-text-sm); }
 .vc-reps__botones { display: flex; justify-content: flex-end; gap: var(--vc-space-2); margin-top: var(--vc-space-3); }
+
+.vc-reps__nota--alerta { color: var(--vc-danger); }
+.vc-reps__botones { display: flex; flex-wrap: wrap; gap: var(--vc-space-2); }
+.vc-reps__metodo { display: flex; flex-direction: column; gap: var(--vc-space-2); }
+.vc-reps__label { font-weight: 700; font-size: var(--vc-text-sm); }
+.vc-reps__select { padding: var(--vc-space-2) var(--vc-space-3); border: 1px solid var(--vc-concrete); border-radius: var(--vc-radius); background: var(--vc-white); font: inherit; }

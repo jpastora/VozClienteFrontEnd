@@ -1,0 +1,44 @@
+<main class="vc-cc">
+  <section class="vc-cc__tarjeta" aria-labelledby="ttlCambiarContrasena">
+    <vc-logo tono="claro" />
+    <h1 id="ttlCambiarContrasena">Elige tu contraseña</h1>
+    <p class="vc-cc__texto">
+      Hola, {{ nombre() }}. Entraste con una contraseña temporal. Elige una contraseña propia para continuar.
+    </p>
+
+    @if (errorServidor()) {
+      <p id="msgCambiarContrasena" class="vc-cc__error" role="alert">{{ errorServidor() }}</p>
+    }
+
+    <form class="vc-cc__form" (submit)="$event.preventDefault(); guardar()" novalidate>
+      <vc-field
+        controlId="txtContrasenaTemporal"
+        label="Contraseña temporal"
+        type="password"
+        [(value)]="actual"
+        [error]="errorActual()"
+      />
+      <vc-field
+        controlId="txtContrasenaNueva"
+        label="Contraseña nueva"
+        type="password"
+        [(value)]="nueva"
+        [error]="errorNueva()"
+      />
+      <p class="vc-cc__regla">{{ regla }}</p>
+      <vc-field
+        controlId="txtConfirmarContrasenaNueva"
+        label="Confirmar contraseña nueva"
+        type="password"
+        [(value)]="confirmacion"
+        [error]="errorConfirmacion()"
+      />
+      <div class="vc-cc__botones">
+        <vc-button id="btnGuardarContrasena" type="submit" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando…' : 'Guardar y continuar' }}
+        </vc-button>
+        <button id="btnSalirCambioContrasena" type="button" class="vc-cc__salir" (click)="salir()">Salir</button>
+      </div>
+    </form>
+  </section>
+</main>

@@ -1,0 +1,69 @@
+<h1>Panel global</h1>
+<p class="vc-eyebrow">Ingresos y estadísticas de todas las empresas</p>
+
+@if (cargando()) {
+  <p class="vc-pg__msg" role="status">Cargando panel…</p>
+} @else if (error()) {
+  <div class="vc-pg__msg vc-pg__msg--error" role="alert">
+    {{ error() }}
+    <vc-button variant="secondary" (click)="cargar()">Reintentar</vc-button>
+  </div>
+} @else if (panel(); as p) {
+  <section class="vc-pg__metricas" aria-label="Indicadores">
+    <vc-metric-card label="Ingresos (compras aprobadas)" [value]="(p.ingresosTotales | currency: 'USD' : 'symbol' : '1.2-2') ?? '—'" />
+    <vc-metric-card label="Compras aprobadas" [value]="p.comprasAprobadas" />
+    <vc-metric-card label="Empresas" [value]="p.totalEmpresas" />
+    <vc-metric-card label="Entrevistas" [value]="p.totalEntrevistas" />
+  </section>
+
+  <div class="vc-pg__columnas">
+    <section class="vc-pg__bloque" aria-labelledby="ttlEntrevistasEstado">
+      <h2 id="ttlEntrevistasEstado">Entrevistas por estado</h2>
+      @for (f of entrevistasPorEstado(); track f.clave) {
+        <div class="vc-pg__fila">
+          <span>{{ f.etiqueta }}</span>
+          <span class="vc-pg__barra"><span class="vc-pg__relleno" [style.width.%]="f.porcentaje"></span></span>
+          <span class="vc-pg__cifra">{{ f.cantidad | number }} ({{ f.porcentaje }}%)</span>
+        </div>
+      } @empty {
+        <p class="vc-pg__vacio">Aún no hay entrevistas.</p>
+      }
+    </section>
+
+    <section class="vc-pg__bloque" aria-labelledby="ttlIntencionGlobal">
+      <h2 id="ttlIntencionGlobal">Intención de compra global</h2>
+      @for (f of intencion(); track f.clave) {
+        <div class="vc-pg__fila">
+          <span>{{ f.etiqueta }}</span>
+          <span class="vc-pg__barra"><span class="vc-pg__relleno" [style.width.%]="f.porcentaje"></span></span>
+          <span class="vc-pg__cifra">{{ f.cantidad | number }} ({{ f.porcentaje }}%)</span>
+        </div>
+      } @empty {
+        <p class="vc-pg__vacio">Aún no hay análisis completados.</p>
+      }
+    </section>
+  </div>
+
+  <section class="vc-pg__bloque" aria-labelledby="ttlClientesPrincipales">
+    <h2 id="ttlClientesPrincipales">Clientes principales</h2>
+    <table class="vc-table">
+      <thead>
+        <tr><th>Empresa</th><th>Ingresos</th><th></th><th>Entrevistas</th></tr>
+      </thead>
+      <tbody>
+        @for (c of p.clientesPrincipales; track c.empresaId) {
+          <tr>
+            <td>{{ c.nombre }}</td>
+            <td>{{ c.ingresos | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+            <td class="vc-pg__celda-barra">
+              <span class="vc-pg__barra"><span class="vc-pg__relleno" [style.width.%]="anchoBarra(c.ingresos)"></span></span>
+            </td>
+            <td>{{ c.entrevistas | number }}</td>
+          </tr>
+        } @empty {
+          <tr class="vc-pg__vacio"><td colspan="4">Aún no hay empresas.</td></tr>
+        }
+      </tbody>
+    </table>
+  </section>
+}

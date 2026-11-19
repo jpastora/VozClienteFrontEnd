@@ -9,10 +9,25 @@ import { rutaInicio, SessionService } from '../services/session';
  * Solo ordena la navegación: el back-end sigue siendo quien autoriza (RNF-01).
  */
 export const autenticadoGuard: CanActivateFn = () => {
-  if (inject(SessionService).autenticado()) {
-    return true;
+  const usuario = inject(SessionService).usuario();
+  if (!usuario) {
+    return inject(Router).createUrlTree([RUTAS.ingreso]);
   }
-  return inject(Router).createUrlTree([RUTAS.ingreso]);
+  // Con contraseña temporal no se usa nada más hasta cambiarla.
+  if (usuario.debeCambiarContrasena) {
+    return inject(Router).createUrlTree([RUTAS.cambiarContrasena]);
+  }
+  return true;
+};
+
+/** Pantalla de cambio de contraseña: solo con sesión y mientras la contraseña sea temporal. */
+export const cambioContrasenaGuard: CanActivateFn = () => {
+  const usuario = inject(SessionService).usuario();
+  const router = inject(Router);
+  if (!usuario) {
+    return router.createUrlTree([RUTAS.ingreso]);
+  }
+  return usuario.debeCambiarContrasena ? true : router.parseUrl(rutaInicio(usuario.rol));
 };
 
 /**
@@ -30,6 +45,9 @@ export const roleGuard =
     if (!usuario) {
       return router.createUrlTree([RUTAS.ingreso]);
     }
+    if (usuario.debeCambiarContrasena) {
+      return router.createUrlTree([RUTAS.cambiarContrasena]);
+    }
     if (roles.includes(usuario.rol)) {
       return true;
     }
@@ -39,5 +57,8 @@ export const roleGuard =
 /** La pantalla de ingreso solo se muestra sin sesión; con sesión lleva al inicio del perfil. */
 export const invitadoGuard: CanActivateFn = () => {
   const usuario = inject(SessionService).usuario();
-  return usuario ? inject(Router).parseUrl(rutaInicio(usuario.rol)) : true;
+  if (!usuario) {
+    return true;
+  }
+  return inject(Router).parseUrl(usuario.debeCambiarContrasena ? RUTAS.cambiarContrasena : rutaInicio(usuario.rol));
 };
