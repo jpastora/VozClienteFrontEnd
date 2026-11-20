@@ -1,7 +1,18 @@
 :host { display: block; }
 
-.vc-pkg__saldo { display: flex; align-items: flex-end; gap: var(--vc-space-3); margin: var(--vc-space-3) 0 var(--vc-space-4); }
-.vc-pkg__saldo vc-metric-card { min-width: 220px; }
+.vc-pkg__saldo { display: flex; flex-direction: column; gap: var(--vc-space-3); margin: var(--vc-space-3) 0 var(--vc-space-4); }
+.vc-pkg__metricas { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--vc-space-3); }
+.vc-pkg__aviso {
+  margin: 0;
+  padding: var(--vc-space-3) var(--vc-space-4);
+  border: 1px solid var(--vc-warning);
+  border-radius: var(--vc-radius);
+  background: var(--vc-white);
+}
+.vc-pkg__oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.vc-pkg__tarjeta { display: flex; flex-direction: column; gap: var(--vc-space-3); }
+.vc-pkg__fila { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--vc-space-3); }
+.vc-pkg__fila > * { min-width: 0; }
 .vc-pkg__nota { margin: 0; color: var(--vc-muted); font-size: var(--vc-text-sm); }
 
 /* Tarjetas con la misma estructura del home, en tema claro; la recomendada lleva filete Filament de 4 px. */
