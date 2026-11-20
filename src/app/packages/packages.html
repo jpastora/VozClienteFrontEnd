@@ -22,10 +22,6 @@
         <vc-metric-card label="Enlaces vigentes sin usar" [value]="s.reservadas" />
         <vc-metric-card label="Salas consumidas" [value]="s.consumidas" />
       </div>
-      <p class="vc-pkg__nota">
-        Se descuenta una sala cuando la entrevista termina con una grabación correcta. Los enlaces vigentes
-        apartan una sala hasta que se usan, vencen o se eliminan.
-      </p>
       @if (s.disponibles === 0) {
         <p class="vc-pkg__aviso" role="status">
           No tienes salas disponibles para generar enlaces nuevos. Compra un paquete para seguir entrevistando.
@@ -154,10 +150,6 @@
       <p>
         Vas a comprar <strong>{{ p.nombre }}</strong>: {{ p.cantidadSalas }} salas por
         <strong>{{ p.precio | number: '1.2-2' }}</strong>.
-      </p>
-      <p class="vc-pkg__nota">
-        Pago simulado: no se realiza ningún cobro real y los datos de la tarjeta no se guardan.
-        Usa la tarjeta de prueba <strong>{{ tarjetaPrueba }}</strong> con cualquier vencimiento futuro y CVV.
       </p>
       <form class="vc-pkg__tarjeta" (submit)="$event.preventDefault(); confirmar()" novalidate>
         <vc-field controlId="txtTitularTarjeta" label="Nombre del titular" [(value)]="titular" [error]="errorTitular()" />

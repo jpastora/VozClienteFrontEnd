@@ -21,9 +21,6 @@ function nuevaClave(): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-/** Tarjeta de prueba que el pago simulado aprueba; se muestra como ayuda en el formulario. */
-const TARJETA_PRUEBA = '4242 4242 4242 4242';
-
 const PATRON_TITULAR = /^\p{L}+( \p{L}+)*$/u;
 const PATRON_VENCIMIENTO = /^(0[1-9]|1[0-2])\/(\d{2})$/;
 
@@ -112,7 +109,6 @@ export class Packages {
   private claveCompra = '';
 
   // Datos de la tarjeta de prueba (pago simulado)
-  protected readonly tarjetaPrueba = TARJETA_PRUEBA;
   protected readonly titular = signal('');
   protected readonly numeroTarjeta = signal('');
   protected readonly vencimiento = signal('');
@@ -132,7 +128,7 @@ export class Packages {
     if (!this.intento()) return null;
     const numero = this.numeroTarjeta().replace(/[\s-]/g, '');
     if (!/^\d{16}$/.test(numero) || !cumpleLuhn(numero)) {
-      return `Número no válido. Usa la tarjeta de prueba ${TARJETA_PRUEBA}.`;
+      return 'El número de tarjeta no es válido.';
     }
     return null;
   });
