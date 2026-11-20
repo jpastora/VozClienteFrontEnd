@@ -267,17 +267,42 @@ export interface CompraDTO {
 }
 
 /**
- * Lo que envía el front al comprar. El back-end reemplaza `monto` y `salasAcreditadas` con los
- * valores reales del paquete, así que no se mandan.
+ * Lo que envía el front al comprar (POST /api/compras, RF-18). La empresa y la cuenta salen de la
+ * sesión, y el monto, las salas y el estado del pago los decide el back-end con el pago simulado.
+ * Los datos de la tarjeta de prueba no se guardan: solo los últimos 4 dígitos quedan en la referencia.
  */
 export interface CompraRequest {
-  empresaId: number;
   paqueteId: number;
-  cuentaId: number;
-  estadoPago: EstadoPago;
-  referenciaPago: string;
   claveIdempotencia: string;
+  titular: string;
+  numeroTarjeta: string;
+  /** MM/AA */
+  vencimiento: string;
+  cvv: string;
+}
 
+/** Espejo de SaldoSalasDTO del back-end (GET /api/saldo). */
+export interface SaldoSalasDTO {
+  empresaId: number;
+  /** Salas de las compras con pago aprobado. */
+  acreditadas: number;
+  /** Salas cuya llamada terminó con una grabación correcta. */
+  consumidas: number;
+  /** Enlaces vigentes todavía sin usar. */
+  reservadas: number;
+  /** acreditadas − consumidas. */
+  saldo: number;
+  /** Salas que todavía se pueden usar para generar enlaces nuevos. */
+  disponibles: number;
+}
+
+/** Espejo de ConsumoSalaDTO del back-end (GET /api/saldo/consumos). */
+export interface ConsumoSalaDTO {
+  salaId: number;
+  productoId: number;
+  producto: string;
+  nombreConsumidor: string | null;
+  consumidaEn: string;
 }
 
 // ============================================
