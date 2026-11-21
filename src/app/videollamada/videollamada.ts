@@ -16,7 +16,12 @@ import { FormsModule } from '@angular/forms';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { GUIA_SUGERIDA, SEGUNDOS_REINTENTO } from '../core/config';
+import {
+  GUIA_SUGERIDA,
+  MINUTOS_MAX_GRABACION,
+  SEGUNDOS_AVISO_LIMITE,
+  SEGUNDOS_REINTENTO,
+} from '../core/config';
 import { EntrevistaApi } from '../core/entrevista-api';
 import { GrabacionApi } from '../core/grabacion-api';
 import { GuiaApi } from '../core/guia-api';
@@ -78,6 +83,20 @@ export class Videollamada implements OnInit, OnDestroy {
   protected nombreRemoto = signal('');
   protected hora = signal(this.formatoHora());
   protected segundos = signal(SEGUNDOS_REINTENTO);
+
+  // Límite de grabación
+  private readonly segundosMaximos = MINUTOS_MAX_GRABACION * 60;
+  protected restante = signal(this.segundosMaximos);
+  protected limiteAlcanzado = signal(false);
+  protected readonly minutosMaximos = MINUTOS_MAX_GRABACION;
+  /** Faltan menos de SEGUNDOS_AVISO_LIMITE segundos y todavía no se llegó al tope. */
+  protected porTerminar = computed(
+    () => !this.limiteAlcanzado() && this.restante() <= SEGUNDOS_AVISO_LIMITE,
+  );
+  protected textoRestante = computed(() => {
+    const r = this.restante();
+    return `${String(Math.floor(r / 60)).padStart(2, '0')}:${String(r % 60).padStart(2, '0')}`;
+  });
   protected reintentando = computed(
     () => this.rtc.estado() === 'inestable' || this.rtc.estado() === 'fallido',
   );
@@ -114,6 +133,8 @@ export class Videollamada implements OnInit, OnDestroy {
   private terminando = false;
   private relojId?: ReturnType<typeof setInterval>;
   private cuentaId?: ReturnType<typeof setInterval>;
+  private limiteId?: ReturnType<typeof setInterval>;
+  private inicioLimiteMs?: number;
   private productoApi = inject(ProductoApi);
 
   constructor() {
@@ -147,6 +168,15 @@ export class Videollamada implements OnInit, OnDestroy {
           this.aceptacionRegistrada = true;
           void this.registrarAceptacion();
         }
+      });
+    });
+
+    // Tiempo máximo de grabación: arranca cuando los dos quedan conectados (mismo momento en que
+    // el representante empieza a grabar). Ambos ven la cuenta; solo el representante cierra la llamada.
+    effect(() => {
+      const estado = this.rtc.estado();
+      untracked(() => {
+        if (estado === 'conectado' && this.inicioLimiteMs === undefined) this.iniciarLimite();
       });
     });
 
@@ -328,6 +358,7 @@ export class Videollamada implements OnInit, OnDestroy {
           if (m.candidato && m.sesion) await this.rtc.recibirIce(m.candidato, m.sesion);
           break;
         case 'leave':
+          if (m.motivo === 'limite') this.limiteAlcanzado.set(true);
           await this.terminar({ parcial: false, notificar: false });
           break;
       }
@@ -350,12 +381,16 @@ export class Videollamada implements OnInit, OnDestroy {
     this.rtc.alternarCamara();
   }
 
-  private async terminar(opts: { parcial: boolean; notificar: boolean }): Promise<void> {
+  private async terminar(opts: { parcial: boolean; notificar: boolean; limite?: boolean }): Promise<void> {
     if (this.terminando) return;
     this.terminando = true;
     this.detenerCuenta();
+    this.detenerLimite();
+    if (opts.limite) this.limiteAlcanzado.set(true);
 
-    if (opts.notificar) this.signaling.enviar({ tipo: 'leave', de: this.rol });
+    if (opts.notificar) {
+      this.signaling.enviar({ tipo: 'leave', de: this.rol, ...(opts.limite ? { motivo: 'limite' as const } : {}) });
+    }
 
     // Primero se cierran los grabadores (mientras las pistas siguen vivas) y luego la conexión.
     // Lo grabado hasta aquí queda en la cola de envío; se vacía en `subir()`.
@@ -373,7 +408,9 @@ export class Videollamada implements OnInit, OnDestroy {
       void this.subir(this.parcial ? ESPERA_VACIADO_PARCIAL_MS : ESPERA_VACIADO_MS);
     } else {
       this.resumenFinal.set(
-        opts.parcial ? 'Se perdió la conexión con la otra persona.' : 'La llamada ha finalizado.',
+        this.limiteAlcanzado()
+          ? this.mensajeLimite()
+          : opts.parcial ? 'Se perdió la conexión con la otra persona.' : 'La llamada ha finalizado.',
       );
       this.fase.set('finalizada');
     }
@@ -415,9 +452,11 @@ export class Videollamada implements OnInit, OnDestroy {
       );
       this.grabacion.set(g);
       this.resumenFinal.set(
-        this.parcial
-          ? 'La llamada terminó antes de tiempo. La grabación parcial quedó guardada.'
-          : 'La llamada finalizó y la grabación quedó guardada.',
+        this.limiteAlcanzado()
+          ? `${this.mensajeLimite()} La grabación quedó guardada y se transcribirá automáticamente.`
+          : this.parcial
+            ? 'La llamada terminó antes de tiempo. La grabación parcial quedó guardada y se transcribirá automáticamente.'
+            : 'La llamada finalizó y la grabación quedó guardada. La transcripción se generará automáticamente.',
       );
       this.fase.set('finalizada');
     } catch (e) {
@@ -467,6 +506,33 @@ export class Videollamada implements OnInit, OnDestroy {
     setTimeout(() => URL.revokeObjectURL(url), 10_000);
   }
 
+  // ---------- Límite de grabación ----------
+
+  private iniciarLimite(): void {
+    this.inicioLimiteMs = Date.now();
+    // Se calcula con la hora real (no restando 1 por tick): los navegadores frenan los timers en pestañas ocultas.
+    this.limiteId = setInterval(() => {
+      const transcurridos = Math.floor((Date.now() - (this.inicioLimiteMs ?? Date.now())) / 1000);
+      const resta = Math.max(0, this.segundosMaximos - transcurridos);
+      this.restante.set(resta);
+      if (resta === 0) {
+        this.detenerLimite();
+        this.limiteAlcanzado.set(true);
+        // Solo el representante cierra; el consumidor se entera por el mensaje 'leave' (motivo 'limite').
+        if (this.esRep) void this.terminar({ parcial: false, notificar: true, limite: true });
+      }
+    }, 1000);
+  }
+
+  private detenerLimite(): void {
+    if (this.limiteId) clearInterval(this.limiteId);
+    this.limiteId = undefined;
+  }
+
+  private mensajeLimite(): string {
+    return `Se alcanzó el límite de grabación de ${MINUTOS_MAX_GRABACION} minutos y la llamada se cerró.`;
+  }
+
   // ---------- Reintento de conexión ----------
 
   private iniciarCuenta(): void {
@@ -507,6 +573,7 @@ export class Videollamada implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     clearInterval(this.relojId);
     this.detenerCuenta();
+    this.detenerLimite();
     this.rec.cancelar();
     this.limpiarRecursos();
   }
