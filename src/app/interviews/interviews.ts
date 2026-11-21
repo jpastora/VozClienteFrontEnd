@@ -1,5 +1,6 @@
 import {
   Component,
+  OnDestroy,
   OnInit,
   computed,
   inject,
@@ -34,7 +35,7 @@ interface ProductoFiltro {
   templateUrl: './interviews.html',
   styleUrl: './interviews.css'
 })
-export class Interviews implements OnInit {
+export class Interviews implements OnInit, OnDestroy {
 
   private readonly entrevistaApi = inject(EntrevistaApi);
   private readonly http = inject(HttpClient);
@@ -85,6 +86,35 @@ export class Interviews implements OnInit {
   ngOnInit(): void {
     this.cargarProductos();
     this.cargarEntrevistas();
+  }
+
+  ngOnDestroy(): void {
+    this.detenerRefresco();
+  }
+
+  // ============================================
+  // REFRESCO AUTOMÁTICO DE TRANSCRIPCIONES
+  // ============================================
+  // El backend transcribe solo al cerrarse la grabación, una a la vez. Mientras haya filas
+  // PENDIENTE (en cola) o EN_PROCESO se recarga la lista cada 5 s, sin parpadeo, hasta que terminen.
+
+  private temporizadorRefresco: ReturnType<typeof setTimeout> | undefined;
+
+  private detenerRefresco(): void {
+    if (this.temporizadorRefresco !== undefined) {
+      clearTimeout(this.temporizadorRefresco);
+      this.temporizadorRefresco = undefined;
+    }
+  }
+
+  private programarRefrescoSiHayPendientes(): void {
+    this.detenerRefresco();
+    const hayPendientes = this.entrevistas().some(
+      e => e.estadoTranscripcion === 'PENDIENTE' || e.estadoTranscripcion === 'EN_PROCESO'
+    );
+    if (hayPendientes) {
+      this.temporizadorRefresco = setTimeout(() => this.cargarEntrevistas(true), 5000);
+    }
   }
 
   // ============================================
@@ -146,7 +176,9 @@ export class Interviews implements OnInit {
   // CARGAR ENTREVISTAS
   // ============================================
 
-  protected cargarEntrevistas(): void {
+  protected cargarEntrevistas(silencioso = false): void {
+
+    this.detenerRefresco();
 
     const paginaBackend = this.paginaActual() - 1;
 
@@ -155,8 +187,10 @@ export class Interviews implements OnInit {
         ? undefined
         : Number(this.filtroProducto());
 
-    this.cargando.set(true);
-    this.error.set(null);
+    if (!silencioso) {
+      this.cargando.set(true);
+      this.error.set(null);
+    }
 
     this.entrevistaApi
       .listarDetalladas(
@@ -164,7 +198,9 @@ export class Interviews implements OnInit {
         productoId
       )
       .pipe(
-        finalize(() => this.cargando.set(false))
+        finalize(() => {
+          if (!silencioso) this.cargando.set(false);
+        })
       )
       .subscribe({
         next: (
@@ -180,8 +216,16 @@ export class Interviews implements OnInit {
           this.totalPaginasBackend.set(
             respuesta.totalPages ?? 0
           );
+
+          this.programarRefrescoSiHayPendientes();
         },
         error: (err: HttpErrorResponse) => {
+
+          // Un fallo del refresco silencioso no borra la tabla ni muestra error: se reintenta.
+          if (silencioso) {
+            this.temporizadorRefresco = setTimeout(() => this.cargarEntrevistas(true), 10000);
+            return;
+          }
 
           this.entrevistas.set([]);
           this.totalElementosBackend.set(0);

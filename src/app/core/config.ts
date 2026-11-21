@@ -33,6 +33,17 @@ export const ICE_SERVERS: RTCIceServer[] = [
 /** Segundos que se reintenta la conexión antes de dar la llamada por perdida. */
 export const SEGUNDOS_REINTENTO = 30;
 
+/**
+ * Duración máxima de la grabación (minutos), contada desde que ambos están conectados.
+ * Cada canal del consumidor (audio + video) pesa ~10-20 MB por minuto y el servidor acepta hasta
+ * 200 MB por archivo, así que 10 min es el tope seguro. Con 20 min habría que bajar el bitrate de
+ * video (recorder.service.ts) o subir el límite del servidor (GrabacionService.MAX_BYTES).
+ */
+export const MINUTOS_MAX_GRABACION = 10;
+
+/** Segundos antes del límite en que se avisa a ambos de que la grabación está por terminar. */
+export const SEGUNDOS_AVISO_LIMITE = 60;
+
 /** Preguntas guía que ve el representante durante la llamada. */
 export const GUIA_SUGERIDA: string[] = [
   '¿Cómo fue su experiencia con el producto?',

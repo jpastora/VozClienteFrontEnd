@@ -35,6 +35,9 @@
           }
         }
       }
+      @if (fase() === 'llamada' && rtc.estado() === 'conectado') {
+        <span class="reloj" title="Tiempo restante de grabación">⏱ {{ textoRestante() }}</span>
+      }
       <span class="reloj">{{ hora() }}</span>
     </div>
   </header>
@@ -134,6 +137,18 @@
               <p class="aviso">
                 Esta conversación se está grabando con tu consentimiento. Habla con naturalidad; puedes finalizar la llamada cuando quieras.
               </p>
+            </div>
+          }
+
+          @if (limiteAlcanzado()) {
+            <div class="alerta" role="alert">
+              <b>!</b>
+              <span>Llegaste al límite de grabación ({{ minutosMaximos }} minutos). Cerrando la llamada…</span>
+            </div>
+          } @else if (porTerminar()) {
+            <div class="alerta" role="alert">
+              <b>!</b>
+              <span>La grabación llegará a su límite de {{ minutosMaximos }} minutos en {{ restante() }} s.</span>
             </div>
           }
 

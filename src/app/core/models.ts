@@ -53,6 +53,7 @@ export interface SenalMensaje {
   sesion?: string;
   sdp?: string;
   candidato?: RTCIceCandidateInit;
+  motivo?: 'limite';
 }
 
 export type EstadoConexion =
