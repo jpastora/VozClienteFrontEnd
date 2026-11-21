@@ -4,9 +4,11 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { Badge } from '../badge/badge';
 import { Button } from '../button/button';
 import { CompraApi } from '../core/compra-api';
-import { CompraDTO, PaqueteDTO } from '../core/models';
+import { CompraDTO, ConsumoSalaDTO, PaqueteDTO, SaldoSalasDTO } from '../core/models';
 import { PaqueteApi } from '../core/paquete-api';
+import { SaldoApi } from '../core/saldo-api';
 import { Dialog } from '../dialog/dialog';
+import { Field } from '../field/field';
 import { MetricCard } from '../metric-card/metric-card';
 import { SessionService } from '../services/session';
 
@@ -19,6 +21,25 @@ function nuevaClave(): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
+const PATRON_TITULAR = /^\p{L}+( \p{L}+)*$/u;
+const PATRON_VENCIMIENTO = /^(0[1-9]|1[0-2])\/(\d{2})$/;
+
+/** Dígito verificador de las tarjetas (algoritmo de Luhn), igual que en el back-end. */
+function cumpleLuhn(numero: string): boolean {
+  let suma = 0;
+  let duplicar = false;
+  for (let i = numero.length - 1; i >= 0; i--) {
+    let digito = Number(numero[i]);
+    if (duplicar) {
+      digito *= 2;
+      if (digito > 9) digito -= 9;
+    }
+    suma += digito;
+    duplicar = !duplicar;
+  }
+  return suma % 10 === 0;
+}
+
 /** Paquete con los datos derivados que muestra la tarjeta. */
 interface PaqueteVista extends PaqueteDTO {
   precioPorSala: number;
@@ -27,7 +48,7 @@ interface PaqueteVista extends PaqueteDTO {
 
 /** Catálogo de paquetes, pago simulado, saldo e historial de compras (RF-17, RF-18). */
 @Component({
-  imports: [Badge, Button, CurrencyPipe, DatePipe, DecimalPipe, Dialog, MetricCard],
+  imports: [Badge, Button, CurrencyPipe, DatePipe, DecimalPipe, Dialog, Field, MetricCard],
   selector: 'vc-packages',
   styleUrl: './packages.css',
   templateUrl: './packages.html',
@@ -35,6 +56,7 @@ interface PaqueteVista extends PaqueteDTO {
 export class Packages {
   private readonly paqueteApi = inject(PaqueteApi);
   private readonly compraApi = inject(CompraApi);
+  private readonly saldoApi = inject(SaldoApi);
   private readonly sesion = inject(SessionService);
 
   private readonly usuario = this.sesion.usuario;
@@ -61,6 +83,12 @@ export class Packages {
     }));
   });
 
+  // Saldo e historial de consumo (RF-18)
+  protected readonly saldo = signal<SaldoSalasDTO | null>(null);
+  protected readonly errorSaldo = signal<string | null>(null);
+  protected readonly consumos = signal<ConsumoSalaDTO[]>([]);
+  protected readonly errorConsumos = signal<string | null>(null);
+
   // Historial
   protected readonly compras = signal<CompraDTO[]>([]);
   protected readonly cargandoCompras = signal(false);
@@ -80,9 +108,67 @@ export class Packages {
   protected readonly compraExitosa = signal<CompraDTO | null>(null);
   private claveCompra = '';
 
+  // Datos de la tarjeta de prueba (pago simulado)
+  protected readonly titular = signal('');
+  protected readonly numeroTarjeta = signal('');
+  protected readonly vencimiento = signal('');
+  protected readonly cvv = signal('');
+  private readonly intento = signal(false);
+
+  protected readonly errorTitular = computed(() => {
+    if (!this.intento()) return null;
+    const valor = this.titular().trim().replace(/\s+/g, ' ');
+    if (valor.length < 2 || valor.length > 100 || !PATRON_TITULAR.test(valor)) {
+      return 'Escribe el nombre como aparece en la tarjeta (solo letras).';
+    }
+    return null;
+  });
+
+  protected readonly errorNumero = computed(() => {
+    if (!this.intento()) return null;
+    const numero = this.numeroTarjeta().replace(/[\s-]/g, '');
+    if (!/^\d{16}$/.test(numero) || !cumpleLuhn(numero)) {
+      return 'El número de tarjeta no es válido.';
+    }
+    return null;
+  });
+
+  protected readonly errorVencimiento = computed(() => {
+    if (!this.intento()) return null;
+    const m = PATRON_VENCIMIENTO.exec(this.vencimiento().trim());
+    if (!m) return 'Usa el formato MM/AA, por ejemplo 12/28.';
+    const hoy = new Date();
+    const anio = 2000 + Number(m[2]);
+    const mes = Number(m[1]);
+    if (anio < hoy.getFullYear() || (anio === hoy.getFullYear() && mes < hoy.getMonth() + 1)) {
+      return 'La tarjeta está vencida.';
+    }
+    return null;
+  });
+
+  protected readonly errorCvv = computed(() => {
+    if (!this.intento()) return null;
+    return /^\d{3}$/.test(this.cvv().trim()) ? null : 'El CVV tiene 3 dígitos.';
+  });
+
   constructor() {
     this.cargarPaquetes();
     this.cargarCompras();
+    this.cargarSaldo();
+  }
+
+  protected cargarSaldo(): void {
+    if (!this.puedeComprar()) return;
+    this.errorSaldo.set(null);
+    this.saldoApi.obtener().subscribe({
+      next: (saldo) => this.saldo.set(saldo),
+      error: () => this.errorSaldo.set('No se pudo cargar el saldo de salas.'),
+    });
+    this.errorConsumos.set(null);
+    this.saldoApi.consumos().subscribe({
+      next: (lista) => this.consumos.set(lista),
+      error: () => this.errorConsumos.set('No se pudo cargar el historial de consumo.'),
+    });
   }
 
   protected cargarPaquetes(): void {
@@ -121,6 +207,11 @@ export class Packages {
     this.claveCompra = nuevaClave();
     this.errorCompra.set(null);
     this.compraExitosa.set(null);
+    this.intento.set(false);
+    this.titular.set('');
+    this.numeroTarjeta.set('');
+    this.vencimiento.set('');
+    this.cvv.set('');
     this.elegido.set(paquete);
   }
 
@@ -131,26 +222,41 @@ export class Packages {
   /** Registra la compra con pago simulado: no se realiza ningún cobro real. */
   protected confirmar(): void {
     const paquete = this.elegido();
-    const u = this.usuario();
-    if (!paquete || !u || u.empresaId === null) return;
+    if (!paquete || !this.puedeComprar()) return;
+
+    this.intento.set(true);
+    if (this.errorTitular() || this.errorNumero() || this.errorVencimiento() || this.errorCvv()) return;
 
     this.comprando.set(true);
     this.errorCompra.set(null);
     this.compraApi
       .crear({
-        empresaId: u.empresaId,
-        cuentaId: u.id,
         paqueteId: paquete.id,
-        estadoPago: 'APROBADO',
-        referenciaPago: `SIMULADO-${this.claveCompra.slice(0, 8).toUpperCase()}`,
         claveIdempotencia: this.claveCompra,
+        titular: this.titular().trim(),
+        numeroTarjeta: this.numeroTarjeta().replace(/[\s-]/g, ''),
+        vencimiento: this.vencimiento().trim(),
+        cvv: this.cvv().trim(),
       })
       .subscribe({
         next: (compra) => {
-          this.compras.update((lista) => [compra, ...lista]);
-          this.compraExitosa.set(compra);
           this.comprando.set(false);
+          this.compras.update((lista) => [compra, ...lista.filter((c) => c.id !== compra.id)]);
+          // El CVV no se conserva en pantalla después de enviarlo.
+          this.cvv.set('');
+          this.intento.set(false);
+          if (compra.estadoPago === 'RECHAZADO') {
+            // Otro intento es otra compra: nueva clave de idempotencia.
+            this.claveCompra = nuevaClave();
+            const motivo = compra.referenciaPago?.split(' · ')[2];
+            this.errorCompra.set(
+              `El pago simulado fue rechazado${motivo ? `: ${motivo}` : ''}. No se acreditaron salas; prueba con otra tarjeta.`,
+            );
+            return;
+          }
+          this.compraExitosa.set(compra);
           this.elegido.set(null);
+          this.cargarSaldo();
         },
         error: (err: HttpErrorResponse) => {
           this.comprando.set(false);

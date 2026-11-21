@@ -124,30 +124,109 @@ export interface CuentaDTO {
   empresaId?: number | null;
   nombreCompleto: string;
   correo?: string;
+  /** Distinto de nulo si la cuenta ya está vinculada a Google (no usa contraseña). */
+  googleSub?: string | null;
 
   rol: 'ADMINISTRADOR' | 'CLIENTE_ADMINISTRADOR' | 'REPRESENTANTE' | string;
   estado?: 'PENDIENTE' | 'ACTIVA' | 'INACTIVA' | string;
   ultimoIngresoEn?: string | null;
   version?: number;
   creadoEn?: string;
+  /** Solo al crear un representante o reenviar su contraseña: si el correo salió; nulo en el resto. */
+  correoEnviado?: boolean | null;
 }
 
 /** Espejo de CrearRepresentanteDTO: lo único que el back-end acepta al registrar un representante. */
 export interface CrearRepresentanteRequest {
   nombreCompleto: string;
   correo: string;
+  /** Verdadero si ingresará con Google: no se genera contraseña ni se envía correo. */
+  ingresaConGoogle?: boolean;
 }
 
-/** Espejo de CrearAdministradorDTO: alta de una cuenta de cliente-administrador (POST /api/cuentas). */
+/** Espejo de CrearCuentaDTO: alta de una cuenta con cualquier rol (POST /api/cuentas). */
 export interface CrearCuentaRequest {
   nombreCompleto: string;
   correo: string;
+  rol: RolCuentaApi;
+  /** Obligatoria salvo para ADMINISTRADOR (el back-end la ignora). */
+  empresaId?: number | null;
+  /** Verdadero si ingresará con Google: no se genera contraseña ni se envía correo. */
+  ingresaConGoogle?: boolean;
+}
+
+export type RolCuentaApi = 'ADMINISTRADOR' | 'CLIENTE_ADMINISTRADOR' | 'REPRESENTANTE';
+
+/** Espejo de CuentaGlobalDTO: cuenta tal como la ve el administrador de la plataforma. */
+export interface CuentaGlobalDTO {
+  id: number;
+  empresaId: number | null;
+  empresaNombre: string | null;
+  nombreCompleto: string;
+  correo: string;
+  rol: RolCuentaApi;
+  estado: 'PENDIENTE' | 'ACTIVA' | 'INACTIVA';
+  ultimoIngresoEn: string | null;
+  version: number;
+  creadoEn: string;
+  actualizadoEn: string;
+  /** Verdadero si todavía no cambió la contraseña temporal. */
+  contrasenaTemporalPendiente: boolean;
+  /** Solo al crear o reenviar: si el correo salió; nulo en el resto. */
+  /** Verdadero si la cuenta ya está vinculada a Google: no usa contraseña. */
+  ingresaConGoogle: boolean;
+  correoEnviado: boolean | null;
 }
 
 /** Espejo de CambiarRolRequestDTO: la versión evita pisar un cambio hecho por otra persona. */
 export interface CambiarRolRequest {
-  nuevoRol: 'ADMINISTRADOR' | 'CLIENTE_ADMINISTRADOR' | 'REPRESENTANTE';
+  nuevoRol: RolCuentaApi;
   version: number;
+  /** Obligatoria al pasar un ADMINISTRADOR a otro rol. */
+  empresaId?: number | null;
+}
+
+/** Espejo de CambiarEstadoRequestDTO. */
+export interface CambiarEstadoRequest {
+  activa: boolean;
+  version: number;
+}
+
+/** Espejo de CambiarContrasenaDTO. */
+export interface CambiarContrasenaRequest {
+  contrasenaActual: string;
+  contrasenaNueva: string;
+}
+
+/** Espejo de EmpresaDTO (/api/empresas). */
+export interface EmpresaDTO {
+  id: number;
+  nombre: string;
+  creadoEn?: string;
+  actualizadoEn?: string;
+}
+
+/** Espejo de PanelGlobalDTO (/api/panel-global, RF-19). */
+export interface ConteoDTO {
+  clave: string;
+  cantidad: number;
+}
+
+export interface ClientePrincipalDTO {
+  empresaId: number;
+  nombre: string;
+  ingresos: number;
+  entrevistas: number;
+}
+
+export interface PanelGlobalDTO {
+  ingresosTotales: number;
+  comprasAprobadas: number;
+  totalEmpresas: number;
+  totalEntrevistas: number;
+  entrevistasPorEstado: ConteoDTO[];
+  intencionGlobal: ConteoDTO[];
+  clientesPrincipales: ClientePrincipalDTO[];
 }
 
 /** Espejo de CambioRolDTO: una fila de la bitácora de cambios de rol de una cuenta. */
@@ -188,17 +267,42 @@ export interface CompraDTO {
 }
 
 /**
- * Lo que envía el front al comprar. El back-end reemplaza `monto` y `salasAcreditadas` con los
- * valores reales del paquete, así que no se mandan.
+ * Lo que envía el front al comprar (POST /api/compras, RF-18). La empresa y la cuenta salen de la
+ * sesión, y el monto, las salas y el estado del pago los decide el back-end con el pago simulado.
+ * Los datos de la tarjeta de prueba no se guardan: solo los últimos 4 dígitos quedan en la referencia.
  */
 export interface CompraRequest {
-  empresaId: number;
   paqueteId: number;
-  cuentaId: number;
-  estadoPago: EstadoPago;
-  referenciaPago: string;
   claveIdempotencia: string;
+  titular: string;
+  numeroTarjeta: string;
+  /** MM/AA */
+  vencimiento: string;
+  cvv: string;
+}
 
+/** Espejo de SaldoSalasDTO del back-end (GET /api/saldo). */
+export interface SaldoSalasDTO {
+  empresaId: number;
+  /** Salas de las compras con pago aprobado. */
+  acreditadas: number;
+  /** Salas cuya llamada terminó con una grabación correcta. */
+  consumidas: number;
+  /** Enlaces vigentes todavía sin usar. */
+  reservadas: number;
+  /** acreditadas − consumidas. */
+  saldo: number;
+  /** Salas que todavía se pueden usar para generar enlaces nuevos. */
+  disponibles: number;
+}
+
+/** Espejo de ConsumoSalaDTO del back-end (GET /api/saldo/consumos). */
+export interface ConsumoSalaDTO {
+  salaId: number;
+  productoId: number;
+  producto: string;
+  nombreConsumidor: string | null;
+  consumidaEn: string;
 }
 
 // ============================================

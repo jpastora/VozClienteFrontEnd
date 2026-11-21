@@ -10,6 +10,7 @@ export const RUTA_APP = '/app';
 export const RUTAS = {
   home: '/',
   ingreso: '/auth',
+  cambiarContrasena: '/cambiar-contrasena',
   app: RUTA_APP,
   inicio: `${RUTA_APP}/inicio`,
   productos: `${RUTA_APP}/productos`,
@@ -20,4 +21,7 @@ export const RUTAS = {
   reportes: `${RUTA_APP}/reportes`,
   paquetes: `${RUTA_APP}/paquetes`,
   admin: `${RUTA_APP}/admin`,
+  panelGlobal: `${RUTA_APP}/panel-global`,
+  empresas: `${RUTA_APP}/empresas`,
+  recargar: `${RUTA_APP}/recargar`,
 } as const;

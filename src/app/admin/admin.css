@@ -48,3 +48,5 @@
 }
 .vc-adm__error { margin: 0; color: var(--vc-danger); font-size: var(--vc-text-sm); }
 .vc-adm__botones { display: flex; justify-content: flex-end; gap: var(--vc-space-2); margin-top: var(--vc-space-3); }
+
+.vc-adm__aviso--ok { border-color: var(--vc-success, currentColor); }

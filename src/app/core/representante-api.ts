@@ -18,6 +18,11 @@ export class RepresentanteApi {
     return this.http.post<CuentaDTO>(`${API_URL}/representantes`, representante);
   }
 
+  /** POST /api/representantes/{id}/contrasena-temporal: envía una contraseña temporal nueva por correo. */
+  reenviarContrasena(id: number): Observable<CuentaDTO> {
+    return this.http.post<CuentaDTO>(`${API_URL}/representantes/${id}/contrasena-temporal`, null);
+  }
+
   /** PATCH /api/representantes/{id}/desactivar: devuelve la cuenta con estado INACTIVA. */
   desactivar(id: number): Observable<CuentaDTO> {
     return this.http.patch<CuentaDTO>(`${API_URL}/representantes/${id}/desactivar`, null);

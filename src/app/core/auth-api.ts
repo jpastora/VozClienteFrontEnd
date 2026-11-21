@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { UsuarioInfo } from '../interfaces/usuario';
+import { CambiarContrasenaRequest } from './models';
 import { API_URL } from './config';
 
 /**
@@ -15,6 +16,9 @@ export const URL_SESION = `${API_URL}/auth/yo`;
 
 /** Ingreso con correo y contraseña propios de la aplicación. */
 export const URL_INGRESO = `${API_URL}/auth/ingresar`;
+
+/** Cambio de contraseña de la persona con sesión (obligatorio con contraseña temporal). */
+export const URL_CAMBIAR_CONTRASENA = `${API_URL}/auth/cambiar-contrasena`;
 
 /** Registro con correo y contraseña: crea la empresa y la cuenta de cliente-administrador. */
 export const URL_REGISTRO = `${API_URL}/auth/registro`;
@@ -59,6 +63,16 @@ export class AuthApi {
    */
   registrar(nombreCompleto: string, correo: string, contrasena: string): Observable<UsuarioInfo> {
     return this.http.post<UsuarioInfo>(URL_REGISTRO, { nombreCompleto, correo, contrasena });
+  }
+
+  /**
+   * POST /api/auth/cambiar-contrasena: cambia la contraseña y quita la marca de contraseña temporal.
+   *
+   * @param solicitud contraseña actual y nueva
+   * @returns flujo con la sesión actualizada; 401 si la actual no coincide, 400 si la nueva no cumple
+   */
+  cambiarContrasena(solicitud: CambiarContrasenaRequest): Observable<UsuarioInfo> {
+    return this.http.post<UsuarioInfo>(URL_CAMBIAR_CONTRASENA, solicitud);
   }
 
   /**

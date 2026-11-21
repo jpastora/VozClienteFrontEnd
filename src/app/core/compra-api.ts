@@ -8,7 +8,7 @@ import { CompraDTO, CompraRequest } from './models';
 export class CompraApi {
   private http = inject(HttpClient);
 
-  /** POST /api/compras (RF-18). El back-end toma monto y salas del paquete. */
+  /** POST /api/compras (RF-18): compra con pago simulado; el back-end decide monto, salas y estado. */
   crear(compra: CompraRequest): Observable<CompraDTO> {
     return this.http.post<CompraDTO>(`${API_URL}/compras`, compra);
   }

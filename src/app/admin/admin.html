@@ -1,5 +1,12 @@
 <h1>Usuarios</h1>
-<p class="vc-eyebrow">Cuentas, roles y bitácora de cambios</p>
+<p class="vc-eyebrow">
+  @if (empresaElegida() === null) { Vista global: todas las empresas y administradores de plataforma }
+  @else { Cuentas de la empresa elegida en el menú }
+</p>
+
+@if (aviso(); as a) {
+  <p id="msgAvisoUsuarios" class="vc-adm__aviso" [class.vc-adm__aviso--ok]="a.tipo === 'ok'" role="status">{{ a.texto }}</p>
+}
 
 <section class="vc-adm__filters" aria-label="Filtros">
   <vc-field
@@ -27,7 +34,7 @@
       <option value="INACTIVA">Inactiva</option>
     </select>
   </div>
-  <vc-button id="btnNuevoUsuario" class="vc-adm__nuevo" (click)="abrirNuevo()">+ Nuevo cliente-administrador</vc-button>
+  <vc-button id="btnNuevoUsuario" class="vc-adm__nuevo" (click)="abrirNuevo()">+ Nueva cuenta</vc-button>
 </section>
 
 @if (cargando()) {
@@ -40,7 +47,7 @@
 } @else {
   <table class="vc-table">
     <thead>
-      <tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Último ingreso</th><th>Acciones</th></tr>
+      <tr><th>Nombre</th><th>Correo</th><th>Empresa</th><th>Rol</th><th>Estado</th><th>Último ingreso</th><th>Acciones</th></tr>
     </thead>
     <tbody>
       @for (c of filtradas(); track c.id) {
@@ -52,19 +59,38 @@
             }
           </td>
           <td class="vc-adm__correo">{{ c.correo || '—' }}</td>
+          <td>{{ c.empresaNombre ?? 'Plataforma' }}</td>
           <td><vc-badge [tone]="tonoRol(c.rol)">{{ etiquetaRol(c.rol) }}</vc-badge></td>
-          <td><vc-badge [tone]="tonoEstado(c.estado)">{{ etiquetaEstado(c.estado) }}</vc-badge></td>
+          <td>
+            <vc-badge [tone]="tonoEstado(c.estado)">{{ etiquetaEstado(c.estado) }}</vc-badge>
+            @if (c.ingresaConGoogle) {
+              <vc-badge tone="neutral">Google</vc-badge>
+            }
+            @if (c.contrasenaTemporalPendiente) {
+              <vc-badge tone="warning">Contraseña temporal</vc-badge>
+            }
+          </td>
           <td>{{ c.ultimoIngresoEn ? (c.ultimoIngresoEn | date: 'dd/MM/yyyy HH:mm') : 'Aún no ingresa' }}</td>
-          <td class="vc-adm__acciones">
+          <td>
+            <div class="vc-adm__acciones">
             @if (c.id !== miId()) {
               <vc-button variant="secondary" (click)="pedirCambio(c)">Cambiar rol</vc-button>
+              <vc-button variant="secondary" (click)="pedirCambioEstado(c)">
+                {{ c.estado === 'INACTIVA' ? 'Reactivar' : 'Desactivar' }}
+              </vc-button>
+            }
+            @if (c.estado !== 'INACTIVA' && !c.ingresaConGoogle) {
+              <vc-button variant="secondary" [disabled]="reenviandoId() === c.id" (click)="reenviarContrasena(c)">
+                {{ reenviandoId() === c.id ? 'Enviando…' : 'Reenviar contraseña' }}
+              </vc-button>
             }
             <vc-button variant="secondary" (click)="verHistorial(c)">Historial</vc-button>
+          </div>
           </td>
         </tr>
       } @empty {
         <tr class="vc-adm__vacio">
-          <td colspan="6">
+          <td colspan="7">
             @if (cuentas().length === 0) {
               Aún no hay usuarios.
             } @else {
@@ -77,16 +103,13 @@
   </table>
 }
 
-<vc-dialog [open]="formAbierto()" title="Nuevo cliente-administrador" (closed)="cerrarForm()">
+<vc-dialog [open]="formAbierto()" title="Nueva cuenta" (closed)="cerrarForm()">
   <form class="vc-adm__form" (submit)="$event.preventDefault(); guardar()" novalidate>
-    <p class="vc-adm__nota">
-      La cuenta se crea como cliente-administrador y queda pendiente hasta su primer ingreso. Usa el correo de Google
-      de la persona: quien ingrese con ese correo se queda con la cuenta.
-    </p>
+    <p class="vc-adm__nota">La cuenta queda pendiente hasta el primer ingreso.</p>
     <vc-field controlId="txtNombreUsuario" label="Nombre completo *" [(value)]="nombre" [error]="errorNombre()" />
     <vc-field
       controlId="txtCorreoUsuario"
-      label="Correo de Google *"
+      label="Correo *"
       type="email"
       [value]="correo()"
       (valueChange)="cambiarCorreo($event)"
@@ -99,6 +122,46 @@
       [(value)]="correoRepetido"
       [error]="errorCorreoRepetido()"
     />
+    <div class="vc-adm__filtro">
+      <label class="vc-adm__label" for="cmbRolNuevaCuenta">Rol *</label>
+      <select id="cmbRolNuevaCuenta" class="vc-adm__select" [value]="rolNuevaCuenta()" (change)="elegirRolAlta($event)">
+        @for (rol of roles; track rol) {
+          <option [value]="rol" [selected]="rol === rolNuevaCuenta()">{{ etiquetaRol(rol) }}</option>
+        }
+      </select>
+    </div>
+    <div class="vc-adm__filtro">
+      <label class="vc-adm__label" for="cmbMetodoAcceso">Cómo ingresa *</label>
+      <select id="cmbMetodoAcceso" class="vc-adm__select" (change)="elegirMetodo($event)">
+        <option value="contrasena" [selected]="metodoAcceso() === 'contrasena'">Contraseña temporal por correo</option>
+        <option value="google" [selected]="metodoAcceso() === 'google'">Con su cuenta de Google (sin contraseña)</option>
+      </select>
+      <p class="vc-adm__nota">
+        @if (metodoAcceso() === 'google') {
+          No se envía correo ni contraseña: la persona entra con el botón de Google usando este correo.
+        } @else {
+          Se envía una contraseña temporal al correo (vence en 7 días y hay que cambiarla al entrar).
+        }
+      </p>
+    </div>
+    @if (altaNecesitaEmpresa()) {
+      <div class="vc-adm__filtro">
+        <label class="vc-adm__label" for="cmbEmpresaNuevaCuenta">Empresa *</label>
+        <select id="cmbEmpresaNuevaCuenta" class="vc-adm__select" (change)="elegirEmpresaAlta($event)">
+          <option value="">Selecciona una empresa</option>
+          @for (e of empresas(); track e.id) {
+            <option [value]="e.id" [selected]="e.id === empresaNuevaCuenta()">{{ e.nombre }}</option>
+          }
+        </select>
+        @if (errorEmpresaAlta()) {
+          <p class="vc-adm__error" role="alert">{{ errorEmpresaAlta() }}</p>
+        }
+      </div>
+    } @else {
+      <p class="vc-adm__aviso" role="note">
+        Un administrador de la plataforma no pertenece a ninguna empresa y tiene acceso a todas.
+      </p>
+    }
     @if (errorGuardar()) {
       <p class="vc-adm__error" role="alert">{{ errorGuardar() }}</p>
     }
@@ -127,10 +190,21 @@
           }
         </select>
       </div>
+      @if (cambioNecesitaEmpresa()) {
+        <div class="vc-adm__filtro">
+          <label class="vc-adm__label" for="cmbEmpresaCambioRol">Empresa a la que pasa *</label>
+          <select id="cmbEmpresaCambioRol" class="vc-adm__select" (change)="elegirEmpresaCambio($event)">
+            <option value="">Selecciona una empresa</option>
+            @for (e of empresas(); track e.id) {
+              <option [value]="e.id">{{ e.nombre }}</option>
+            }
+          </select>
+        </div>
+      }
       @if (nuevoRol() === 'ADMINISTRADOR') {
         <p class="vc-adm__aviso" role="note">
-          Un administrador de la plataforma tiene acceso a la administración de cuentas. Confirma que es la persona
-          correcta.
+          Un administrador de la plataforma tiene acceso a todas las empresas y a la administración de cuentas, y deja de
+          pertenecer a su empresa. Confirma que es la persona correcta.
         </p>
       }
       <p class="vc-adm__nota">El cambio aplica desde la siguiente solicitud de esa persona y queda en el historial.</p>
@@ -139,8 +213,45 @@
       }
       <div class="vc-adm__botones">
         <vc-button variant="secondary" (click)="cancelarCambio()">Cancelar</vc-button>
-        <vc-button id="btnConfirmarCambioRol" [disabled]="cambiando() || nuevoRol() === null" (click)="confirmarCambio()">
+        <vc-button id="btnConfirmarCambioRol" [disabled]="cambiando() || !cambioListo()" (click)="confirmarCambio()">
           {{ cambiando() ? 'Guardando…' : 'Cambiar rol' }}
+        </vc-button>
+      </div>
+    </div>
+  }
+</vc-dialog>
+
+<vc-dialog
+  [open]="porCambiarEstado() !== null"
+  [title]="porCambiarEstado()?.estado === 'INACTIVA' ? 'Reactivar cuenta' : 'Desactivar cuenta'"
+  (closed)="cancelarCambioEstado()"
+>
+  @if (porCambiarEstado(); as c) {
+    <div class="vc-adm__form">
+      <p class="vc-adm__texto">
+        Cuenta: <strong>{{ c.nombreCompleto }}</strong><br />
+        {{ c.correo }}
+      </p>
+      @if (c.estado === 'INACTIVA') {
+        <p class="vc-adm__nota">La persona podrá volver a ingresar.</p>
+      } @else {
+        <p class="vc-adm__nota">
+          La persona no podrá ingresar y su sesión se cierra en la siguiente solicitud. Este cambio no queda en el
+          historial de roles.
+        </p>
+      }
+      @if (errorEstado()) {
+        <p class="vc-adm__error" role="alert">{{ errorEstado() }}</p>
+      }
+      <div class="vc-adm__botones">
+        <vc-button variant="secondary" (click)="cancelarCambioEstado()">Cancelar</vc-button>
+        <vc-button
+          id="btnConfirmarCambioEstado"
+          [variant]="c.estado === 'INACTIVA' ? 'primary' : 'danger'"
+          [disabled]="cambiandoEstado()"
+          (click)="confirmarCambioEstado()"
+        >
+          {{ cambiandoEstado() ? 'Guardando…' : c.estado === 'INACTIVA' ? 'Reactivar' : 'Desactivar' }}
         </vc-button>
       </div>
     </div>

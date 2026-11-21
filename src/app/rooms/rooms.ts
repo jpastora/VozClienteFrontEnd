@@ -40,7 +40,7 @@ export class Rooms {
 
   protected readonly usuario = this.sesion.usuario;
   protected readonly esRepresentante = computed(() => this.usuario()?.rol === 'REPRESENTANTE');
-  protected readonly sesionEmpresaId = computed(() => this.usuario()?.empresaId ?? null);
+  protected readonly sesionEmpresaId = computed(() => this.sesion.empresaId());
   private readonly cuentaId = computed(() => this.usuario()?.id ?? CUENTA_ID_PRUEBA);
 
   protected readonly productos = signal<ProductoDTO[]>([]);

@@ -14,11 +14,36 @@ import { RolInfo, UsuarioInfo } from '../interfaces/usuario';
 export function rutaInicio(rol: RolInfo): string {
   switch (rol) {
     case 'ADMINISTRADOR':
-      return RUTAS.admin;
+      return RUTAS.panelGlobal;
     case 'REPRESENTANTE':
       return RUTAS.salas;
     default:
       return RUTAS.inicio;
+  }
+}
+
+/** Clave de la empresa que el administrador de la plataforma atiende; vive solo en esta pestaña. */
+const CLAVE_EMPRESA = 'vc_empresa_atendida';
+
+function leerEmpresaGuardada(): number | null {
+  try {
+    const valor = sessionStorage.getItem(CLAVE_EMPRESA);
+    const id = valor ? Number(valor) : NaN;
+    return Number.isInteger(id) && id > 0 ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+function guardarEmpresa(id: number | null): void {
+  try {
+    if (id === null) {
+      sessionStorage.removeItem(CLAVE_EMPRESA);
+    } else {
+      sessionStorage.setItem(CLAVE_EMPRESA, String(id));
+    }
+  } catch {
+    // Sin almacenamiento disponible: la selección queda solo en memoria.
   }
 }
 
@@ -34,6 +59,29 @@ export class SessionService {
   private readonly _usuario = signal<UsuarioInfo | null>(null);
   readonly usuario = this._usuario.asReadonly();
   readonly autenticado = computed(() => this._usuario() !== null);
+
+  /** Empresa que el administrador de la plataforma eligió atender (modo soporte). */
+  private readonly _empresaAtendida = signal<number | null>(leerEmpresaGuardada());
+
+  /**
+   * Empresa sobre la que se trabaja: la de la cuenta, o para el administrador de la plataforma
+   * (sin empresa) la que eligió en el selector. Nulo si todavía no eligió.
+   */
+  readonly empresaId = computed<number | null>(() => {
+    const usuario = this._usuario();
+    if (!usuario) return null;
+    return usuario.rol === 'ADMINISTRADOR' ? this._empresaAtendida() : usuario.empresaId;
+  });
+
+  /**
+   * Elige la empresa que atiende el administrador de la plataforma.
+   *
+   * @param id identificador de la empresa, o nulo para quitar la selección
+   */
+  seleccionarEmpresa(id: number | null): void {
+    this._empresaAtendida.set(id);
+    guardarEmpresa(id);
+  }
 
   /**
    * Consulta al back-end quién tiene la sesión. Se ejecuta al iniciar la aplicación; si no hay
@@ -56,6 +104,9 @@ export class SessionService {
    */
   establecer(usuario: UsuarioInfo | null): void {
     this._usuario.set(usuario);
+    if (usuario === null) {
+      this.seleccionarEmpresa(null);
+    }
   }
 
   /**
@@ -85,6 +136,19 @@ export class SessionService {
 
   private async abrir(usuario: UsuarioInfo): Promise<void> {
     this._usuario.set(usuario);
+    await this.router.navigateByUrl(usuario.debeCambiarContrasena ? RUTAS.cambiarContrasena : rutaInicio(usuario.rol));
+  }
+
+  /**
+   * Cambia la contraseña (la temporal, la primera vez) y entra a la pantalla de inicio del perfil.
+   *
+   * @param contrasenaActual contraseña vigente
+   * @param contrasenaNueva contraseña nueva
+   * @returns promesa que falla con el HttpErrorResponse del back-end si no se pudo cambiar
+   */
+  async cambiarContrasena(contrasenaActual: string, contrasenaNueva: string): Promise<void> {
+    const usuario = await firstValueFrom(this.authApi.cambiarContrasena({ contrasenaActual, contrasenaNueva }));
+    this._usuario.set(usuario);
     await this.router.navigateByUrl(rutaInicio(usuario.rol));
   }
 
@@ -105,6 +169,7 @@ export class SessionService {
       // Aunque el back-end no responda, la sesión se limpia en la interfaz.
     }
     this._usuario.set(null);
+    this.seleccionarEmpresa(null);
     await this.router.navigateByUrl(RUTAS.ingreso);
   }
 }
