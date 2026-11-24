@@ -1,6 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { AuthApi } from '../core/auth-api';
 import { errorContrasena, errorNombre, normalizarNombre, REGLA_CONTRASENA } from '../core/contrasena';
 import { RUTAS } from '../core/rutas';
 import { Field } from '../field/field';
@@ -12,7 +14,7 @@ import { WaveformComponent } from '../shared/waveform/waveform.component';
 /** Mensaje que se muestra en la pantalla de ingreso. */
 interface MensajeIngreso {
   /** error: el ingreso falló y se puede reintentar; aviso: la cuenta necesita una acción externa. */
-  tipo: 'error' | 'aviso';
+  tipo: 'error' | 'aviso' | 'exito';
   texto: string;
 }
 
@@ -64,18 +66,6 @@ const SIN_CONEXION: MensajeIngreso = {
   texto: 'No pudimos conectar con el servidor. Intente de nuevo en unos minutos.',
 };
 
-/**
- * La recuperación de contraseña necesita enviar un enlace por correo, y el proyecto todavía no tiene
- * servidor de correo. Por ahora la pantalla existe, pero no envía nada y lo dice con claridad.
- * TODO (iteración 2): llamar al endpoint de recuperación cuando exista el envío de correos.
- */
-const RECUPERACION_NO_DISPONIBLE: MensajeIngreso = {
-  tipo: 'aviso',
-  texto:
-    'La recuperación de contraseña por correo todavía no está disponible. Mientras tanto, si su cuenta ' +
-    'usa un correo de Google, puede ingresar con Google; si no, comuníquese con el soporte de Voz Cliente.',
-};
-
 const PATRON_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
@@ -91,6 +81,7 @@ const PATRON_CORREO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 })
 export class Auth {
   private readonly sesion = inject(SessionService);
+  private readonly authApi = inject(AuthApi);
 
   /** Parámetro ?error= que deja el back-end cuando el ingreso con Google no se completa. */
   readonly error = input<string>();
@@ -129,7 +120,7 @@ export class Auth {
       case 'registro':
         return this.enviando() ? 'Creando cuenta…' : 'Crear cuenta';
       case 'recuperar':
-        return 'Enviar enlace';
+        return this.enviando() ? 'Enviando…' : 'Enviar contraseña temporal';
     }
   });
 
@@ -174,8 +165,7 @@ export class Auth {
     if (this.errorNombre() || this.errorCorreo() || this.errorContrasena() || this.errorConfirmacion()) return;
 
     if (this.modo() === 'recuperar') {
-      // Todavía no se envía ningún correo (ver RECUPERACION_NO_DISPONIBLE).
-      this.mensajeFormulario.set(RECUPERACION_NO_DISPONIBLE);
+      await this.recuperar();
       return;
     }
 
@@ -194,6 +184,26 @@ export class Auth {
       this.contrasena.set('');
       this.confirmacion.set('');
       this.intento.set(false);
+    } finally {
+      this.enviando.set(false);
+    }
+  }
+
+  /**
+   * "¿Olvidó su contraseña?": pide al back-end que envíe una contraseña temporal. La respuesta es la
+   * misma exista o no la cuenta, así que siempre se muestra el mismo mensaje.
+   */
+  private async recuperar(): Promise<void> {
+    this.enviando.set(true);
+    this.mensajeFormulario.set(null);
+    try {
+      const respuesta = await firstValueFrom(this.authApi.recuperar(this.correo().trim().toLowerCase()));
+      this.mensajeFormulario.set({ tipo: 'exito', texto: respuesta.mensaje });
+    } catch (error: unknown) {
+      const estado = error instanceof HttpErrorResponse ? error.status : -1;
+      this.mensajeFormulario.set(
+        estado === 400 ? { tipo: 'error', texto: 'Revise el correo: el formato no es válido.' } : SIN_CONEXION,
+      );
     } finally {
       this.enviando.set(false);
     }

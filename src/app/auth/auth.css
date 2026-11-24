@@ -121,6 +121,7 @@
   animation: vc-auth-entrada var(--vc-dur-base) var(--vc-ease-out) both;
 }
 .vc-auth__mensaje--aviso { border-color: var(--vc-warning); }
+.vc-auth__mensaje--exito { border-color: var(--vc-success); }
 .vc-auth__mensaje p { margin: 0; }
 .vc-auth__etiqueta { flex: none; display: inline-flex; gap: 6px; white-space: nowrap; }
 
