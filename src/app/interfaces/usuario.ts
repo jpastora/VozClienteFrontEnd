@@ -14,4 +14,6 @@ export interface UsuarioInfo {
   empresaId: number | null;
   /** Verdadero con contraseña temporal: hay que cambiarla antes de usar la aplicación. */
   debeCambiarContrasena: boolean;
+  /** Falso tras el primer ingreso con Google: hay que completar nombre y empresa antes de seguir. */
+  perfilCompleto: boolean;
 }

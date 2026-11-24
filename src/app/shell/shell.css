@@ -95,3 +95,30 @@ nav a.is-active { background: var(--vc-deep-circuit); border-left-color: var(--v
 }
 .vc-shell__sinempresa { max-width: 56ch; }
 .vc-shell__sinempresa p { color: var(--vc-muted); }
+
+/* Buscador de empresas (autocompletar) */
+.vc-shell__combo { position: relative; }
+.vc-shell__opciones {
+  position: absolute;
+  z-index: 30;
+  inset-inline: 0;
+  max-height: 15rem;
+  margin: var(--vc-space-1, 4px) 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  color: var(--vc-deep-circuit);
+  background: var(--vc-paper);
+  border: 1px solid var(--vc-concrete);
+  border-radius: var(--vc-radius);
+}
+.vc-shell__opciones li {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--vc-space-3);
+  cursor: pointer;
+}
+.vc-shell__opciones li.is-activa { background: var(--vc-concrete); }
+.vc-shell__opciones li.is-elegida { font-weight: 700; }
+.vc-shell__opciones .vc-shell__sin-resultados { color: var(--vc-muted); cursor: default; }

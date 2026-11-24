@@ -1,8 +1,10 @@
+import { ConfirmarEliminar } from '../shared/confirmar-eliminar/confirmar-eliminar';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Badge } from '../badge/badge';
 import { Button } from '../button/button';
+import { errorNombre as validarNombre, normalizarNombre, REGLA_NOMBRE } from '../core/contrasena';
 import { CuentaApi } from '../core/cuenta-api';
 import { mensajeServidor } from '../core/errores';
 import { EmpresaApi } from '../core/empresa-api';
@@ -48,7 +50,7 @@ interface Aviso {
  * cambiar el rol, activar o desactivar, reenviar la contraseña temporal y ver la bitácora de roles.
  */
 @Component({
-  imports: [Badge, Button, DatePipe, Dialog, Field],
+  imports: [Badge, Button, DatePipe, Dialog, Field, ConfirmarEliminar],
   selector: 'vc-admin',
   styleUrl: './admin.css',
   templateUrl: './admin.html',
@@ -139,6 +141,42 @@ export class Admin {
 
   protected readonly errorEmpresaAlta = computed<string | null>(() =>
     this.intento() && this.altaNecesitaEmpresa() && this.empresaNuevaCuenta() === null
+      ? 'Selecciona la empresa de la cuenta.'
+      : null,
+  );
+
+  // Edición de nombre, correo y empresa
+  protected readonly regla = REGLA_NOMBRE;
+  protected readonly editando = signal<CuentaGlobalDTO | null>(null);
+  protected readonly editNombre = signal('');
+  protected readonly editCorreo = signal('');
+  protected readonly editEmpresa = signal<number | null>(null);
+  protected readonly intentoEdicion = signal(false);
+  protected readonly guardandoEdicion = signal(false);
+  protected readonly errorEdicion = signal<string | null>(null);
+
+  /** Un administrador de la plataforma no pertenece a ninguna empresa. */
+  protected readonly edicionNecesitaEmpresa = computed(() => this.editando()?.rol !== 'ADMINISTRADOR');
+
+  protected readonly errorEditNombre = computed<string | null>(() =>
+    this.intentoEdicion() ? validarNombre(this.editNombre()) : null,
+  );
+
+  protected readonly errorEditCorreo = computed<string | null>(() => {
+    if (!this.intentoEdicion() || this.editando()?.ingresaConGoogle) return null;
+    const valor = this.editCorreo().trim().toLowerCase();
+    if (!valor) return 'El correo es obligatorio.';
+    if (valor.length > MAX_CORREO) return `Máximo ${MAX_CORREO} caracteres.`;
+    if (!PATRON_CORREO.test(valor)) return 'El formato del correo no es válido.';
+    const propio = this.editando()?.id;
+    if (this.cuentas().some((c) => c.id !== propio && c.correo.toLowerCase() === valor)) {
+      return 'Ya existe una cuenta con este correo.';
+    }
+    return null;
+  });
+
+  protected readonly errorEditEmpresa = computed<string | null>(() =>
+    this.intentoEdicion() && this.edicionNecesitaEmpresa() && this.editEmpresa() === null
       ? 'Selecciona la empresa de la cuenta.'
       : null,
   );
@@ -316,6 +354,78 @@ export class Admin {
     );
   }
 
+  // --- Edición ---
+
+  protected abrirEdicion(cuenta: CuentaGlobalDTO): void {
+    this.editNombre.set(cuenta.nombreCompleto);
+    this.editCorreo.set(cuenta.correo);
+    this.editEmpresa.set(cuenta.empresaId);
+    this.intentoEdicion.set(false);
+    this.errorEdicion.set(null);
+    this.editando.set(cuenta);
+  }
+
+  protected cerrarEdicion(): void {
+    if (!this.guardandoEdicion()) this.editando.set(null);
+  }
+
+  protected elegirEmpresaEdicion(evento: Event): void {
+    const valor = (evento.target as HTMLSelectElement).value;
+    this.editEmpresa.set(valor ? Number(valor) : null);
+  }
+
+  protected guardarEdicion(): void {
+    const cuenta = this.editando();
+    if (!cuenta) return;
+    this.intentoEdicion.set(true);
+    if (this.errorEditNombre() || this.errorEditCorreo() || this.errorEditEmpresa()) return;
+
+    const correoNuevo = cuenta.ingresaConGoogle ? cuenta.correo : this.editCorreo().trim().toLowerCase();
+    const cambioCorreo = correoNuevo.toLowerCase() !== cuenta.correo.toLowerCase();
+
+    this.guardandoEdicion.set(true);
+    this.errorEdicion.set(null);
+    this.api
+      .editar(cuenta.id, {
+        nombreCompleto: normalizarNombre(this.editNombre()),
+        correo: correoNuevo,
+        empresaId: this.edicionNecesitaEmpresa() ? this.editEmpresa() : null,
+        version: cuenta.version,
+      })
+      .subscribe({
+        next: (actualizada) => {
+          const fuera = this.empresaElegida() !== null && actualizada.empresaId !== this.empresaElegida();
+          this.cuentas.update((lista) =>
+            this.ordenar(fuera ? lista.filter((c) => c.id !== actualizada.id) : lista.map((c) => (c.id === actualizada.id ? actualizada : c))),
+          );
+          this.guardandoEdicion.set(false);
+          this.editando.set(null);
+          const base = `Datos de ${actualizada.nombreCompleto} actualizados.`;
+          const moverFuera = fuera ? ' Ahora pertenece a otra empresa y ya no aparece en esta vista.' : '';
+          const correo =
+            cambioCorreo && actualizada.contrasenaTemporalPendiente
+              ? ' El correo cambió: usa «Reenviar contraseña» para enviarle la contraseña temporal al correo nuevo.'
+              : '';
+          this.aviso.set({ tipo: 'ok', texto: base + moverFuera + correo });
+        },
+        error: (err: HttpErrorResponse) => {
+          this.guardandoEdicion.set(false);
+          const motivo = mensajeServidor(err);
+          if (err.status === 409) {
+            this.errorEdicion.set(motivo ?? 'No se pudo guardar: la cuenta cambió mientras la editabas.');
+            if (/modificada/i.test(motivo ?? '')) {
+              this.editando.set(null);
+              this.cargar();
+            }
+          } else if (err.status === 400 || err.status === 404) {
+            this.errorEdicion.set(motivo ?? 'Revisa los datos ingresados e intenta de nuevo.');
+          } else {
+            this.errorEdicion.set('No se pudo guardar los cambios. Intenta de nuevo.');
+          }
+        },
+      });
+  }
+
   // --- Cambio de rol ---
 
   protected pedirCambio(cuenta: CuentaGlobalDTO): void {
@@ -489,5 +599,44 @@ export class Admin {
 
   protected tonoRol(rol?: string): TonoBadge {
     return rol === 'ADMINISTRADOR' ? 'warning' : 'neutral';
+  }
+
+  // --- Eliminar (solo si no tiene datos relacionados) ---
+
+  protected readonly porEliminar = signal<CuentaGlobalDTO | null>(null);
+  protected readonly eliminando = signal(false);
+  protected readonly errorEliminar = signal<string | null>(null);
+
+  protected pedirEliminar(registro: CuentaGlobalDTO): void {
+    this.errorEliminar.set(null);
+    this.porEliminar.set(registro);
+  }
+
+  protected cancelarEliminar(): void {
+    if (!this.eliminando()) this.porEliminar.set(null);
+  }
+
+  protected confirmarEliminar(): void {
+    const registro = this.porEliminar();
+    if (!registro || this.eliminando()) return;
+    this.eliminando.set(true);
+    this.errorEliminar.set(null);
+    this.api.eliminar(registro.id).subscribe({
+      next: () => {
+        this.eliminando.set(false);
+        this.porEliminar.set(null);
+        this.cuentas.update((lista) => lista.filter((c) => c.id !== registro.id));
+        this.aviso.set({ tipo: 'ok', texto: `Cuenta de ${registro.nombreCompleto} eliminada.` });
+      },
+      error: (err: HttpErrorResponse) => {
+        this.eliminando.set(false);
+        this.errorEliminar.set(
+          mensajeServidor(err) ??
+            (err.status === 404
+              ? 'El registro ya no existe. Actualiza la lista.'
+              : 'No se pudo eliminar. Intenta de nuevo.'),
+        );
+      },
+    });
   }
 }

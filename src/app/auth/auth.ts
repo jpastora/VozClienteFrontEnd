@@ -4,6 +4,8 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { AuthApi } from '../core/auth-api';
 import { errorContrasena, errorNombre, normalizarNombre, REGLA_CONTRASENA } from '../core/contrasena';
+import { errorNombreEmpresa, normalizarEmpresa } from '../core/empresa-nombre';
+import { mensajeServidor } from '../core/errores';
 import { RUTAS } from '../core/rutas';
 import { Field } from '../field/field';
 import { SessionService } from '../services/session';
@@ -92,6 +94,7 @@ export class Auth {
 
   protected readonly modo = signal<Modo>('ingresar');
   protected readonly nombre = signal('');
+  protected readonly empresa = signal('');
   protected readonly correo = signal('');
   protected readonly contrasena = signal('');
   protected readonly confirmacion = signal('');
@@ -131,6 +134,11 @@ export class Auth {
     return errorNombre(this.nombre());
   });
 
+  protected readonly errorEmpresa = computed<string | null>(() => {
+    if (!this.intento() || this.modo() !== 'registro') return null;
+    return errorNombreEmpresa(this.empresa());
+  });
+
   protected readonly errorCorreo = computed<string | null>(() => {
     if (!this.intento()) return null;
     const valor = this.correo().trim();
@@ -162,7 +170,7 @@ export class Auth {
   /** Ingresa o crea la cuenta con correo y contraseña. */
   protected async enviar(): Promise<void> {
     this.intento.set(true);
-    if (this.errorNombre() || this.errorCorreo() || this.errorContrasena() || this.errorConfirmacion()) return;
+    if (this.errorNombre() || this.errorEmpresa() || this.errorCorreo() || this.errorContrasena() || this.errorConfirmacion()) return;
 
     if (this.modo() === 'recuperar') {
       await this.recuperar();
@@ -176,7 +184,12 @@ export class Auth {
       if (this.modo() === 'ingresar') {
         await this.sesion.ingresarConContrasena(correo, this.contrasena());
       } else {
-        await this.sesion.registrar(normalizarNombre(this.nombre()), correo, this.contrasena());
+        await this.sesion.registrar(
+          normalizarNombre(this.nombre()),
+          correo,
+          this.contrasena(),
+          normalizarEmpresa(this.empresa()),
+        );
       }
     } catch (error: unknown) {
       this.mensajeFormulario.set(this.mensajeDeError(error));
@@ -226,13 +239,16 @@ export class Auth {
         };
       }
     } else {
+      if (estado === 409 && /empresa/i.test(mensajeServidor(error as HttpErrorResponse) ?? '')) {
+        return { tipo: 'error', texto: 'Ya existe una empresa con ese nombre. Use otro.' };
+      }
       if (estado === 409) {
         return {
           tipo: 'aviso',
           texto: 'Ya existe una cuenta con este correo. Ingrese con su contraseña o con Google.',
         };
       }
-      if (estado === 400) return { tipo: 'error', texto: 'Revise los datos: el nombre solo admite letras y la contraseña debe cumplir las reglas.' };
+      if (estado === 400) return { tipo: 'error', texto: 'Revise los datos: el nombre solo admite letras, la empresa debe tener entre 2 y 150 caracteres y la contraseña debe cumplir las reglas.' };
     }
     if (estado === 0 || estado >= 500) return SIN_CONEXION;
     return MENSAJE_GENERICO;

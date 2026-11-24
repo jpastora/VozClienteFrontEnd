@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { UsuarioInfo } from '../interfaces/usuario';
-import { CambiarContrasenaRequest } from './models';
+import { CambiarContrasenaRequest, CompletarPerfilRequest } from './models';
 import { API_URL } from './config';
 
 /**
@@ -62,10 +62,25 @@ export class AuthApi {
    * @param nombreCompleto nombre de la persona
    * @param correo correo de la cuenta
    * @param contrasena contraseña
-   * @returns flujo con los datos de la sesión; 409 si el correo ya existe, 400 si la contraseña no cumple
+   * @param nombreEmpresa nombre de la empresa que se crea
+   * @returns flujo con los datos de la sesión; 409 si el correo o la empresa ya existen, 400 si la contraseña no cumple
    */
-  registrar(nombreCompleto: string, correo: string, contrasena: string): Observable<UsuarioInfo> {
-    return this.http.post<UsuarioInfo>(URL_REGISTRO, { nombreCompleto, correo, contrasena });
+  registrar(
+    nombreCompleto: string,
+    correo: string,
+    contrasena: string,
+    nombreEmpresa: string,
+  ): Observable<UsuarioInfo> {
+    return this.http.post<UsuarioInfo>(URL_REGISTRO, { nombreCompleto, correo, contrasena, nombreEmpresa });
+  }
+
+  /**
+   * POST /api/auth/completar-perfil: nombre y empresa tras el primer ingreso con Google.
+   *
+   * @returns flujo con la sesión actualizada; 409 si el nombre de la empresa ya existe
+   */
+  completarPerfil(solicitud: CompletarPerfilRequest): Observable<UsuarioInfo> {
+    return this.http.post<UsuarioInfo>(`${API_URL}/auth/completar-perfil`, solicitud);
   }
 
   /**

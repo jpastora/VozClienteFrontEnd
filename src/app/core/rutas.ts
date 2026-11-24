@@ -11,6 +11,7 @@ export const RUTAS = {
   home: '/',
   ingreso: '/auth',
   cambiarContrasena: '/cambiar-contrasena',
+  completarPerfil: '/completar-perfil',
   app: RUTA_APP,
   inicio: `${RUTA_APP}/inicio`,
   productos: `${RUTA_APP}/productos`,
