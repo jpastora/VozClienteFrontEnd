@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { RUTAS } from '../core/rutas';
 import { RolInfo } from '../interfaces/usuario';
-import { rutaInicio, SessionService } from '../services/session';
+import { rutaInicio, rutaObligatoria, SessionService } from '../services/session';
 
 /**
  * Exige sesión iniciada; sin sesión lleva a la pantalla de ingreso.
@@ -13,11 +13,9 @@ export const autenticadoGuard: CanActivateFn = () => {
   if (!usuario) {
     return inject(Router).createUrlTree([RUTAS.ingreso]);
   }
-  // Con contraseña temporal no se usa nada más hasta cambiarla.
-  if (usuario.debeCambiarContrasena) {
-    return inject(Router).createUrlTree([RUTAS.cambiarContrasena]);
-  }
-  return true;
+  // Con contraseña temporal o con el perfil sin completar no se usa nada más hasta resolverlo.
+  const obligatoria = rutaObligatoria(usuario);
+  return obligatoria ? inject(Router).createUrlTree([obligatoria]) : true;
 };
 
 /** Pantalla de cambio de contraseña: solo con sesión y mientras la contraseña sea temporal. */
@@ -27,7 +25,23 @@ export const cambioContrasenaGuard: CanActivateFn = () => {
   if (!usuario) {
     return router.createUrlTree([RUTAS.ingreso]);
   }
-  return usuario.debeCambiarContrasena ? true : router.parseUrl(rutaInicio(usuario.rol));
+  if (!usuario.debeCambiarContrasena) {
+    return router.parseUrl(rutaObligatoria(usuario) ?? rutaInicio(usuario.rol));
+  }
+  return true;
+};
+
+/** Pantalla de completar perfil: solo con sesión y mientras falten el nombre y la empresa. */
+export const perfilGuard: CanActivateFn = () => {
+  const usuario = inject(SessionService).usuario();
+  const router = inject(Router);
+  if (!usuario) {
+    return router.createUrlTree([RUTAS.ingreso]);
+  }
+  if (usuario.debeCambiarContrasena) {
+    return router.createUrlTree([RUTAS.cambiarContrasena]);
+  }
+  return usuario.perfilCompleto ? router.parseUrl(rutaInicio(usuario.rol)) : true;
 };
 
 /**
@@ -45,8 +59,9 @@ export const roleGuard =
     if (!usuario) {
       return router.createUrlTree([RUTAS.ingreso]);
     }
-    if (usuario.debeCambiarContrasena) {
-      return router.createUrlTree([RUTAS.cambiarContrasena]);
+    const obligatoria = rutaObligatoria(usuario);
+    if (obligatoria) {
+      return router.createUrlTree([obligatoria]);
     }
     if (roles.includes(usuario.rol)) {
       return true;
@@ -60,5 +75,5 @@ export const invitadoGuard: CanActivateFn = () => {
   if (!usuario) {
     return true;
   }
-  return inject(Router).parseUrl(usuario.debeCambiarContrasena ? RUTAS.cambiarContrasena : rutaInicio(usuario.rol));
+  return inject(Router).parseUrl(rutaObligatoria(usuario) ?? rutaInicio(usuario.rol));
 };

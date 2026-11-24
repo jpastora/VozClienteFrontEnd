@@ -51,6 +51,7 @@
       <form class="vc-auth__form" (submit)="$event.preventDefault(); enviar()" novalidate>
         @if (modo() === 'registro') {
           <vc-field controlId="txtNombreRegistro" label="Nombre completo" [(value)]="nombre" [error]="errorNombre()" />
+          <vc-field controlId="txtEmpresaRegistro" label="Nombre de su empresa" [(value)]="empresa" [error]="errorEmpresa()" />
         }
         <vc-field controlId="txtCorreoIngreso" label="Correo" type="email" [(value)]="correo" [error]="errorCorreo()" />
         @if (modo() !== 'recuperar') {

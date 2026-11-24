@@ -8,6 +8,7 @@ import {
   CambioRolDTO,
   CrearCuentaRequest,
   CuentaGlobalDTO,
+  EditarCuentaRequest,
 } from './models';
 
 /** Módulo de usuarios (/api/cuentas). Solo el administrador de la plataforma tiene permiso. */
@@ -24,6 +25,16 @@ export class CuentaApi {
       params = params.set('empresaId', empresaId);
     }
     return this.http.get<CuentaGlobalDTO[]>(`${API_URL}/cuentas`, { params });
+  }
+
+  /** DELETE /api/cuentas/{id}: solo si no tiene datos relacionados (si no, responde 409 con el detalle). */
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/cuentas/${id}`);
+  }
+
+  /** PUT /api/cuentas/{id}: edita nombre, correo y empresa. */
+  editar(id: number, solicitud: EditarCuentaRequest): Observable<CuentaGlobalDTO> {
+    return this.http.put<CuentaGlobalDTO>(`${API_URL}/cuentas/${id}`, solicitud);
   }
 
   /** Crea una cuenta pendiente con cualquier rol; el back-end envía la contraseña temporal por correo. */

@@ -9,3 +9,5 @@
 .vc-co__form { display: flex; flex-direction: column; gap: var(--vc-space-4); min-width: min(26rem, 80vw); }
 .vc-co__error { margin: 0; color: var(--vc-danger); font-size: var(--vc-text-sm); }
 .vc-co__botones { display: flex; justify-content: flex-end; gap: var(--vc-space-3); }
+
+.vc-co__acciones { display: flex; flex-wrap: wrap; gap: var(--vc-space-2, 8px); }

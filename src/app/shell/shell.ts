@@ -35,6 +35,20 @@ const OPCIONES_MENU: OpcionMenu[] = [
 /** Pantallas del administrador de la plataforma que no dependen de una empresa elegida. */
 const RUTAS_SIN_EMPRESA: string[] = [RUTAS.panelGlobal, RUTAS.empresas, RUTAS.admin, RUTAS.paquetes, RUTAS.recargar];
 
+/** Texto de la opción que quita el filtro de empresa. */
+const TEXTO_TODAS = 'Todas las empresas (vista global)';
+
+/** Opción del buscador de empresas; `id` nulo es la vista global. */
+interface OpcionEmpresa {
+  id: number | null;
+  nombre: string;
+}
+
+/** Minúsculas y sin tildes, para que "mexico" encuentre "México". */
+function sinTildes(texto: string): string {
+  return texto.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+}
+
 const NOMBRES_ROL: Record<RolInfo, string> = {
   ADMINISTRADOR: 'Administrador de la plataforma',
   CLIENTE_ADMINISTRADOR: 'Cliente-administrador',
@@ -133,9 +147,80 @@ export class Shell {
     });
   }
 
-  protected elegirEmpresa(evento: Event): void {
-    const valor = (evento.target as HTMLSelectElement).value;
-    this.sesion.seleccionarEmpresa(valor ? Number(valor) : null);
+  // --- Buscador de empresas (autocompletar) ---
+
+  /** Texto que la persona está escribiendo; solo vale mientras `escribiendo` sea verdadero. */
+  private readonly textoEmpresa = signal('');
+  protected readonly escribiendo = signal(false);
+  protected readonly listaAbierta = signal(false);
+  protected readonly indiceActivo = signal(0);
+
+  /** Lo que muestra el campo: lo que se escribe o, si no, la empresa elegida. */
+  protected readonly valorCampo = computed(() => {
+    if (this.escribiendo()) return this.textoEmpresa();
+    return this.empresas().find((e) => e.id === this.empresaId())?.nombre ?? TEXTO_TODAS;
+  });
+
+  /** Opciones que coinciden con lo escrito; la vista global aparece primero. */
+  protected readonly opcionesEmpresa = computed<OpcionEmpresa[]>(() => {
+    const consulta = this.escribiendo() ? sinTildes(this.textoEmpresa().trim()) : '';
+    const empresas = this.empresas()
+      .filter((e) => sinTildes(e.nombre).includes(consulta))
+      .map((e) => ({ id: e.id, nombre: e.nombre }));
+    return !consulta || sinTildes(TEXTO_TODAS).includes(consulta)
+      ? [{ id: null, nombre: TEXTO_TODAS }, ...empresas]
+      : empresas;
+  });
+
+  protected abrirLista(evento: Event): void {
+    (evento.target as HTMLInputElement).select();
+    this.indiceActivo.set(0);
+    this.listaAbierta.set(true);
+  }
+
+  protected cerrarLista(): void {
+    this.listaAbierta.set(false);
+    this.escribiendo.set(false);
+  }
+
+  protected escribir(evento: Event): void {
+    this.textoEmpresa.set((evento.target as HTMLInputElement).value);
+    this.escribiendo.set(true);
+    this.indiceActivo.set(0);
+    this.listaAbierta.set(true);
+  }
+
+  protected teclado(evento: KeyboardEvent): void {
+    const total = this.opcionesEmpresa().length;
+    switch (evento.key) {
+      case 'ArrowDown':
+        evento.preventDefault();
+        this.listaAbierta.set(true);
+        this.indiceActivo.update((i) => (total ? (i + 1) % total : 0));
+        break;
+      case 'ArrowUp':
+        evento.preventDefault();
+        this.listaAbierta.set(true);
+        this.indiceActivo.update((i) => (total ? (i - 1 + total) % total : 0));
+        break;
+      case 'Enter': {
+        if (!this.listaAbierta()) return;
+        evento.preventDefault();
+        const opcion = this.opcionesEmpresa()[this.indiceActivo()];
+        if (opcion) this.seleccionarOpcion(opcion);
+        break;
+      }
+      case 'Escape':
+        this.cerrarLista();
+        break;
+    }
+  }
+
+  protected seleccionarOpcion(opcion: OpcionEmpresa): void {
+    const cambio = opcion.id !== this.empresaId();
+    this.cerrarLista();
+    if (!cambio) return;
+    this.sesion.seleccionarEmpresa(opcion.id);
     this.recargarPantalla();
   }
 

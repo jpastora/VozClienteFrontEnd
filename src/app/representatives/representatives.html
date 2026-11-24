@@ -55,9 +55,19 @@
                 </vc-button>
               }
               <vc-button variant="danger" (click)="pedirDesactivar(r)">Desactivar</vc-button>
+              @if (puedeEliminar()) {
+                <vc-button variant="danger" (click)="pedirEliminar(r)">Eliminar</vc-button>
+              }
               </div>
             } @else {
-              <span class="vc-reps__sin-accion">—</span>
+              <div class="vc-reps__botones">
+              <vc-button variant="secondary" [disabled]="activarId() === r.id" (click)="activar(r)">
+                {{ activarId() === r.id ? 'Reactivando…' : 'Reactivar' }}
+              </vc-button>
+              @if (puedeEliminar()) {
+                <vc-button variant="danger" (click)="pedirEliminar(r)">Eliminar</vc-button>
+              }
+              </div>
             }
           </td>
         </tr>
@@ -119,8 +129,8 @@
 <vc-dialog [open]="porDesactivar() !== null" title="Desactivar representante" (closed)="cancelarDesactivar()">
   @if (porDesactivar(); as r) {
     <p>
-      ¿Desactivar a «{{ r.nombreCompleto }}»? No podrá ingresar a la plataforma. Por ahora la reactivación no está
-      disponible desde esta pantalla.
+      ¿Desactivar a «{{ r.nombreCompleto }}»? No podrá ingresar a la plataforma. Podrás reactivarlo cuando quieras desde esta
+      pantalla.
     </p>
     @if (errorDesactivar()) {
       <p class="vc-reps__error" role="alert">{{ errorDesactivar() }}</p>
@@ -133,3 +143,12 @@
     </div>
   }
 </vc-dialog>
+<vc-confirmar-eliminar
+  [open]="porEliminar() !== null"
+  titulo="Eliminar representante"
+  [nombre]="porEliminar()?.nombreCompleto ?? ''"
+  [eliminando]="eliminando()"
+  [error]="errorEliminar()"
+  (confirmar)="confirmarEliminar()"
+  (cancelar)="cancelarEliminar()"
+/>

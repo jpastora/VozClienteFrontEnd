@@ -108,4 +108,9 @@ export class EntrevistaApi {
     return this.http.get<EntrevistaDTO[]>(`${API_URL}/entrevistas/sala/${salaId}`);
   }
 
+
+  /** DELETE /api/entrevistas/{id}: solo fallidas o en curso sin grabación (si no, responde 409). */
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/entrevistas/${id}`);
+  }
 }

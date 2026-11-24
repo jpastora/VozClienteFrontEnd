@@ -1,3 +1,6 @@
+import { SessionService } from '../services/session';
+import { ConfirmarEliminar } from '../shared/confirmar-eliminar/confirmar-eliminar';
+import { mensajeServidor } from '../core/errores';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
@@ -24,13 +27,17 @@ const ETIQUETAS_ESTADO: Record<string, string> = {
 
 /** Alta, listado y desactivación de representantes de la empresa (RF-03, prototipo "Representantes"). */
 @Component({
-  imports: [Badge, Button, DatePipe, Dialog, Field],
+  imports: [Badge, Button, DatePipe, Dialog, Field, ConfirmarEliminar],
   selector: 'vc-representatives',
   styleUrl: './representatives.css',
   templateUrl: './representatives.html',
 })
 export class Representatives {
   private readonly api = inject(RepresentanteApi);
+  private readonly sesion = inject(SessionService);
+
+  /** Solo el administrador de la plataforma elimina; los demás roles desactivan. */
+  protected readonly puedeEliminar = computed(() => this.sesion.usuario()?.rol === 'ADMINISTRADOR');
 
   // Listado
   protected readonly representantes = signal<CuentaDTO[]>([]);
@@ -219,6 +226,31 @@ export class Representatives {
     });
   }
 
+  protected activarId = signal<number | null>(null);
+
+  protected activar(representante: CuentaDTO): void {
+    this.activarId.set(representante.id);
+    this.aviso.set(null);
+    this.api.activar(representante.id).subscribe({
+      next: (actualizado) => {
+        this.representantes.update((lista) => lista.map((r) => (r.id === actualizado.id ? actualizado : r)));
+        this.activarId.set(null);
+        this.aviso.set({
+          tipo: 'ok',
+          texto: `${actualizado.nombreCompleto} quedó ${actualizado.estado === 'ACTIVA' ? 'activo' : 'pendiente de su primer ingreso'}.`,
+        });
+      },
+      error: (err: HttpErrorResponse) => {
+        this.activarId.set(null);
+        this.aviso.set({
+          tipo: 'alerta',
+          texto: err.status === 409 ? 'El representante ya estaba activo.' : 'No se pudo reactivar al representante.',
+        });
+        if (err.status === 409) this.cargar();
+      },
+    });
+  }
+
   protected pedirDesactivar(representante: CuentaDTO): void {
     this.errorDesactivar.set(null);
     this.porDesactivar.set(representante);
@@ -255,5 +287,44 @@ export class Representatives {
 
   protected etiqueta(estado?: string): string {
     return (estado && ETIQUETAS_ESTADO[estado]) || '—';
+  }
+
+  // --- Eliminar (solo si no tiene datos relacionados) ---
+
+  protected readonly porEliminar = signal<CuentaDTO | null>(null);
+  protected readonly eliminando = signal(false);
+  protected readonly errorEliminar = signal<string | null>(null);
+
+  protected pedirEliminar(registro: CuentaDTO): void {
+    this.errorEliminar.set(null);
+    this.porEliminar.set(registro);
+  }
+
+  protected cancelarEliminar(): void {
+    if (!this.eliminando()) this.porEliminar.set(null);
+  }
+
+  protected confirmarEliminar(): void {
+    const registro = this.porEliminar();
+    if (!registro || this.eliminando()) return;
+    this.eliminando.set(true);
+    this.errorEliminar.set(null);
+    this.api.eliminar(registro.id).subscribe({
+      next: () => {
+        this.eliminando.set(false);
+        this.porEliminar.set(null);
+        this.representantes.update((lista) => lista.filter((x) => x.id !== registro.id));
+        this.aviso.set({ tipo: 'ok', texto: `${registro.nombreCompleto} fue eliminado.` });
+      },
+      error: (err: HttpErrorResponse) => {
+        this.eliminando.set(false);
+        this.errorEliminar.set(
+          mensajeServidor(err) ??
+            (err.status === 404
+              ? 'El registro ya no existe. Actualiza la lista.'
+              : 'No se pudo eliminar. Intenta de nuevo.'),
+        );
+      },
+    });
   }
 }

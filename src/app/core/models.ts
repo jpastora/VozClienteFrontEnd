@@ -476,3 +476,16 @@ export interface GuiaDTO {
   empresaId: number;
   cuentaId: number;
 }
+/** Espejo de CompletarPerfilDTO: formulario del primer ingreso con Google. */
+export interface CompletarPerfilRequest {
+  nombreCompleto: string;
+  nombreEmpresa: string;
+}
+
+/** Espejo de EditarCuentaDTO: edición de nombre, correo y empresa (PUT /api/cuentas/{id}). */
+export interface EditarCuentaRequest {
+  nombreCompleto: string;
+  correo: string;
+  empresaId?: number | null;
+  version: number;
+}

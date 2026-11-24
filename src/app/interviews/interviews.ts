@@ -1,3 +1,6 @@
+import { ConfirmarEliminar } from '../shared/confirmar-eliminar/confirmar-eliminar';
+import { mensajeServidor } from '../core/errores';
+import { SessionService } from '../services/session';
 import {
   Component,
   OnDestroy,
@@ -31,7 +34,7 @@ interface ProductoFiltro {
 @Component({
   selector: 'vc-interviews',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, ConfirmarEliminar],
   templateUrl: './interviews.html',
   styleUrl: './interviews.css'
 })
@@ -39,6 +42,7 @@ export class Interviews implements OnInit, OnDestroy {
 
   private readonly entrevistaApi = inject(EntrevistaApi);
   private readonly http = inject(HttpClient);
+  private readonly sesion = inject(SessionService);
 
   /** Rutas absolutas para los enlaces de la plantilla. */
   protected readonly rutas = RUTAS;
@@ -473,5 +477,54 @@ export class Interviews implements OnInit, OnDestroy {
       default:
         return 'estado-vacio';
     }
+  }
+
+  // --- Eliminar (solo fallidas o en curso, sin grabación) ---
+
+  protected readonly porEliminar = signal<EntrevistaListadoDTO | null>(null);
+  protected readonly eliminando = signal(false);
+  protected readonly errorEliminar = signal<string | null>(null);
+
+  /** Solo el administrador de la plataforma, y solo entrevistas sin grabación que no terminaron bien. */
+  protected puedeEliminar(entrevista: EntrevistaListadoDTO): boolean {
+    const rol = this.sesion.usuario()?.rol;
+    return (
+      rol === 'ADMINISTRADOR' &&
+      entrevista.estado !== 'FINALIZADA' &&
+      entrevista.grabacionId === null
+    );
+  }
+
+  protected pedirEliminar(entrevista: EntrevistaListadoDTO): void {
+    this.errorEliminar.set(null);
+    this.porEliminar.set(entrevista);
+  }
+
+  protected cancelarEliminar(): void {
+    if (!this.eliminando()) this.porEliminar.set(null);
+  }
+
+  protected confirmarEliminar(): void {
+    const entrevista = this.porEliminar();
+    if (!entrevista || this.eliminando()) return;
+    this.eliminando.set(true);
+    this.errorEliminar.set(null);
+    this.entrevistaApi.eliminar(entrevista.id).subscribe({
+      next: () => {
+        this.eliminando.set(false);
+        this.porEliminar.set(null);
+        this.mensaje.set(`Entrevista #${entrevista.id} eliminada.`);
+        this.cargarEntrevistas();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.eliminando.set(false);
+        this.errorEliminar.set(
+          mensajeServidor(err) ??
+            (err.status === 404
+              ? 'La entrevista ya no existe. Actualiza la lista.'
+              : 'No se pudo eliminar. Intenta de nuevo.'),
+        );
+      },
+    });
   }
 }
