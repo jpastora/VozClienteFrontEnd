@@ -251,6 +251,14 @@ export interface PaqueteDTO {
   actualizadoEn?: string;
 }
 
+/** Lo que envía el administrador al crear o editar un paquete (RF-17). */
+export interface PaqueteRequest {
+  nombre: string;
+  cantidadSalas: number;
+  precio: number;
+  esActivo?: boolean;
+}
+
 export type EstadoPago = 'APROBADO' | 'RECHAZADO';
 
 /** Espejo de CompraDTO del back-end (/api/compras). */
