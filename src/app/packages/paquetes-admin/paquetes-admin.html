@@ -1,0 +1,83 @@
+<section class="vc-padm" aria-labelledby="ttlGestion">
+  <div class="vc-padm__encabezado">
+    <h2 id="ttlGestion">Gestionar paquetes</h2>
+    <vc-button id="btnNuevoPaquete" variant="accent" (click)="nuevo()">+ Nuevo paquete</vc-button>
+  </div>
+
+  @if (aviso()) {
+    <p class="vc-padm__aviso" role="status">✓ {{ aviso() }}</p>
+  }
+  @if (error()) {
+    <div class="vc-padm__error" role="alert">
+      {{ error() }}
+      <vc-button variant="secondary" (click)="cargar()">Reintentar</vc-button>
+    </div>
+  }
+
+  @if (cargando()) {
+    <p class="vc-padm__msg" role="status">Cargando paquetes…</p>
+  } @else {
+    <table class="vc-table">
+      <thead>
+        <tr><th>Nombre</th><th>Salas</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr>
+      </thead>
+      <tbody>
+        @for (p of paquetes(); track p.id) {
+          <tr>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.cantidadSalas }}</td>
+            <td>{{ p.precio | currency: 'USD' : 'symbol' : '1.2-2' }}</td>
+            <td>
+              <vc-badge [tone]="p.esActivo ? 'success' : 'neutral'">{{ p.esActivo ? 'Activo' : 'Inactivo' }}</vc-badge>
+            </td>
+            <td>
+              <div class="vc-padm__acciones">
+                <vc-button variant="secondary" [disabled]="ocupado() === p.id" (click)="editar(p)">Editar</vc-button>
+                <vc-button variant="secondary" [disabled]="ocupado() === p.id" (click)="cambiarEstado(p)">
+                  {{ p.esActivo ? 'Desactivar' : 'Activar' }}
+                </vc-button>
+                <vc-button variant="danger" [disabled]="ocupado() === p.id" (click)="pedirEliminar(p)">Eliminar</vc-button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr class="vc-padm__vacio"><td colspan="5">Todavía no hay paquetes. Crea el primero.</td></tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
+
+<vc-dialog [open]="editando() !== null" [title]="tituloFormulario()" (closed)="cerrar()">
+  <form class="vc-padm__form" (submit)="$event.preventDefault(); guardar()" novalidate>
+    <vc-field controlId="txtNombrePaquete" label="Nombre" [(value)]="nombre" [error]="errorNombre()" />
+    <div class="vc-padm__fila">
+      <vc-field controlId="txtSalasPaquete" label="Cantidad de salas" [(value)]="salas" [error]="errorSalas()" />
+      <vc-field controlId="txtPrecioPaquete" label="Precio (USD)" [(value)]="precio" [error]="errorPrecio()" />
+    </div>
+    @if (editando() !== 'nuevo') {
+      <p class="vc-padm__nota">Los cambios solo aplican a las compras nuevas. Las compras anteriores conservan su precio y sus salas.</p>
+    }
+    @if (errorFormulario()) {
+      <p class="vc-padm__error-form" role="alert">{{ errorFormulario() }}</p>
+    }
+    <div class="vc-padm__botones">
+      <vc-button variant="secondary" (click)="cerrar()">Cancelar</vc-button>
+      <vc-button id="btnGuardarPaquete" type="submit" [disabled]="guardando()">
+        {{ guardando() ? 'Guardando…' : 'Guardar' }}
+      </vc-button>
+    </div>
+  </form>
+</vc-dialog>
+
+<vc-dialog [open]="porEliminar() !== null" title="Eliminar paquete" (closed)="cancelarEliminar()">
+  @if (porEliminar(); as p) {
+    <p>¿Eliminar «{{ p.nombre }}»? Solo se puede eliminar si nunca se vendió; si ya tiene compras, desactívalo.</p>
+    <div class="vc-padm__botones">
+      <vc-button variant="secondary" (click)="cancelarEliminar()">Cancelar</vc-button>
+      <vc-button id="btnConfirmarEliminarPaquete" variant="danger" [disabled]="ocupado() === p.id" (click)="eliminar()">
+        {{ ocupado() === p.id ? 'Eliminando…' : 'Eliminar' }}
+      </vc-button>
+    </div>
+  }
+</vc-dialog>
