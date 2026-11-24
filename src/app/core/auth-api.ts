@@ -23,11 +23,14 @@ export const URL_CAMBIAR_CONTRASENA = `${API_URL}/auth/cambiar-contrasena`;
 /** Registro con correo y contraseña: crea la empresa y la cuenta de cliente-administrador. */
 export const URL_REGISTRO = `${API_URL}/auth/registro`;
 
+/** "¿Olvidó su contraseña?": envía una contraseña temporal al correo. */
+export const URL_RECUPERAR = `${API_URL}/auth/recuperar`;
+
 /**
  * Rutas de autenticación cuyo 401 es una respuesta normal (no hay sesión o las credenciales no
  * coinciden) y no una sesión vencida; el interceptor no las trata como sesión expirada.
  */
-export const RUTAS_AUTH_SIN_SESION = [URL_SESION, URL_INGRESO, URL_REGISTRO];
+export const RUTAS_AUTH_SIN_SESION = [URL_SESION, URL_INGRESO, URL_REGISTRO, URL_RECUPERAR];
 
 @Injectable({ providedIn: 'root' })
 export class AuthApi {
@@ -63,6 +66,17 @@ export class AuthApi {
    */
   registrar(nombreCompleto: string, correo: string, contrasena: string): Observable<UsuarioInfo> {
     return this.http.post<UsuarioInfo>(URL_REGISTRO, { nombreCompleto, correo, contrasena });
+  }
+
+  /**
+   * POST /api/auth/recuperar: si el correo es de una cuenta con contraseña, el back-end le envía una
+   * contraseña temporal. La respuesta es la misma exista o no la cuenta.
+   *
+   * @param correo correo de la cuenta
+   * @returns flujo con el mensaje para mostrar (202)
+   */
+  recuperar(correo: string): Observable<{ mensaje: string }> {
+    return this.http.post<{ mensaje: string }>(URL_RECUPERAR, { correo });
   }
 
   /**

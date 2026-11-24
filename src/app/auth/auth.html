@@ -27,7 +27,7 @@
             Se crea la cuenta de su empresa y usted queda como cliente-administrador.
           }
           @case ('recuperar') {
-            Escriba el correo de su cuenta y le enviaremos un enlace para crear una contraseña nueva.
+            Escriba el correo de su cuenta y le enviaremos una contraseña temporal. Al ingresar con ella, podrá elegir una nueva.
           }
         }
       </p>
@@ -37,11 +37,12 @@
           id="msgIngreso"
           class="vc-auth__mensaje"
           [class.vc-auth__mensaje--aviso]="m.tipo === 'aviso'"
+          [class.vc-auth__mensaje--exito]="m.tipo === 'exito'"
           role="alert"
         >
           <strong class="vc-auth__etiqueta">
-            <span aria-hidden="true">{{ m.tipo === 'aviso' ? '!' : '✕' }}</span>
-            {{ m.tipo === 'aviso' ? 'Aviso' : 'Error' }}
+            <span aria-hidden="true">{{ m.tipo === 'exito' ? '✓' : m.tipo === 'aviso' ? '!' : '✕' }}</span>
+            {{ m.tipo === 'exito' ? 'Listo' : m.tipo === 'aviso' ? 'Aviso' : 'Error' }}
           </strong>
           <p>{{ m.texto }}</p>
         </div>
@@ -121,7 +122,7 @@
       </p>
 
       <p class="vc-auth__nota">
-        Si es representante, ingrese con Google usando el correo que registró su empresa.
+        Si su empresa le creó la cuenta, ingrese con la contraseña temporal que recibió por correo o con Google.
       </p>
 
       <a class="vc-auth__volver" [routerLink]="rutas.home">← Volver al inicio</a>
