@@ -489,3 +489,38 @@ export interface EditarCuentaRequest {
   empresaId?: number | null;
   version: number;
 }
+
+// ======================================================
+// ESTADÍSTICAS
+// ======================================================
+
+export type IntencionEstadistica =
+  | 'RECOMPRARIA'
+  | 'NO_RECOMPRARIA'
+  | 'RECHAZA'
+  | 'NEUTRAL';
+
+export interface DistribucionIntencionDTO {
+  intencion: IntencionEstadistica;
+  cantidad: number;
+  porcentaje: number;
+}
+
+export interface CompetidorEstadisticaDTO {
+  competidor: string;
+  menciones: number;
+}
+
+export interface EstadisticasDTO {
+  entrevistasAnalizadas: number;
+  intencionCompra: number;
+  mencionesCompetencia: number;
+  distribucionIntencion: DistribucionIntencionDTO[];
+  competidores: CompetidorEstadisticaDTO[];
+}
+
+export interface FiltrosEstadisticas {
+  productoId?: number;
+  desde?: string;
+  hasta?: string;
+}
