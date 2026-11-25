@@ -1,8 +1,31 @@
-:host { display: block; }
-.vc-rep__aviso { margin: var(--vc-space-2) 0 var(--vc-space-3); color: var(--vc-muted); font-size: var(--vc-text-sm); }
-.vc-rep__filters { display: flex; align-items: flex-end; flex-wrap: wrap; gap: var(--vc-space-3); margin-bottom: var(--vc-space-4); }
-.vc-rep__campo { display: flex; flex-direction: column; gap: var(--vc-space-1); }
-.vc-rep__label { font-size: var(--vc-text-sm); font-weight: 600; }
+:host {
+  display: block;
+}
+
+/* ======================================================
+   FILTROS
+   ====================================================== */
+
+.vc-rep__filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: var(--vc-space-3);
+  margin-top: var(--vc-space-3);
+  margin-bottom: var(--vc-space-4);
+}
+
+.vc-rep__campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-1);
+}
+
+.vc-rep__label {
+  font-size: var(--vc-text-sm);
+  font-weight: 600;
+}
+
 .vc-rep__control {
   font: inherit;
   min-width: 180px;
@@ -10,11 +33,263 @@
   border: 1px solid var(--vc-concrete);
   border-radius: var(--vc-radius);
   background: var(--vc-white);
+  box-sizing: border-box;
 }
-.vc-rep__control:disabled { background: var(--vc-line); color: var(--vc-muted); cursor: not-allowed; }
-.vc-rep__pdf { margin-left: auto; }
-.vc-rep__metricas { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--vc-space-3); margin-bottom: var(--vc-space-4); }
-.vc-rep__grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--vc-space-3); }
-@media (max-width: 900px) { .vc-rep__grid { grid-template-columns: 1fr; } }
-.vc-rep__vacio { margin: 0; padding: var(--vc-space-5) 0; text-align: center; color: var(--vc-muted); }
-.vc-rep__vacio-fila td { text-align: center; color: var(--vc-muted); font-weight: 400 !important; padding: var(--vc-space-5); }
+
+.vc-rep__control:focus {
+  outline: 2px solid #25845c;
+  outline-offset: 2px;
+}
+
+.vc-rep__control:disabled {
+  background: var(--vc-line);
+  color: var(--vc-muted);
+  cursor: not-allowed;
+}
+
+.vc-rep__pdf {
+  margin-left: auto;
+}
+
+/* ======================================================
+   MÉTRICAS
+   ====================================================== */
+
+.vc-rep__metricas {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--vc-space-3);
+  margin-bottom: var(--vc-space-4);
+}
+
+/* ======================================================
+   PANELES
+   ====================================================== */
+
+.vc-rep__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--vc-space-3);
+}
+
+.vc-rep__grid > section {
+  min-width: 0;
+}
+
+/* ======================================================
+   GRÁFICO DE INTENCIONES
+   ====================================================== */
+
+.vc-rep__distribucion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 24px 0;
+}
+
+.vc-rep__grafico {
+  width: 190px;
+  height: 190px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vc-rep__grafico-centro {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: var(--vc-white);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.vc-rep__grafico-total {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.vc-rep__grafico-texto {
+  font-size: 12px;
+  color: var(--vc-muted);
+}
+
+/* ======================================================
+   LEYENDA DEL GRÁFICO
+   ====================================================== */
+
+.vc-rep__leyenda {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.vc-rep__leyenda-item {
+  display: grid;
+  grid-template-columns: 12px 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--vc-text-sm);
+}
+
+.vc-rep__leyenda-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.vc-rep__leyenda-nombre {
+  font-weight: 500;
+}
+
+.vc-rep__leyenda-cantidad {
+  color: var(--vc-muted);
+  text-align: right;
+}
+
+.vc-rep__leyenda-porcentaje {
+  font-weight: 700;
+  min-width: 60px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ======================================================
+   TABLA DE COMPETIDORES
+   ====================================================== */
+
+.vc-rep__tabla-contenedor {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.vc-rep__numero {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ======================================================
+   ESTADOS VACÍOS
+   ====================================================== */
+
+.vc-rep__vacio {
+  margin: 0;
+  padding: var(--vc-space-5) 0;
+  text-align: center;
+  color: var(--vc-muted);
+}
+
+.vc-rep__vacio-fila td {
+  text-align: center;
+  color: var(--vc-muted);
+  font-weight: 400 !important;
+  padding: var(--vc-space-5);
+}
+
+/* ======================================================
+   MENSAJES DE ERROR
+   ====================================================== */
+
+.vc-rep__error {
+  padding: 12px 16px;
+  margin-bottom: var(--vc-space-3);
+  border: 1px solid #f0b4b4;
+  border-radius: var(--vc-radius);
+  background: #fef2f2;
+  color: #991b1b;
+  font-size: var(--vc-text-sm);
+}
+
+/* ======================================================
+   ESTADO DE CARGA
+   ====================================================== */
+
+.vc-rep__cargando {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  margin-bottom: var(--vc-space-3);
+  border: 1px solid var(--vc-concrete);
+  border-radius: var(--vc-radius);
+  color: var(--vc-muted);
+  font-size: var(--vc-text-sm);
+}
+
+.vc-rep__spinner {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border: 2px solid var(--vc-concrete);
+  border-top-color: #25845c;
+  border-radius: 50%;
+  animation: vc-rep-spin 0.8s linear infinite;
+}
+
+@keyframes vc-rep-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ======================================================
+   DISEÑO RESPONSIVO
+   ====================================================== */
+
+@media (max-width: 900px) {
+
+  .vc-rep__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vc-rep__pdf {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 600px) {
+
+  .vc-rep__filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .vc-rep__campo {
+    width: 100%;
+  }
+
+  .vc-rep__control {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .vc-rep__metricas {
+    grid-template-columns: 1fr;
+  }
+
+  .vc-rep__distribucion {
+    flex-direction: column;
+  }
+
+  .vc-rep__leyenda {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .vc-rep__spinner {
+    animation: none;
+  }
+}
