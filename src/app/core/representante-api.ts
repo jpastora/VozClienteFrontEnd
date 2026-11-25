@@ -23,8 +23,18 @@ export class RepresentanteApi {
     return this.http.post<CuentaDTO>(`${API_URL}/representantes/${id}/contrasena-temporal`, null);
   }
 
+  /** PATCH /api/representantes/{id}/activar: reactiva un representante desactivado. */
+  activar(id: number): Observable<CuentaDTO> {
+    return this.http.patch<CuentaDTO>(`${API_URL}/representantes/${id}/activar`, null);
+  }
+
   /** PATCH /api/representantes/{id}/desactivar: devuelve la cuenta con estado INACTIVA. */
   desactivar(id: number): Observable<CuentaDTO> {
     return this.http.patch<CuentaDTO>(`${API_URL}/representantes/${id}/desactivar`, null);
+  }
+
+  /** DELETE /api/representantes/{id}: solo si no tiene datos relacionados (si no, responde 409). */
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/representantes/${id}`);
   }
 }

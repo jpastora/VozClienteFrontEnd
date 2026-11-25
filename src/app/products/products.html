@@ -1,6 +1,10 @@
 <h1>Productos</h1>
 <p class="vc-eyebrow">Catálogo de productos de tu empresa</p>
 
+@if (avisoEliminar()) {
+  <p id="msgAvisoProductos" class="vc-products__aviso" role="status">{{ avisoEliminar() }}</p>
+}
+
 <section class="vc-products__filters" aria-label="Filtros">
   <vc-field
     class="vc-products__search"
@@ -95,6 +99,14 @@
                 (click)="abrirEditar(p)">
                 Editar
               </vc-button>
+
+              @if (puedeEliminar()) {
+                <vc-button
+                  variant="danger"
+                  (click)="pedirEliminar(p)">
+                  Eliminar
+                </vc-button>
+              }
             </td>
           </tr>
         } @empty {
@@ -169,4 +181,13 @@
   [existentes]="productos()"
   (closed)="cerrarFormulario()"
   (guardado)="alGuardar($event)"
+/>
+<vc-confirmar-eliminar
+  [open]="porEliminar() !== null"
+  titulo="Eliminar producto"
+  [nombre]="porEliminar()?.nombre ?? ''"
+  [eliminando]="eliminando()"
+  [error]="errorEliminar()"
+  (confirmar)="confirmarEliminar()"
+  (cancelar)="cancelarEliminar()"
 />

@@ -73,6 +73,7 @@
           <td>{{ c.ultimoIngresoEn ? (c.ultimoIngresoEn | date: 'dd/MM/yyyy HH:mm') : 'Aún no ingresa' }}</td>
           <td>
             <div class="vc-adm__acciones">
+            <vc-button variant="secondary" (click)="abrirEdicion(c)">Editar</vc-button>
             @if (c.id !== miId()) {
               <vc-button variant="secondary" (click)="pedirCambio(c)">Cambiar rol</vc-button>
               <vc-button variant="secondary" (click)="pedirCambioEstado(c)">
@@ -85,6 +86,9 @@
               </vc-button>
             }
             <vc-button variant="secondary" (click)="verHistorial(c)">Historial</vc-button>
+            @if (c.id !== miId()) {
+              <vc-button variant="danger" (click)="pedirEliminar(c)">Eliminar</vc-button>
+            }
           </div>
           </td>
         </tr>
@@ -172,6 +176,48 @@
       </vc-button>
     </div>
   </form>
+</vc-dialog>
+
+<vc-dialog [open]="editando() !== null" title="Editar usuario" (closed)="cerrarEdicion()">
+  @if (editando(); as c) {
+    <form class="vc-adm__form" (submit)="$event.preventDefault(); guardarEdicion()" novalidate>
+      <vc-field controlId="txtEditNombre" label="Nombre completo *" [(value)]="editNombre" [error]="errorEditNombre()" />
+      <p class="vc-adm__nota">{{ regla }}</p>
+      @if (c.ingresaConGoogle) {
+        <p class="vc-adm__texto">
+          Correo: <strong>{{ c.correo }}</strong><br />
+          <span class="vc-adm__nota">Esta cuenta ingresa con Google: su correo no se puede cambiar.</span>
+        </p>
+      } @else {
+        <vc-field controlId="txtEditCorreo" label="Correo *" type="email" [(value)]="editCorreo" [error]="errorEditCorreo()" />
+      }
+      @if (edicionNecesitaEmpresa()) {
+        <div class="vc-adm__filtro">
+          <label class="vc-adm__label" for="cmbEditEmpresa">Empresa *</label>
+          <select id="cmbEditEmpresa" class="vc-adm__select" (change)="elegirEmpresaEdicion($event)">
+            <option value="">Selecciona una empresa</option>
+            @for (e of empresas(); track e.id) {
+              <option [value]="e.id" [selected]="e.id === editEmpresa()">{{ e.nombre }}</option>
+            }
+          </select>
+          @if (errorEditEmpresa()) {
+            <p class="vc-adm__error" role="alert">{{ errorEditEmpresa() }}</p>
+          }
+        </div>
+      } @else {
+        <p class="vc-adm__nota">Un administrador de la plataforma no pertenece a ninguna empresa.</p>
+      }
+      @if (errorEdicion()) {
+        <p class="vc-adm__error" role="alert">{{ errorEdicion() }}</p>
+      }
+      <div class="vc-adm__botones">
+        <vc-button variant="secondary" (click)="cerrarEdicion()">Cancelar</vc-button>
+        <vc-button id="btnGuardarEdicionUsuario" type="submit" [disabled]="guardandoEdicion()">
+          {{ guardandoEdicion() ? 'Guardando…' : 'Guardar cambios' }}
+        </vc-button>
+      </div>
+    </form>
+  }
 </vc-dialog>
 
 <vc-dialog [open]="porCambiar() !== null" title="Cambiar rol" (closed)="cancelarCambio()">
@@ -290,3 +336,13 @@
     </div>
   }
 </vc-dialog>
+
+<vc-confirmar-eliminar
+  [open]="porEliminar() !== null"
+  titulo="Eliminar usuario"
+  [nombre]="porEliminar()?.nombreCompleto ?? ''"
+  [eliminando]="eliminando()"
+  [error]="errorEliminar()"
+  (confirmar)="confirmarEliminar()"
+  (cancelar)="cancelarEliminar()"
+/>

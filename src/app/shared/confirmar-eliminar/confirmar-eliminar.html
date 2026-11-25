@@ -1,0 +1,19 @@
+<vc-dialog [open]="open()" [title]="titulo()" (closed)="cancelar.emit()">
+  <div class="vc-ce">
+    <p class="vc-ce__texto">
+      ¿Eliminar <strong>{{ nombre() }}</strong>? Esta acción no se puede deshacer. Solo se elimina si no tiene datos
+      relacionados.
+    </p>
+    @if (error()) {
+      <p class="vc-ce__error" role="alert">{{ error() }}</p>
+    }
+    <div class="vc-ce__botones">
+      <vc-button variant="secondary" (click)="cancelar.emit()">{{ error() ? 'Cerrar' : 'Cancelar' }}</vc-button>
+      @if (!error()) {
+        <vc-button id="btnConfirmarEliminar" variant="danger" [disabled]="eliminando()" (click)="confirmar.emit()">
+          {{ eliminando() ? 'Eliminando…' : 'Eliminar' }}
+        </vc-button>
+      }
+    </div>
+  </div>
+</vc-dialog>

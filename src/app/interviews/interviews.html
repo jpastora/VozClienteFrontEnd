@@ -208,6 +208,12 @@
 
                   }
 
+                  @if (puedeEliminar(entrevista)) {
+                    <button type="button" class="btn-accion" (click)="pedirEliminar(entrevista)">
+                      Eliminar
+                    </button>
+                  }
+
                 </td>
 
               </tr>
@@ -286,3 +292,12 @@
 
   </div>
 </section>
+<vc-confirmar-eliminar
+  [open]="porEliminar() !== null"
+  titulo="Eliminar entrevista"
+  [nombre]="'la entrevista #' + (porEliminar()?.id ?? '')"
+  [eliminando]="eliminando()"
+  [error]="errorEliminar()"
+  (confirmar)="confirmarEliminar()"
+  (cancelar)="cancelarEliminar()"
+/>

@@ -1,3 +1,7 @@
+import { SessionService } from '../services/session';
+import { ConfirmarEliminar } from '../shared/confirmar-eliminar/confirmar-eliminar';
+import { mensajeServidor } from '../core/errores';
+import { HttpErrorResponse } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
 import {
   Component,
@@ -29,7 +33,7 @@ import { ProductForm } from '../product-form/product-form';
     Field,
     DatePipe,
     RouterLink,
-    ProductForm
+    ProductForm, ConfirmarEliminar
   ],
   templateUrl: './products.html',
   styleUrl: './products.css'
@@ -37,6 +41,10 @@ import { ProductForm } from '../product-form/product-form';
 export class Products implements OnDestroy {
 
   private readonly api = inject(ProductoApi);
+  private readonly sesion = inject(SessionService);
+
+  /** Solo el administrador de la plataforma elimina; los demás roles desactivan. */
+  protected readonly puedeEliminar = computed(() => this.sesion.usuario()?.rol === 'ADMINISTRADOR');
   private readonly destroy$ = new Subject<void>();
 
   // HU-06: paginación de 10 productos
@@ -238,5 +246,46 @@ export class Products implements OnDestroy {
 
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // --- Eliminar (solo si no tiene datos relacionados) ---
+
+  protected readonly avisoEliminar = signal<string | null>(null);
+
+  protected readonly porEliminar = signal<ProductoDTO | null>(null);
+  protected readonly eliminando = signal(false);
+  protected readonly errorEliminar = signal<string | null>(null);
+
+  protected pedirEliminar(registro: ProductoDTO): void {
+    this.errorEliminar.set(null);
+    this.porEliminar.set(registro);
+  }
+
+  protected cancelarEliminar(): void {
+    if (!this.eliminando()) this.porEliminar.set(null);
+  }
+
+  protected confirmarEliminar(): void {
+    const registro = this.porEliminar();
+    if (!registro || this.eliminando()) return;
+    this.eliminando.set(true);
+    this.errorEliminar.set(null);
+    this.api.eliminar(registro.id!).subscribe({
+      next: () => {
+        this.eliminando.set(false);
+        this.porEliminar.set(null);
+        this.avisoEliminar.set(`Producto «${registro.nombre}» eliminado.`);
+        this.cargar();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.eliminando.set(false);
+        this.errorEliminar.set(
+          mensajeServidor(err) ??
+            (err.status === 404
+              ? 'El registro ya no existe. Actualiza la lista.'
+              : 'No se pudo eliminar. Intenta de nuevo.'),
+        );
+      },
+    });
   }
 }

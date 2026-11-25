@@ -33,8 +33,12 @@
   </section>
 }
 
+@if (esAdministrador()) {
+  <vc-paquetes-admin (cambio)="cargarPaquetes()" />
+}
+
 <section aria-labelledby="ttlCatalogo">
-  <h2 id="ttlCatalogo">Catálogo de paquetes</h2>
+  <h2 id="ttlCatalogo">{{ esAdministrador() ? 'Catálogo como lo ven los clientes' : 'Catálogo de paquetes' }}</h2>
   @if (cargandoPaquetes()) {
     <p class="vc-pkg__msg" role="status">Cargando paquetes…</p>
   } @else if (errorPaquetes()) {
@@ -54,7 +58,7 @@
             <strong>{{ p.cantidadSalas }}</strong>
             <span>salas de entrevista</span>
           </p>
-          <p class="vc-pkg__precio">{{ p.precio | currency: 'USD' : 'symbol' : '1.0-0' }}</p>
+          <p class="vc-pkg__precio">{{ p.precio | currency: 'USD' : 'symbol' : '1.0-2' }}</p>
           <p class="vc-pkg__unitario">{{ p.precioPorSala | currency: 'USD' : 'symbol' : '1.0-2' }} por sala</p>
 
           <ul class="vc-pkg__incluye">

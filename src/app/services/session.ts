@@ -6,6 +6,19 @@ import { RUTAS } from '../core/rutas';
 import { RolInfo, UsuarioInfo } from '../interfaces/usuario';
 
 /**
+ * Pantalla obligatoria que la persona debe completar antes de usar la aplicación: cambiar la contraseña
+ * temporal o, tras el primer ingreso con Google, completar su nombre y empresa.
+ *
+ * @param usuario persona con sesión
+ * @returns la ruta de esa pantalla, o nulo si puede usar la aplicación
+ */
+export function rutaObligatoria(usuario: UsuarioInfo): string | null {
+  if (usuario.debeCambiarContrasena) return RUTAS.cambiarContrasena;
+  if (!usuario.perfilCompleto) return RUTAS.completarPerfil;
+  return null;
+}
+
+/**
  * Pantalla de inicio de cada perfil (navegación por perfil, HU-01).
  *
  * @param rol rol de la persona con sesión
@@ -127,16 +140,28 @@ export class SessionService {
    * @param nombreCompleto nombre de la persona
    * @param correo correo de la cuenta
    * @param contrasena contraseña
+   * @param nombreEmpresa nombre de la empresa que se crea
    * @returns promesa que falla con el HttpErrorResponse del back-end si no se pudo registrar
    */
-  async registrar(nombreCompleto: string, correo: string, contrasena: string): Promise<void> {
-    const usuario = await firstValueFrom(this.authApi.registrar(nombreCompleto, correo, contrasena));
+  async registrar(nombreCompleto: string, correo: string, contrasena: string, nombreEmpresa: string): Promise<void> {
+    const usuario = await firstValueFrom(this.authApi.registrar(nombreCompleto, correo, contrasena, nombreEmpresa));
     await this.abrir(usuario);
   }
 
   private async abrir(usuario: UsuarioInfo): Promise<void> {
     this._usuario.set(usuario);
-    await this.router.navigateByUrl(usuario.debeCambiarContrasena ? RUTAS.cambiarContrasena : rutaInicio(usuario.rol));
+    await this.router.navigateByUrl(rutaObligatoria(usuario) ?? rutaInicio(usuario.rol));
+  }
+
+  /**
+   * Completa el perfil del primer ingreso con Google (nombre y empresa) y entra a la aplicación.
+   *
+   * @returns promesa que falla con el HttpErrorResponse del back-end si no se pudo guardar
+   */
+  async completarPerfil(nombreCompleto: string, nombreEmpresa: string): Promise<void> {
+    const usuario = await firstValueFrom(this.authApi.completarPerfil({ nombreCompleto, nombreEmpresa }));
+    this._usuario.set(usuario);
+    await this.router.navigateByUrl(rutaObligatoria(usuario) ?? rutaInicio(usuario.rol));
   }
 
   /**
@@ -149,7 +174,7 @@ export class SessionService {
   async cambiarContrasena(contrasenaActual: string, contrasenaNueva: string): Promise<void> {
     const usuario = await firstValueFrom(this.authApi.cambiarContrasena({ contrasenaActual, contrasenaNueva }));
     this._usuario.set(usuario);
-    await this.router.navigateByUrl(rutaInicio(usuario.rol));
+    await this.router.navigateByUrl(rutaObligatoria(usuario) ?? rutaInicio(usuario.rol));
   }
 
   /** Navega al ingreso con Google; al volver, el back-end redirige a la aplicación con la sesión iniciada. */

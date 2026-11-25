@@ -11,12 +11,44 @@
   @if (esAdministrador()) {
     <div class="vc-shell__empresa">
       <label class="vc-shell__empresa-label" for="cmbEmpresaAtendida">Empresa que atiendes</label>
-      <select id="cmbEmpresaAtendida" class="vc-shell__empresa-select" [value]="empresaId() ?? ''" (change)="elegirEmpresa($event)">
-        <option value="">Todas las empresas (vista global)</option>
-        @for (e of empresas(); track e.id) {
-          <option [value]="e.id" [selected]="e.id === empresaId()">{{ e.nombre }}</option>
+      <div class="vc-shell__combo">
+        <input
+          id="cmbEmpresaAtendida"
+          class="vc-shell__empresa-select"
+          type="text"
+          role="combobox"
+          autocomplete="off"
+          aria-autocomplete="list"
+          aria-controls="lstEmpresasAtendidas"
+          placeholder="Buscar empresa…"
+          [attr.aria-expanded]="listaAbierta()"
+          [attr.aria-activedescendant]="listaAbierta() && opcionesEmpresa().length ? 'optEmpresa' + indiceActivo() : null"
+          [value]="valorCampo()"
+          (focus)="abrirLista($event)"
+          (click)="abrirLista($event)"
+          (input)="escribir($event)"
+          (keydown)="teclado($event)"
+          (blur)="cerrarLista()"
+        />
+        @if (listaAbierta()) {
+          <ul id="lstEmpresasAtendidas" class="vc-shell__opciones" role="listbox" aria-label="Empresas" (mousedown)="$event.preventDefault()">
+            @for (op of opcionesEmpresa(); track op.id; let i = $index) {
+              <li
+                [id]="'optEmpresa' + i"
+                role="option"
+                [attr.aria-selected]="op.id === empresaId()"
+                [class.is-activa]="i === indiceActivo()"
+                [class.is-elegida]="op.id === empresaId()"
+                (click)="seleccionarOpcion(op)"
+              >
+                {{ op.nombre }}
+              </li>
+            } @empty {
+              <li class="vc-shell__sin-resultados" role="presentation">Ninguna empresa coincide.</li>
+            }
+          </ul>
         }
-      </select>
+      </div>
       @if (errorEmpresas()) {
         <button type="button" class="vc-shell__empresa-reintento" (click)="cargarEmpresas()">
           No se pudo cargar. Reintentar

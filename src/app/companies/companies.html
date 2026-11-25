@@ -33,7 +33,10 @@
         <tr>
           <td>{{ e.nombre }}</td>
           <td>{{ e.creadoEn | date: 'dd/MM/yyyy' }}</td>
-          <td><vc-button variant="secondary" (click)="abrirEdicion(e)">Editar nombre</vc-button></td>
+          <td class="vc-co__acciones">
+            <vc-button variant="secondary" (click)="abrirEdicion(e)">Editar nombre</vc-button>
+            <vc-button variant="danger" (click)="pedirEliminar(e)">Eliminar</vc-button>
+          </td>
         </tr>
       } @empty {
         <tr class="vc-co__vacio">
@@ -64,3 +67,13 @@
     </div>
   </form>
 </vc-dialog>
+
+<vc-confirmar-eliminar
+  [open]="porEliminar() !== null"
+  titulo="Eliminar empresa"
+  [nombre]="porEliminar()?.nombre ?? ''"
+  [eliminando]="eliminando()"
+  [error]="errorEliminar()"
+  (confirmar)="confirmarEliminar()"
+  (cancelar)="cancelarEliminar()"
+/>

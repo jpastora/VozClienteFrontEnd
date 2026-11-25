@@ -9,6 +9,7 @@ import { PaqueteApi } from '../core/paquete-api';
 import { SaldoApi } from '../core/saldo-api';
 import { Dialog } from '../dialog/dialog';
 import { Field } from '../field/field';
+import { PaquetesAdmin } from './paquetes-admin/paquetes-admin';
 import { MetricCard } from '../metric-card/metric-card';
 import { SessionService } from '../services/session';
 
@@ -48,7 +49,7 @@ interface PaqueteVista extends PaqueteDTO {
 
 /** Catálogo de paquetes, pago simulado, saldo e historial de compras (RF-17, RF-18). */
 @Component({
-  imports: [Badge, Button, CurrencyPipe, DatePipe, DecimalPipe, Dialog, Field, MetricCard],
+  imports: [Badge, Button, CurrencyPipe, DatePipe, DecimalPipe, Dialog, Field, MetricCard, PaquetesAdmin],
   selector: 'vc-packages',
   styleUrl: './packages.css',
   templateUrl: './packages.html',
@@ -66,6 +67,9 @@ export class Packages {
     const u = this.usuario();
     return u?.rol === 'CLIENTE_ADMINISTRADOR' && u.empresaId !== null;
   });
+
+  /** El administrador de la plataforma crea, edita y desactiva paquetes (RF-17). */
+  protected readonly esAdministrador = computed(() => this.usuario()?.rol === 'ADMINISTRADOR');
 
   // Catálogo
   protected readonly paquetes = signal<PaqueteDTO[]>([]);

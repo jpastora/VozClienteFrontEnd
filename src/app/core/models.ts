@@ -251,6 +251,14 @@ export interface PaqueteDTO {
   actualizadoEn?: string;
 }
 
+/** Lo que envía el administrador al crear o editar un paquete (RF-17). */
+export interface PaqueteRequest {
+  nombre: string;
+  cantidadSalas: number;
+  precio: number;
+  esActivo?: boolean;
+}
+
 export type EstadoPago = 'APROBADO' | 'RECHAZADO';
 
 /** Espejo de CompraDTO del back-end (/api/compras). */
@@ -467,4 +475,52 @@ export interface GuiaDTO {
   preguntas: string[];
   empresaId: number;
   cuentaId: number;
+}
+/** Espejo de CompletarPerfilDTO: formulario del primer ingreso con Google. */
+export interface CompletarPerfilRequest {
+  nombreCompleto: string;
+  nombreEmpresa: string;
+}
+
+/** Espejo de EditarCuentaDTO: edición de nombre, correo y empresa (PUT /api/cuentas/{id}). */
+export interface EditarCuentaRequest {
+  nombreCompleto: string;
+  correo: string;
+  empresaId?: number | null;
+  version: number;
+}
+
+// ======================================================
+// ESTADÍSTICAS
+// ======================================================
+
+export type IntencionEstadistica =
+  | 'RECOMPRARIA'
+  | 'NO_RECOMPRARIA'
+  | 'RECHAZA'
+  | 'NEUTRAL';
+
+export interface DistribucionIntencionDTO {
+  intencion: IntencionEstadistica;
+  cantidad: number;
+  porcentaje: number;
+}
+
+export interface CompetidorEstadisticaDTO {
+  competidor: string;
+  menciones: number;
+}
+
+export interface EstadisticasDTO {
+  entrevistasAnalizadas: number;
+  intencionCompra: number;
+  mencionesCompetencia: number;
+  distribucionIntencion: DistribucionIntencionDTO[];
+  competidores: CompetidorEstadisticaDTO[];
+}
+
+export interface FiltrosEstadisticas {
+  productoId?: number;
+  desde?: string;
+  hasta?: string;
 }

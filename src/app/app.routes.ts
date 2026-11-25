@@ -1,7 +1,7 @@
 import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
 import { RUTA_APP, RUTAS } from './core/rutas';
-import { autenticadoGuard, cambioContrasenaGuard, invitadoGuard, roleGuard } from './guards/role';
+import { autenticadoGuard, cambioContrasenaGuard, invitadoGuard, roleGuard, perfilGuard } from './guards/role';
 import { rutaInicio, SessionService } from './services/session';
 import { Shell } from './shell/shell';
 
@@ -36,6 +36,13 @@ export const routes: Routes = [
     title: 'Cambiar contraseña · Voz Cliente',
     canActivate: [cambioContrasenaGuard],
     loadComponent: () => import('./cambiar-contrasena/cambiar-contrasena').then((m) => m.CambiarContrasena),
+  },
+  // Primer ingreso con Google: nombre y empresa antes de usar la aplicación.
+  {
+    path: 'completar-perfil',
+    title: 'Completar perfil · Voz Cliente',
+    canActivate: [perfilGuard],
+    loadComponent: () => import('./completar-perfil/completar-perfil').then((m) => m.CompletarPerfil),
   },
   {
     path: 'publico/:token',

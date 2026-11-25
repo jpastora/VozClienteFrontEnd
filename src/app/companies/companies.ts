@@ -1,3 +1,5 @@
+import { ConfirmarEliminar } from '../shared/confirmar-eliminar/confirmar-eliminar';
+import { mensajeServidor } from '../core/errores';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, computed, inject, signal } from '@angular/core';
@@ -12,7 +14,7 @@ const MAX_NOMBRE = 150;
 
 /** Empresas clientes de la plataforma: el administrador las crea y puede corregir su nombre. */
 @Component({
-  imports: [Button, DatePipe, Dialog, Field],
+  imports: [Button, DatePipe, Dialog, Field, ConfirmarEliminar],
   selector: 'vc-companies',
   styleUrl: './companies.css',
   templateUrl: './companies.html',
@@ -120,6 +122,45 @@ export class Companies {
           err.status === 403
             ? 'No tienes permiso para gestionar empresas.'
             : 'No se pudo guardar la empresa. Intenta de nuevo.',
+        );
+      },
+    });
+  }
+
+  // --- Eliminar (solo si no tiene datos relacionados) ---
+
+  protected readonly porEliminar = signal<EmpresaDTO | null>(null);
+  protected readonly eliminando = signal(false);
+  protected readonly errorEliminar = signal<string | null>(null);
+
+  protected pedirEliminar(registro: EmpresaDTO): void {
+    this.errorEliminar.set(null);
+    this.porEliminar.set(registro);
+  }
+
+  protected cancelarEliminar(): void {
+    if (!this.eliminando()) this.porEliminar.set(null);
+  }
+
+  protected confirmarEliminar(): void {
+    const registro = this.porEliminar();
+    if (!registro || this.eliminando()) return;
+    this.eliminando.set(true);
+    this.errorEliminar.set(null);
+    this.api.eliminar(registro.id).subscribe({
+      next: () => {
+        this.eliminando.set(false);
+        this.porEliminar.set(null);
+        this.empresas.update((lista) => lista.filter((e) => e.id !== registro.id));
+        this.aviso.set(`Empresa «${registro.nombre}» eliminada.`);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.eliminando.set(false);
+        this.errorEliminar.set(
+          mensajeServidor(err) ??
+            (err.status === 404
+              ? 'El registro ya no existe. Actualiza la lista.'
+              : 'No se pudo eliminar. Intenta de nuevo.'),
         );
       },
     });

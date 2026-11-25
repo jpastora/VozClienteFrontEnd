@@ -1,0 +1,11 @@
+.vc-ce { display: grid; gap: var(--vc-space-4, 16px); }
+.vc-ce__texto { margin: 0; }
+.vc-ce__error {
+  margin: 0;
+  padding: var(--vc-space-3, 12px);
+  color: var(--vc-error, #9b1c1c);
+  background: color-mix(in srgb, var(--vc-error, #9b1c1c) 10%, var(--vc-paper, #fff));
+  border: 1px solid var(--vc-error, #9b1c1c);
+  border-radius: var(--vc-radius, 8px);
+}
+.vc-ce__botones { display: flex; justify-content: flex-end; gap: var(--vc-space-3, 12px); }

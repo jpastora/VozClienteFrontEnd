@@ -1,0 +1,26 @@
+<main class="vc-cp">
+  <section class="vc-cp__tarjeta" aria-labelledby="ttlCompletarPerfil">
+    <vc-logo tono="claro" />
+    <h1 id="ttlCompletarPerfil">Completa tu perfil</h1>
+    <p class="vc-cp__texto">
+      Es tu primer ingreso con <strong>{{ correo() }}</strong>. Confirma tu nombre y escribe el de tu empresa para
+      continuar.
+    </p>
+
+    @if (errorServidor()) {
+      <p id="msgCompletarPerfil" class="vc-cp__error" role="alert">{{ errorServidor() }}</p>
+    }
+
+    <form class="vc-cp__form" (submit)="$event.preventDefault(); guardar()" novalidate>
+      <vc-field controlId="txtNombrePerfil" label="Nombre completo" [(value)]="nombre" [error]="errorNombre()" />
+      <p class="vc-cp__regla">{{ regla }}</p>
+      <vc-field controlId="txtEmpresaPerfil" label="Nombre de tu empresa" [(value)]="empresa" [error]="errorEmpresa()" />
+      <div class="vc-cp__botones">
+        <vc-button id="btnGuardarPerfil" type="submit" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando…' : 'Guardar y continuar' }}
+        </vc-button>
+        <button id="btnSalirPerfil" type="button" class="vc-cp__salir" (click)="salir()">Salir</button>
+      </div>
+    </form>
+  </section>
+</main>

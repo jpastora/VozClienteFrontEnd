@@ -27,6 +27,11 @@ export class EmpresaApi {
     return this.http.put<EmpresaDTO>(`${API_URL}/empresas/${id}`, { nombre }).pipe(tap(() => this.avisarCambio()));
   }
 
+  /** DELETE /api/empresas/{id}: solo si no tiene datos relacionados (si no, responde 409 con el detalle). */
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/empresas/${id}`).pipe(tap(() => this.avisarCambio()));
+  }
+
   private avisarCambio(): void {
     this.cambios.update((n) => n + 1);
   }

@@ -104,4 +104,9 @@ export class ProductoApi {
       null
     );
   }
+
+  /** DELETE /api/productos/{id}: solo si no tiene salas (si no, responde 409). */
+  eliminar(id: number): Observable<void> {
+    return this.http.delete<void>(`${API_URL}/productos/${id}`);
+  }
 }

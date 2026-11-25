@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { UsuarioInfo } from '../interfaces/usuario';
-import { CambiarContrasenaRequest } from './models';
+import { CambiarContrasenaRequest, CompletarPerfilRequest } from './models';
 import { API_URL } from './config';
 
 /**
@@ -23,11 +23,14 @@ export const URL_CAMBIAR_CONTRASENA = `${API_URL}/auth/cambiar-contrasena`;
 /** Registro con correo y contraseña: crea la empresa y la cuenta de cliente-administrador. */
 export const URL_REGISTRO = `${API_URL}/auth/registro`;
 
+/** "¿Olvidó su contraseña?": envía una contraseña temporal al correo. */
+export const URL_RECUPERAR = `${API_URL}/auth/recuperar`;
+
 /**
  * Rutas de autenticación cuyo 401 es una respuesta normal (no hay sesión o las credenciales no
  * coinciden) y no una sesión vencida; el interceptor no las trata como sesión expirada.
  */
-export const RUTAS_AUTH_SIN_SESION = [URL_SESION, URL_INGRESO, URL_REGISTRO];
+export const RUTAS_AUTH_SIN_SESION = [URL_SESION, URL_INGRESO, URL_REGISTRO, URL_RECUPERAR];
 
 @Injectable({ providedIn: 'root' })
 export class AuthApi {
@@ -59,10 +62,36 @@ export class AuthApi {
    * @param nombreCompleto nombre de la persona
    * @param correo correo de la cuenta
    * @param contrasena contraseña
-   * @returns flujo con los datos de la sesión; 409 si el correo ya existe, 400 si la contraseña no cumple
+   * @param nombreEmpresa nombre de la empresa que se crea
+   * @returns flujo con los datos de la sesión; 409 si el correo o la empresa ya existen, 400 si la contraseña no cumple
    */
-  registrar(nombreCompleto: string, correo: string, contrasena: string): Observable<UsuarioInfo> {
-    return this.http.post<UsuarioInfo>(URL_REGISTRO, { nombreCompleto, correo, contrasena });
+  registrar(
+    nombreCompleto: string,
+    correo: string,
+    contrasena: string,
+    nombreEmpresa: string,
+  ): Observable<UsuarioInfo> {
+    return this.http.post<UsuarioInfo>(URL_REGISTRO, { nombreCompleto, correo, contrasena, nombreEmpresa });
+  }
+
+  /**
+   * POST /api/auth/completar-perfil: nombre y empresa tras el primer ingreso con Google.
+   *
+   * @returns flujo con la sesión actualizada; 409 si el nombre de la empresa ya existe
+   */
+  completarPerfil(solicitud: CompletarPerfilRequest): Observable<UsuarioInfo> {
+    return this.http.post<UsuarioInfo>(`${API_URL}/auth/completar-perfil`, solicitud);
+  }
+
+  /**
+   * POST /api/auth/recuperar: si el correo es de una cuenta con contraseña, el back-end le envía una
+   * contraseña temporal. La respuesta es la misma exista o no la cuenta.
+   *
+   * @param correo correo de la cuenta
+   * @returns flujo con el mensaje para mostrar (202)
+   */
+  recuperar(correo: string): Observable<{ mensaje: string }> {
+    return this.http.post<{ mensaje: string }>(URL_RECUPERAR, { correo });
   }
 
   /**
