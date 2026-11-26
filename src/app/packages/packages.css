@@ -127,3 +127,5 @@
 .vc-pkg__confirmar p { margin: 0; }
 .vc-pkg__error { color: var(--vc-danger); font-size: var(--vc-text-sm); }
 .vc-pkg__botones { display: flex; justify-content: flex-end; gap: var(--vc-space-2); margin-top: var(--vc-space-3); }
+.vc-pkg__nota-admin { margin: 0; color: var(--vc-muted); font-size: var(--vc-text-sm); }
+.vc-pkg__msg--exito { color: var(--vc-success); font-weight: 600; }

@@ -1,6 +1,6 @@
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { Badge } from '../badge/badge';
 import { Button } from '../button/button';
 import { CompraApi } from '../core/compra-api';
@@ -71,6 +71,22 @@ export class Packages {
   /** El administrador de la plataforma crea, edita y desactiva paquetes (RF-17). */
   protected readonly esAdministrador = computed(() => this.usuario()?.rol === 'ADMINISTRADOR');
 
+  /**
+   * Empresa cuyo saldo e historial se muestran: la del cliente-administrador, o la que el
+   * administrador de la plataforma eligió en «Empresa que atiendes» (modo soporte, solo consulta).
+   */
+  protected readonly empresaConsultada = computed(() =>
+    this.puedeComprar() || this.esAdministrador() ? this.sesion.empresaId() : null,
+  );
+
+  /** Se muestran el saldo y los historiales cuando hay una empresa que consultar. */
+  protected readonly verSaldo = computed(() => this.empresaConsultada() !== null);
+
+  // Anular compra (solo el administrador de la plataforma)
+  protected readonly porAnular = signal<CompraDTO | null>(null);
+  protected readonly anulando = signal(false);
+  protected readonly avisoCompra = signal<{ tipo: 'exito' | 'error'; texto: string } | null>(null);
+
   // Catálogo
   protected readonly paquetes = signal<PaqueteDTO[]>([]);
   protected readonly cargandoPaquetes = signal(true);
@@ -97,8 +113,11 @@ export class Packages {
   protected readonly cargandoCompras = signal(false);
   protected readonly errorCompras = signal<string | null>(null);
 
+  /** Todos los paquetes (también inactivos), para mostrar el nombre en el historial del administrador. */
+  private readonly todosLosPaquetes = signal<PaqueteDTO[]>([]);
+
   protected readonly historial = computed(() => {
-    const nombres = new Map(this.paquetes().map((p) => [p.id, p.nombre]));
+    const nombres = new Map([...this.todosLosPaquetes(), ...this.paquetes()].map((p) => [p.id, p.nombre]));
     return [...this.compras()]
       .sort((a, b) => b.creadoEn.localeCompare(a.creadoEn))
       .map((c) => ({ ...c, paquete: nombres.get(c.paqueteId) ?? `Paquete #${c.paqueteId}` }));
@@ -156,12 +175,57 @@ export class Packages {
 
   constructor() {
     this.cargarPaquetes();
-    this.cargarCompras();
-    this.cargarSaldo();
+    // Se recargan el saldo y las compras al inicio y cada vez que el administrador cambia de empresa.
+    effect(() => {
+      const empresaId = this.empresaConsultada();
+      untracked(() => {
+        this.saldo.set(null);
+        this.compras.set([]);
+        this.consumos.set([]);
+        this.avisoCompra.set(null);
+        if (empresaId !== null) {
+          this.cargarCompras();
+          this.cargarSaldo();
+        }
+      });
+    });
+  }
+
+  protected pedirAnular(compra: CompraDTO): void {
+    this.avisoCompra.set(null);
+    this.porAnular.set(compra);
+  }
+
+  protected cancelarAnular(): void {
+    if (!this.anulando()) this.porAnular.set(null);
+  }
+
+  /** Anula una compra aprobada; el back-end no lo permite si sus salas ya se usaron o reservaron. */
+  protected anular(): void {
+    const compra = this.porAnular();
+    if (!compra) return;
+    this.anulando.set(true);
+    this.compraApi.anular(compra.id).subscribe({
+      next: () => {
+        this.anulando.set(false);
+        this.porAnular.set(null);
+        this.avisoCompra.set({
+          tipo: 'exito',
+          texto: `Se anuló la compra ${compra.referenciaPago ?? '#' + compra.id}. Se descontaron ${compra.salasAcreditadas} salas del saldo.`,
+        });
+        this.cargarCompras();
+        this.cargarSaldo();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.anulando.set(false);
+        this.porAnular.set(null);
+        this.avisoCompra.set({ tipo: 'error', texto: err?.error?.mensaje ?? 'No se pudo anular la compra.' });
+      },
+    });
   }
 
   protected cargarSaldo(): void {
-    if (!this.puedeComprar()) return;
+    if (!this.verSaldo()) return;
     this.errorSaldo.set(null);
     this.saldoApi.obtener().subscribe({
       next: (saldo) => this.saldo.set(saldo),
@@ -175,6 +239,9 @@ export class Packages {
   }
 
   protected cargarPaquetes(): void {
+    if (this.esAdministrador()) {
+      this.paqueteApi.listarTodos().subscribe({ next: (lista) => this.todosLosPaquetes.set(lista) });
+    }
     this.cargandoPaquetes.set(true);
     this.errorPaquetes.set(null);
     this.paqueteApi.listarActivos().subscribe({
@@ -190,8 +257,8 @@ export class Packages {
   }
 
   protected cargarCompras(): void {
-    const empresaId = this.usuario()?.empresaId;
-    if (!this.puedeComprar() || empresaId == null) return;
+    const empresaId = this.empresaConsultada();
+    if (empresaId === null) return;
     this.cargandoCompras.set(true);
     this.errorCompras.set(null);
     this.compraApi.listarPorEmpresa(empresaId).subscribe({

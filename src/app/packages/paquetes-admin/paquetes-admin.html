@@ -89,6 +89,29 @@
   </form>
 </vc-dialog>
 
+<vc-dialog [open]="porDesactivar() !== null" title="Desactivar paquete" (closed)="cancelarDesactivar()">
+  @if (porDesactivar(); as d) {
+    <p>¿Desactivar «{{ d.paquete.nombre }}»? Dejará de aparecer en el catálogo para nuevas compras.</p>
+    @if (d.empresas > 0) {
+      <p class="vc-padm__advertencia" role="status">
+        ⚠ Este paquete lo {{ d.empresas === 1 ? 'compró 1 empresa' : 'compraron ' + d.empresas + ' empresas' }}.
+        Esas empresas conservan su saldo de salas.
+      </p>
+    } @else if (d.empresas === 0) {
+      <p class="vc-padm__nota">Ninguna empresa lo ha comprado todavía.</p>
+    } @else {
+      <p class="vc-padm__nota">Las empresas que ya lo compraron conservan su saldo de salas.</p>
+    }
+    @if (d.paquete.esRecomendado) {
+      <p class="vc-padm__nota">También dejará de ser el paquete recomendado.</p>
+    }
+    <div class="vc-padm__botones">
+      <vc-button variant="secondary" (click)="cancelarDesactivar()">Cancelar</vc-button>
+      <vc-button id="btnConfirmarDesactivar" variant="danger" (click)="confirmarDesactivar()">Desactivar</vc-button>
+    </div>
+  }
+</vc-dialog>
+
 <vc-dialog [open]="porEliminar() !== null" title="Eliminar paquete" (closed)="cancelarEliminar()">
   @if (porEliminar(); as p) {
     <p>¿Eliminar «{{ p.nombre }}»? Solo se puede eliminar si nunca se vendió; si ya tiene compras, desactívalo.</p>

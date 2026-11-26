@@ -4,6 +4,7 @@ import { Component, computed, inject, output, signal } from '@angular/core';
 import { Badge } from '../../badge/badge';
 import { Button } from '../../button/button';
 import { PaqueteDTO, PaqueteRequest } from '../../core/models';
+import { CompraApi } from '../../core/compra-api';
 import { PaqueteApi } from '../../core/paquete-api';
 import { Dialog } from '../../dialog/dialog';
 import { Field } from '../../field/field';
@@ -24,6 +25,7 @@ const PATRON_PRECIO = /^\d+(\.\d{1,2})?$/;
 })
 export class PaquetesAdmin {
   private readonly api = inject(PaqueteApi);
+  private readonly compraApi = inject(CompraApi);
 
   /** Avisa al catálogo que hubo cambios, para que se recargue. */
   readonly cambio = output<void>();
@@ -53,6 +55,9 @@ export class PaquetesAdmin {
   // Acciones por fila
   protected readonly ocupado = signal<number | null>(null);
   protected readonly porEliminar = signal<PaqueteDTO | null>(null);
+
+  /** Paquete por desactivar y cuántas empresas lo compraron (RF-17: se advierte antes). */
+  protected readonly porDesactivar = signal<{ paquete: PaqueteDTO; empresas: number } | null>(null);
 
   protected readonly tituloFormulario = computed(() =>
     this.editando() === 'nuevo' ? 'Nuevo paquete' : 'Editar paquete',
@@ -154,8 +159,45 @@ export class PaquetesAdmin {
     });
   }
 
-  /** Activa o desactiva: desactivar deja de ofrecerlo, pero quien lo compró conserva su saldo. */
+  /**
+   * Activar es directo. Desactivar primero cuenta cuántas empresas compraron el paquete y pide
+   * confirmación, como pide el ERS (RF-17): deja de ofrecerse, pero esas empresas conservan su saldo.
+   */
   protected cambiarEstado(paquete: PaqueteDTO): void {
+    if (!paquete.esActivo) {
+      this.aplicarEstado(paquete);
+      return;
+    }
+    this.ocupado.set(paquete.id);
+    this.error.set(null);
+    this.aviso.set(null);
+    this.compraApi.listarPorPaquete(paquete.id).subscribe({
+      next: (compras) => {
+        this.ocupado.set(null);
+        const empresas = new Set(compras.filter((c) => c.estadoPago === 'APROBADO').map((c) => c.empresaId)).size;
+        this.porDesactivar.set({ paquete, empresas });
+      },
+      // Si no se pudo contar, igual se pide confirmación, sin el número.
+      error: () => {
+        this.ocupado.set(null);
+        this.porDesactivar.set({ paquete, empresas: -1 });
+      },
+    });
+  }
+
+  protected cancelarDesactivar(): void {
+    if (this.ocupado() === null) this.porDesactivar.set(null);
+  }
+
+  protected confirmarDesactivar(): void {
+    const pendiente = this.porDesactivar();
+    if (!pendiente) return;
+    this.porDesactivar.set(null);
+    this.aplicarEstado(pendiente.paquete);
+  }
+
+  /** Activa o desactiva: desactivar deja de ofrecerlo, pero quien lo compró conserva su saldo. */
+  private aplicarEstado(paquete: PaqueteDTO): void {
     const peticion = paquete.esActivo ? this.api.desactivar(paquete.id) : this.api.activar(paquete.id);
     this.ocupado.set(paquete.id);
     this.error.set(null);

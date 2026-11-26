@@ -7,8 +7,17 @@
   </div>
 }
 
-@if (puedeComprar()) {
+@if (esAdministrador() && !verSaldo()) {
+  <p class="vc-pkg__nota-admin" role="status">
+    Para consultar el saldo, las compras y el consumo de una empresa, elígela en «Empresa que atiendes».
+  </p>
+}
+
+@if (verSaldo()) {
   <section class="vc-pkg__saldo" aria-labelledby="ttlSaldo">
+    @if (esAdministrador()) {
+      <p class="vc-pkg__nota-admin">Saldo de la empresa que elegiste en «Empresa que atiendes» (solo consulta).</p>
+    }
     <h2 id="ttlSaldo" class="vc-pkg__oculto">Saldo de salas</h2>
     @if (errorSaldo()) {
       <div class="vc-pkg__msg vc-pkg__msg--error" role="alert">
@@ -22,7 +31,7 @@
         <vc-metric-card label="Enlaces vigentes sin usar" [value]="s.reservadas" />
         <vc-metric-card label="Salas consumidas" [value]="s.consumidas" />
       </div>
-      @if (s.disponibles === 0) {
+      @if (s.disponibles === 0 && puedeComprar()) {
         <p class="vc-pkg__aviso" role="status">
           No tienes salas disponibles para generar enlaces nuevos. Compra un paquete para seguir entrevistando.
         </p>
@@ -80,9 +89,14 @@
   }
 </section>
 
-@if (puedeComprar()) {
+@if (verSaldo()) {
   <section aria-labelledby="ttlHistorial" class="vc-pkg__historial">
     <h2 id="ttlHistorial">Historial de compras</h2>
+    @if (avisoCompra(); as a) {
+      <p class="vc-pkg__msg" [class.vc-pkg__msg--error]="a.tipo === 'error'" [class.vc-pkg__msg--exito]="a.tipo === 'exito'" role="status">
+        {{ a.texto }}
+      </p>
+    }
     @if (cargandoCompras()) {
       <p class="vc-pkg__msg" role="status">Cargando historial…</p>
     } @else if (errorCompras()) {
@@ -93,7 +107,12 @@
     } @else {
       <table class="vc-table">
         <thead>
-          <tr><th>Fecha</th><th>Paquete</th><th>Salas</th><th>Monto</th><th>Estado</th><th>Referencia</th></tr>
+          <tr>
+            <th>Fecha</th><th>Paquete</th><th>Salas</th><th>Monto</th><th>Estado</th><th>Referencia</th>
+            @if (esAdministrador()) {
+              <th>Acciones</th>
+            }
+          </tr>
         </thead>
         <tbody>
           @for (c of historial(); track c.id) {
@@ -108,9 +127,16 @@
                 </vc-badge>
               </td>
               <td class="vc-pkg__ref">{{ c.referenciaPago || '—' }}</td>
+              @if (esAdministrador()) {
+                <td>
+                  @if (c.estadoPago === 'APROBADO') {
+                    <vc-button variant="danger" (click)="pedirAnular(c)">Anular</vc-button>
+                  }
+                </td>
+              }
             </tr>
           } @empty {
-            <tr class="vc-pkg__vacio"><td colspan="6">Aún no hay compras registradas.</td></tr>
+            <tr class="vc-pkg__vacio"><td [attr.colspan]="esAdministrador() ? 7 : 6">Aún no hay compras registradas.</td></tr>
           }
         </tbody>
       </table>
@@ -118,7 +144,7 @@
   </section>
 }
 
-@if (puedeComprar()) {
+@if (verSaldo()) {
   <section aria-labelledby="ttlConsumo" class="vc-pkg__historial">
     <h2 id="ttlConsumo">Historial de consumo</h2>
     @if (errorConsumos()) {
@@ -173,6 +199,23 @@
           {{ comprando() ? 'Procesando pago…' : 'Pagar ' + (p.precio | currency: 'USD' : 'symbol' : '1.2-2') }}
         </vc-button>
       </div>
+    </div>
+  }
+</vc-dialog>
+<vc-dialog [open]="porAnular() !== null" title="Anular compra" (closed)="cancelarAnular()">
+  @if (porAnular(); as c) {
+    <p>
+      ¿Anular la compra de <strong>{{ c.salasAcreditadas }} salas</strong> por
+      <strong>{{ c.monto | number: '1.2-2' }}</strong> ({{ c.referenciaPago || '#' + c.id }})?
+    </p>
+    <p class="vc-pkg__nota">
+      Se quitan esas salas del saldo de la empresa. No se puede anular si la empresa ya usó o reservó esas salas.
+    </p>
+    <div class="vc-pkg__botones">
+      <vc-button variant="secondary" (click)="cancelarAnular()">Cancelar</vc-button>
+      <vc-button id="btnConfirmarAnular" variant="danger" [disabled]="anulando()" (click)="anular()">
+        {{ anulando() ? 'Anulando…' : 'Anular compra' }}
+      </vc-button>
     </div>
   }
 </vc-dialog>
