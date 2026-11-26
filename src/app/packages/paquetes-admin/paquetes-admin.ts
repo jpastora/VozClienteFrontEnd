@@ -29,6 +29,13 @@ export class PaquetesAdmin {
   readonly cambio = output<void>();
 
   protected readonly paquetes = signal<PaqueteDTO[]>([]);
+
+  /** Los inactivos se ocultan por defecto para que la tabla muestre lo que se ofrece hoy. */
+  protected readonly mostrarInactivos = signal(false);
+  protected readonly cantidadInactivos = computed(() => this.paquetes().filter((p) => !p.esActivo).length);
+  protected readonly visibles = computed(() =>
+    this.mostrarInactivos() ? this.paquetes() : this.paquetes().filter((p) => p.esActivo),
+  );
   protected readonly cargando = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly aviso = signal<string | null>(null);
@@ -167,6 +174,36 @@ export class PaquetesAdmin {
       error: (err: HttpErrorResponse) => {
         this.ocupado.set(null);
         this.error.set(err?.error?.mensaje ?? 'No se pudo cambiar el estado del paquete.');
+      },
+    });
+  }
+
+  protected alternarInactivos(evento: Event): void {
+    this.mostrarInactivos.set((evento.target as HTMLInputElement).checked);
+  }
+
+  /** Marca el paquete como el recomendado del catálogo, o le quita la marca. Solo hay uno. */
+  protected alternarRecomendado(paquete: PaqueteDTO): void {
+    const peticion = paquete.esRecomendado
+      ? this.api.quitarRecomendado(paquete.id)
+      : this.api.recomendar(paquete.id);
+    this.ocupado.set(paquete.id);
+    this.error.set(null);
+    this.aviso.set(null);
+    peticion.subscribe({
+      next: () => {
+        this.ocupado.set(null);
+        this.aviso.set(
+          paquete.esRecomendado
+            ? `«${paquete.nombre}» ya no se muestra como recomendado.`
+            : `«${paquete.nombre}» es ahora el paquete recomendado.`,
+        );
+        this.cargar();
+        this.cambio.emit();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.ocupado.set(null);
+        this.error.set(err?.error?.mensaje ?? 'No se pudo cambiar el paquete recomendado.');
       },
     });
   }

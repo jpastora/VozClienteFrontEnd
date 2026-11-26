@@ -53,6 +53,16 @@ export class PaqueteApi {
     return this.http.patch<void>(`${API_URL}/paquetes/${id}/desactivar`, null);
   }
 
+  /** PATCH /api/paquetes/{id}/recomendar: lo marca como recomendado y se lo quita al anterior. */
+  recomendar(id: number): Observable<PaqueteDTO> {
+    return this.http.patch<PaqueteDTO>(`${API_URL}/paquetes/${id}/recomendar`, null);
+  }
+
+  /** PATCH /api/paquetes/{id}/quitar-recomendado: el catálogo queda sin paquete destacado. */
+  quitarRecomendado(id: number): Observable<PaqueteDTO> {
+    return this.http.patch<PaqueteDTO>(`${API_URL}/paquetes/${id}/quitar-recomendado`, null);
+  }
+
   /** DELETE /api/paquetes/{id}: solo si nunca se vendió (si no, el back-end responde 409). */
   eliminar(id: number): Observable<void> {
     return this.http.delete<void>(`${API_URL}/paquetes/${id}`);

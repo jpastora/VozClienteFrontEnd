@@ -76,14 +76,13 @@ export class Packages {
   protected readonly cargandoPaquetes = signal(true);
   protected readonly errorPaquetes = signal<string | null>(null);
 
-  /** Paquetes con precio por sala; el del medio se destaca igual que en el home. */
+  /** Paquetes con precio por sala; se destaca el que eligió el administrador. */
   protected readonly vista = computed<PaqueteVista[]>(() => {
-    const lista = this.paquetes();
-    const indiceRecomendado = Math.floor(lista.length / 2);
-    return lista.map((paquete, indice) => ({
+    // El recomendado lo elige el administrador (esRecomendado); si no hay ninguno, no se destaca ninguno.
+    return this.paquetes().map((paquete) => ({
       ...paquete,
       precioPorSala: paquete.precio / paquete.cantidadSalas,
-      recomendado: lista.length > 1 && indice === indiceRecomendado,
+      recomendado: paquete.esRecomendado === true,
     }));
   });
 
