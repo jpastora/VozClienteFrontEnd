@@ -42,3 +42,12 @@
 @media (max-width: 560px) {
   .vc-padm__fila { grid-template-columns: minmax(0, 1fr); }
 }
+
+.vc-padm__advertencia {
+  margin: 0;
+  padding: var(--vc-space-3) var(--vc-space-4);
+  border: 1px solid var(--vc-warning);
+  border-radius: var(--vc-radius);
+  background: var(--vc-white);
+}
+.vc-padm vc-badge, :host vc-badge { white-space: nowrap; }
