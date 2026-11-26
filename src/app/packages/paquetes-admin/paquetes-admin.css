@@ -27,6 +27,9 @@
 .vc-padm__error { border: 1px solid var(--vc-danger); }
 
 .vc-padm__msg { color: var(--vc-muted); }
+.vc-padm__filtro { display: inline-flex; align-items: center; gap: var(--vc-space-2); min-height: 44px; margin-bottom: var(--vc-space-2); cursor: pointer; }
+.vc-padm__filtro input { width: 18px; height: 18px; }
+.vc-padm__guion { color: var(--vc-muted); }
 .vc-padm__vacio td { text-align: center; color: var(--vc-muted); }
 
 .vc-padm__form { display: flex; flex-direction: column; gap: var(--vc-space-3); }

@@ -14,15 +14,22 @@
     </div>
   }
 
+  @if (cantidadInactivos() > 0) {
+    <label class="vc-padm__filtro">
+      <input id="chkMostrarInactivos" type="checkbox" [checked]="mostrarInactivos()" (change)="alternarInactivos($event)" />
+      Mostrar paquetes inactivos ({{ cantidadInactivos() }})
+    </label>
+  }
+
   @if (cargando()) {
     <p class="vc-padm__msg" role="status">Cargando paquetes…</p>
   } @else {
     <table class="vc-table">
       <thead>
-        <tr><th>Nombre</th><th>Salas</th><th>Precio</th><th>Estado</th><th>Acciones</th></tr>
+        <tr><th>Nombre</th><th>Salas</th><th>Precio</th><th>Estado</th><th>Recomendado</th><th>Acciones</th></tr>
       </thead>
       <tbody>
-        @for (p of paquetes(); track p.id) {
+        @for (p of visibles(); track p.id) {
           <tr>
             <td>{{ p.nombre }}</td>
             <td>{{ p.cantidadSalas }}</td>
@@ -31,8 +38,20 @@
               <vc-badge [tone]="p.esActivo ? 'success' : 'neutral'">{{ p.esActivo ? 'Activo' : 'Inactivo' }}</vc-badge>
             </td>
             <td>
+              @if (p.esRecomendado) {
+                <vc-badge tone="brand">★ Recomendado</vc-badge>
+              } @else {
+                <span class="vc-padm__guion">—</span>
+              }
+            </td>
+            <td>
               <div class="vc-padm__acciones">
                 <vc-button variant="secondary" [disabled]="ocupado() === p.id" (click)="editar(p)">Editar</vc-button>
+                @if (p.esActivo) {
+                  <vc-button variant="secondary" [disabled]="ocupado() === p.id" (click)="alternarRecomendado(p)">
+                    {{ p.esRecomendado ? 'Quitar recomendado' : 'Recomendar' }}
+                  </vc-button>
+                }
                 <vc-button variant="secondary" [disabled]="ocupado() === p.id" (click)="cambiarEstado(p)">
                   {{ p.esActivo ? 'Desactivar' : 'Activar' }}
                 </vc-button>
@@ -41,7 +60,7 @@
             </td>
           </tr>
         } @empty {
-          <tr class="vc-padm__vacio"><td colspan="5">Todavía no hay paquetes. Crea el primero.</td></tr>
+          <tr class="vc-padm__vacio"><td colspan="6">No hay paquetes para mostrar.</td></tr>
         }
       </tbody>
     </table>

@@ -247,6 +247,8 @@ export interface PaqueteDTO {
   cantidadSalas: number;
   precio: number;
   esActivo: boolean;
+  /** El paquete que el catálogo muestra como «Recomendado» (lo elige el administrador). */
+  esRecomendado?: boolean;
   creadoEn?: string;
   actualizadoEn?: string;
 }

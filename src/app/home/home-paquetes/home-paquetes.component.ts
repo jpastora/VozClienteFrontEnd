@@ -47,11 +47,14 @@ export class HomePaquetesComponent implements OnInit {
   /** Paquetes ordenados, con precio por sala y el recomendado marcado. */
   protected readonly vista = computed<PaqueteVista[]>(() => {
     const ordenados = [...this.paquetes()].sort((a, b) => a.cantidadSalas - b.cantidadSalas);
+    // Con datos de la API se destaca el que eligió el administrador; con los de referencia, el del medio.
     const indiceRecomendado = Math.floor(ordenados.length / 2);
     return ordenados.map((paquete, indice) => ({
       ...paquete,
       precioPorSala: paquete.precio / paquete.cantidadSalas,
-      recomendado: ordenados.length > 1 && indice === indiceRecomendado,
+      recomendado: this.datosReales()
+        ? paquete.esRecomendado === true
+        : ordenados.length > 1 && indice === indiceRecomendado,
     }));
   });
 
