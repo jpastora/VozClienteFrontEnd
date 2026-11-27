@@ -49,6 +49,7 @@
           <td class="vc-reps__acciones">
             @if (r.estado !== 'INACTIVA') {
               <div class="vc-reps__botones">
+              <vc-button variant="secondary" (click)="abrirEditar(r)">Editar</vc-button>
               @if (!r.googleSub) {
                 <vc-button variant="secondary" [disabled]="reenviandoId() === r.id" (click)="reenviarContrasena(r)">
                   {{ reenviandoId() === r.id ? 'Enviando…' : 'Reenviar contraseña' }}
@@ -61,6 +62,7 @@
               </div>
             } @else {
               <div class="vc-reps__botones">
+              <vc-button variant="secondary" (click)="abrirEditar(r)">Editar</vc-button>
               <vc-button variant="secondary" [disabled]="activarId() === r.id" (click)="activar(r)">
                 {{ activarId() === r.id ? 'Reactivando…' : 'Reactivar' }}
               </vc-button>
@@ -121,6 +123,35 @@
       <vc-button variant="secondary" (click)="cerrarForm()">Cancelar</vc-button>
       <vc-button id="btnGuardarRepresentante" type="submit" [disabled]="guardando()">
         {{ guardando() ? 'Guardando…' : 'Registrar representante' }}
+      </vc-button>
+    </div>
+  </form>
+</vc-dialog>
+
+<vc-dialog [open]="porEditar() !== null" title="Editar representante" (closed)="cerrarEditar()">
+  <form class="vc-reps__form" (submit)="$event.preventDefault(); guardarEdicion()" novalidate>
+    <vc-field controlId="txtNombreEditarRepresentante" label="Nombre completo *" [(value)]="nombreEdit" [error]="errorNombreEdit()" />
+    <vc-field
+      controlId="txtCorreoEditarRepresentante"
+      label="Correo *"
+      type="email"
+      [value]="correoEdit()"
+      (valueChange)="cambiarCorreoEdit($event)"
+      [error]="errorCorreoEdit()"
+    />
+    @if (correoCambio() && porEditar()?.googleSub) {
+      <p class="vc-reps__nota vc-reps__nota--alerta" role="status">
+        Al cambiar el correo se desvincula la cuenta de Google actual. Tendrás que reenviar una contraseña temporal o
+        pedirle que ingrese con Google usando el correo nuevo.
+      </p>
+    }
+    @if (errorEditar()) {
+      <p class="vc-reps__error" role="alert">{{ errorEditar() }}</p>
+    }
+    <div class="vc-reps__botones">
+      <vc-button variant="secondary" (click)="cerrarEditar()">Cancelar</vc-button>
+      <vc-button id="btnGuardarEdicionRepresentante" type="submit" [disabled]="guardandoEdit()">
+        {{ guardandoEdit() ? 'Guardando…' : 'Guardar cambios' }}
       </vc-button>
     </div>
   </form>
