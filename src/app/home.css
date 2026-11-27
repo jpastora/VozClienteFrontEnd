@@ -1,5 +1,9 @@
 :host { display: block; }
 .vc-home__aviso { margin: var(--vc-space-2) 0 var(--vc-space-3); color: var(--vc-muted); font-size: var(--vc-text-sm); }
+.vc-home__aviso--error { color: var(--vc-danger); display: flex; align-items: center; gap: var(--vc-space-3); }
 .vc-home__metricas { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--vc-space-3); margin-bottom: var(--vc-space-4); }
-.vc-home__recientes h2 { margin-bottom: var(--vc-space-3); }
+.vc-home__cabecera { display: flex; align-items: baseline; justify-content: space-between; gap: var(--vc-space-3); margin-bottom: var(--vc-space-3); }
+.vc-home__cabecera h2 { margin: 0; }
+.vc-home__ver-todas, .vc-home__enlace { color: inherit; text-underline-offset: 3px; }
+.vc-home__sin-dato { color: var(--vc-muted); }
 .vc-home__vacio td { text-align: center; color: var(--vc-muted); font-weight: 400 !important; padding: var(--vc-space-5); }

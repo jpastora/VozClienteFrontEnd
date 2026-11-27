@@ -1,23 +1,54 @@
 <h1>Inicio</h1>
 <p class="vc-eyebrow">Resumen de tu empresa</p>
 
-<p class="vc-home__aviso" role="status">Sin datos: esta pantalla se conectará cuando el back-end exponga el resumen.</p>
+@if (error()) {
+  <div class="vc-home__aviso vc-home__aviso--error" role="alert">
+    {{ error() }}
+    <vc-button variant="secondary" (click)="cargar()">Reintentar</vc-button>
+  </div>
+}
 
-<section class="vc-home__metricas" aria-label="Resumen">
-  <vc-metric-card label="Salas disponibles" value="—" />
-  <vc-metric-card label="Productos activos" value="—" />
-  <vc-metric-card label="Entrevistas" value="—" />
-  <vc-metric-card label="Intención de compra global" value="—" />
+<section class="vc-home__metricas" aria-label="Resumen" [attr.aria-busy]="cargando()">
+  <vc-metric-card label="Salas disponibles" [value]="saldo() ? (saldo()!.disponibles | number) ?? '—' : '—'" />
+  <vc-metric-card label="Productos activos" [value]="productosActivos() !== null ? (productosActivos()! | number) ?? '—' : '—'" />
+  <vc-metric-card label="Entrevistas" [value]="totalEntrevistas() !== null ? (totalEntrevistas()! | number) ?? '—' : '—'" />
+  <vc-metric-card label="Intención de compra global" [value]="intencionGlobal()" />
 </section>
 
 <section class="vc-panel vc-home__recientes" aria-labelledby="ttlRecientes">
-  <h2 id="ttlRecientes">Entrevistas recientes</h2>
+  <div class="vc-home__cabecera">
+    <h2 id="ttlRecientes">Entrevistas recientes</h2>
+    @if (recientes().length > 0) {
+      <a class="vc-home__ver-todas" [routerLink]="rutas.entrevistas">Ver todas</a>
+    }
+  </div>
   <table class="vc-table">
     <thead>
       <tr><th>Producto</th><th>Fecha</th><th>Intención</th><th>Estado</th></tr>
     </thead>
     <tbody>
-      <tr class="vc-home__vacio"><td colspan="4">Aún no hay entrevistas para mostrar.</td></tr>
+      @if (cargando()) {
+        <tr class="vc-home__vacio"><td colspan="4" role="status">Cargando entrevistas…</td></tr>
+      } @else {
+        @for (e of recientes(); track e.id) {
+          <tr>
+            <td>
+              <a class="vc-home__enlace" [routerLink]="[rutas.entrevistas, e.id]">{{ e.productoNombre || '—' }}</a>
+            </td>
+            <td>{{ formatearFecha(e.inicioEn) }}</td>
+            <td>
+              @if (intencion(e); as i) {
+                <vc-badge [tone]="i.tono">{{ i.texto }}</vc-badge>
+              } @else {
+                <span class="vc-home__sin-dato">{{ textoSinIntencion(e) }}</span>
+              }
+            </td>
+            <td><vc-badge [tone]="tonoEstado(e.estado)">{{ etiquetaEstado(e.estado) }}</vc-badge></td>
+          </tr>
+        } @empty {
+          <tr class="vc-home__vacio"><td colspan="4">Aún no hay entrevistas para mostrar.</td></tr>
+        }
+      }
     </tbody>
   </table>
 </section>

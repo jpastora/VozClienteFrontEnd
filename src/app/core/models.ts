@@ -145,6 +145,15 @@ export interface CrearRepresentanteRequest {
   ingresaConGoogle?: boolean;
 }
 
+/** Espejo de ActualizarRepresentanteDTO: solo los campos que cambian (al menos uno) y la versión de la cuenta. */
+export interface ActualizarRepresentanteRequest {
+  nombreCompleto?: string;
+  correo?: string;
+  /** Versión que el front leyó de la cuenta; si cambió, el back-end responde 409. */
+  version: number;
+}
+
+
 /** Espejo de CrearCuentaDTO: alta de una cuenta con cualquier rol (POST /api/cuentas). */
 export interface CrearCuentaRequest {
   nombreCompleto: string;

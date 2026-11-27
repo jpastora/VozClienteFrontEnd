@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_URL } from './config';
-import { CrearRepresentanteRequest, CuentaDTO } from './models';
+import { ActualizarRepresentanteRequest, CrearRepresentanteRequest, CuentaDTO } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class RepresentanteApi {
@@ -16,6 +16,14 @@ export class RepresentanteApi {
   /** POST /api/representantes: la cuenta queda PENDIENTE hasta su primer ingreso con Google (RF-03). */
   crear(representante: CrearRepresentanteRequest): Observable<CuentaDTO> {
     return this.http.post<CuentaDTO>(`${API_URL}/representantes`, representante);
+  }
+
+  /**
+   * PATCH /api/representantes/{id}: actualiza el nombre completo y/o el correo (se envía al menos uno).
+   * Si el correo cambia, el back-end desvincula la cuenta de Google. 409 si el correo ya existe.
+   */
+  actualizar(id: number, cambios: ActualizarRepresentanteRequest): Observable<CuentaDTO> {
+    return this.http.patch<CuentaDTO>(`${API_URL}/representantes/${id}`, cambios);
   }
 
   /** POST /api/representantes/{id}/contrasena-temporal: envía una contraseña temporal nueva por correo. */
